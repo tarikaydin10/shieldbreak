@@ -1,0 +1,48 @@
+# Unity (Projekt liegt unter game/)
+game/[Ll]ibrary/
+game/[Tt]emp/
+game/[Oo]bj/
+game/[Bb]uild/
+game/[Bb]uilds/
+game/[Ll]ogs/
+game/[Uu]ser[Ss]ettings/
+game/[Mm]emoryCaptures/
+game/[Rr]ecordings/
+game/.vs/
+game/.idea/
+game/*.csproj
+game/*.sln
+game/*.suo
+game/*.user
+game/*.userprefs
+game/*.pidb
+game/*.booproj
+game/*.svd
+game/*.pdb
+game/*.mdb
+game/*.opendb
+game/*.VC.db
+game/*.pidb.meta
+game/*.pdb.meta
+game/*.mdb.meta
+game/sysinfo.txt
+game/*.apk
+game/*.aab
+game/*.unitypackage
+game/*.app
+game/crashlytics-build.properties
+game/Assets/StreamingAssets/aa.meta
+game/Assets/StreamingAssets/aa/*
+
+# Blender
+*.blend1
+*.blend2
+
+# OS / Editor
+Thumbs.db
+.DS_Store
+.vscode/
+*.swp
+
+# Lokale Claude-Code-Einstellungen (Projekt-.mcp.json wird versioniert)
+.claude/settings.local.json
