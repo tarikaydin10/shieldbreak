@@ -1,4 +1,4 @@
-# SHIELDBREAK — Einmaliges Setup (Windows)
+﻿# SHIELDBREAK — Einmaliges Setup (Windows)
 # Ausführen in PowerShell aus dem Repo-Root:  .\tools\setup-windows.ps1
 # Installiert uv, das Blender-MCP-Addon, registriert Blender-MCP in Claude Code, initialisiert Git + LFS.
 

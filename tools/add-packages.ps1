@@ -1,4 +1,4 @@
-# SHIELDBREAK — Unity-Packages ergänzen
+﻿# SHIELDBREAK — Unity-Packages ergänzen
 # Nach dem ersten Öffnen des Unity-Projekts (game/) ausführen, Unity dabei geschlossen:  .\tools\add-packages.ps1
 # Ergänzt game/Packages/manifest.json um die im CLAUDE.md festgelegten Packages.
 # Versionen sind Startpunkte; Unity schlägt beim nächsten Öffnen ggf. neuere vor. Unity MCP bleibt gepinnt.
@@ -15,8 +15,8 @@ $wanted = [ordered]@{
     "com.unity.collections"               = "2.5.7"
     "com.unity.mathematics"               = "1.3.2"
     "com.unity.inputsystem"               = "1.14.2"
-    "com.unity.cinemachine"               = "3.1.4"
-    "com.unity.animation.rigging"         = "1.3.0"
+    "com.unity.cinemachine"               = "3.1.7"
+    "com.unity.animation.rigging"         = "1.4.1"
     "com.unity.test-framework"            = "1.5.1"
     "com.coplaydev.unity-mcp"             = "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#v10.0.0"
 }
@@ -34,7 +34,8 @@ if (-not ($json.PSObject.Properties.Name -contains "testables")) {
     $json | Add-Member -NotePropertyName "testables" -NotePropertyValue @()
 }
 
-$json | ConvertTo-Json -Depth 10 | Set-Content $Manifest -Encoding UTF8
+# Unity rejects manifest.json with a BOM; Set-Content -Encoding UTF8 in PowerShell 5.1 always writes one
+[IO.File]::WriteAllText($Manifest, ($json | ConvertTo-Json -Depth 10), [Text.UTF8Encoding]::new($false))
 
 if ($added.Count -gt 0) { Write-Host "Ergänzt: $($added -join ', ')" -ForegroundColor Green }
 else { Write-Host "Alle Packages bereits vorhanden." -ForegroundColor Gray }
