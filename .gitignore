@@ -50,3 +50,6 @@ Thumbs.db
 # Python (tools/assetgen laeuft in Blender)
 __pycache__/
 *.pyc
+
+# Schatten-Kopie fuer Tests bei offenem Editor (tools/run-tests.ps1 -Shadow)
+.ci/

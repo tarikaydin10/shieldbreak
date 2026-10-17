@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using NUnit.Framework;
 using Shieldbreak.Sim.Core;
 using Unity.Mathematics;
@@ -76,23 +75,6 @@ namespace Shieldbreak.Tests
             Assert.That(world.Agents[0].Target, Is.EqualTo(new float2(2f, 2f)));
             Assert.That(world.Agents[1].Target, Is.EqualTo(new float2(10f, 10f)));
             Assert.That(world.Agents[2].Target, Is.EqualTo(new float2(10f, 10f)));
-        }
-
-        [Test]
-        public void FiveHundredAgents_ReportStepTime()
-        {
-            using var world = new SimWorld(TestScenarios.Config(3, 128, 500));
-            TestScenarios.SpawnRandom(world, 500, margin: 40f);
-            MoveAll(world, new float2(64f, 64f));
-            for (int t = 0; t < 60; t++) world.Step();   // warm up Burst and caches
-
-            const int ticks = 600;
-            var watch = Stopwatch.StartNew();
-            for (int t = 0; t < ticks; t++) world.Step();
-            watch.Stop();
-            double ms = watch.Elapsed.TotalMilliseconds / ticks;
-            TestContext.WriteLine($"500 agents: {ms:0.000} ms per SimWorld.Step (target < 2 ms, measured properly in M0 task 7)");
-            Assert.Pass($"{ms:0.000} ms per tick");
         }
     }
 }

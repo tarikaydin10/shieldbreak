@@ -1,10 +1,19 @@
 ﻿# SHIELDBREAK — EditMode-Tests im Unity-Batchmode ausführen (Pflicht vor jedem Commit, siehe CLAUDE.md §8)
-# Unity-Editor mit diesem Projekt muss geschlossen sein; bei offenem Editor stattdessen Unity MCP run_tests nutzen.
-# Aufruf aus dem Repo-Root:  .\tools\run-tests.ps1
+# Unity-Editor mit diesem Projekt muss geschlossen sein, ausser mit -Shadow: dann laufen die Tests auf einer Kopie
+# unter .ci/game (ohne Library; der erste Lauf importiert alles neu und dauert einige Minuten).
+# Aufruf aus dem Repo-Root:  .\tools\run-tests.ps1  [-Shadow]
+param([switch]$Shadow)
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $Project = Join-Path $RepoRoot "game"
+if ($Shadow) {
+    $Copy = Join-Path $RepoRoot ".ci\game"
+    Write-Host "Spiegle game/ nach .ci/game ..." -ForegroundColor Cyan
+    robocopy $Project $Copy /MIR /XD Library Temp Logs obj UserSettings .vs /NFL /NDL /NJH /NJS /NP | Out-Null
+    if ($LASTEXITCODE -ge 8) { throw "robocopy fehlgeschlagen ($LASTEXITCODE)" }
+    $Project = $Copy
+}
 $Version = ((Get-Content (Join-Path $Project "ProjectSettings\ProjectVersion.txt") | Select-String "m_EditorVersion:") -split ":\s*")[1].Trim()
 $Unity = "C:\Program Files\Unity\Hub\Editor\$Version\Editor\Unity.exe"
 if (-not (Test-Path $Unity)) { throw "Unity $Version nicht gefunden: $Unity" }
@@ -36,5 +45,6 @@ $xml.SelectNodes("//test-case") | ForEach-Object {
     $color = if ($_.result -eq "Passed") { "Green" } else { "Red" }
     Write-Host ("  [{0}] {1} ({2:N2}s)" -f $_.result, $_.fullname, [double]$_.duration) -ForegroundColor $color
     if ($_.result -ne "Passed") { Write-Host ("      " + $_.failure.message.InnerText) -ForegroundColor Red }
+    if ($_.output -and $_.output.InnerText.Trim()) { Write-Host ("      " + $_.output.InnerText.Trim()) -ForegroundColor Gray }
 }
 exit $p.ExitCode
