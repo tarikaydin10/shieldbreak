@@ -921,6 +921,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleScheme",
+                    "type": "Button",
+                    "id": "5f5a1749-4831-4bd8-8964-7ffbd673ed7f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1075,6 +1084,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Feint",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4cbccc49-4657-49f3-aa95-9fa7da552947",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleScheme",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

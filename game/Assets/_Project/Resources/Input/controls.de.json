@@ -173,11 +173,11 @@
     },
     {
       "action": "Combat/Look",
-      "text": "Umschauen; die Mausbewegung kurz vor dem Angriff bestimmt die Richtung (hoch = oben, seitlich = Seitenhieb, runter = Stich)"
+      "text": "Umschauen (bei Steuerung Richtungen bestimmt die Mausbewegung kurz vor dem Angriff die Richtung)"
     },
     {
       "action": "Combat/Attack",
-      "text": "Angriff in Richtung der letzten Mausbewegung; ohne Bewegung: Hieb von oben"
+      "text": "Angriff. Einfach: tippen = leicht (Kette rechts/links, mit W: Stich), halten = schwer von oben. Richtungen (Tab): Richtung aus der Mausbewegung"
     },
     {
       "action": "Combat/Block",
@@ -206,6 +206,10 @@
     {
       "action": "Duel/ToggleBars",
       "text": "Lebens- und Ausdauerbalken über den Köpfen ein/aus (Debug)"
+    },
+    {
+      "action": "Combat/ToggleScheme",
+      "text": "Steuerung wechseln: Einfach (leicht/schwer) oder Richtungen (Maus)"
     }
   ]
 }

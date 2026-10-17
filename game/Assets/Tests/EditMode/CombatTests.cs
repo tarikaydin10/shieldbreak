@@ -166,6 +166,19 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void HeavyHold_MorphsALightSideCutIntoOverhead_EvenAtThirtyFps()
+        {
+            // Simple control scheme: the light cut starts at once, holding sends Overhead ~0.1 s later. At 30 fps the
+            // hold is detected up to 8 ticks after the press; that must still be inside the morph window.
+            Build();
+            input.At(10, PlayerA, InputCommandType.CombatAttack, a, AttackDirection.Right);
+            input.At(18, PlayerA, InputCommandType.CombatAttack, a, AttackDirection.Overhead);
+            input.RunUntil(20, log);
+            Assert.That(C(a).Direction, Is.EqualTo(AttackDirection.Overhead));
+            Assert.That(log.Count(e => e.Type == CombatEventType.AttackStart && e.Attacker == a), Is.EqualTo(1), "one attack, morphed");
+        }
+
+        [Test]
         public void InputBuffer_AttackDuringRecovery_StartsWhenFree()
         {
             Build();

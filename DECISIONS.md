@@ -105,6 +105,13 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Angriffsrichtung aus der Mausbewegung der letzten 120 ms vor dem Klick, ohne Bewegung „Auto" (oben) | CLAUDE.md 3.5: Richtung aus Maus-Delta, Auto-Richtung für Einsteiger | Feste Tasten pro Richtung |
 | Singleplayer-Eingabeverzögerung 1 Tick (`DuelScenarioDefinition.inputDelayTicks`) | Game-Feel-Spec: Windup sichtbar ≤ 50 ms; Multiplayer nutzt 6–9 Ticks | 6 Ticks auch im Singleplayer |
 
+## 2026-10-18 — Einfache Kampfsteuerung als Standard
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Standard-Steuerung „Einfach": tippen = leichter Angriff (Kette rechts/links, mit Vorwärts: Stich), halten = schwerer Hieb von oben; Richtungs-Steuerung per Maus bleibt per Tab wählbar | Tarik will Kampf ohne Richtungs-Komplexität; der Kopf bleibt frei fürs Kommandieren. Die Sim-Grammatik (vier Richtungen als Geometrie, ein richtungsloser Block) bleibt unverändert, nur die Eingabe-Übersetzung ändert sich. Fun-Gate entscheidet endgültig | Nur Richtungen per Maus (CLAUDE.md alt), Light/Heavy auch in der Sim (verliert Kopf/Mehrfachtreffer-Geometrie) |
+| „Schwer" startet sofort als leichter Hieb und wird per Morph umgewandelt, sobald die Taste gehalten wird | Kein Warten auf Tippen-oder-Halten, Windup bleibt innerhalb eines Ticks sichtbar; Test sichert, dass auch bei 30 FPS das Morph-Fenster reicht | Angriff erst nach Loslassen auslösen (100–200 ms Verzögerung) |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

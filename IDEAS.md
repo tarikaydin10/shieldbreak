@@ -19,6 +19,7 @@ Regel: Neue Ideen landen hier, nicht im Sprint. Bewertung (Wert / Risiko / Aufwa
 
 ## Kampf
 
+- **Kombos über Richtungen (Tarik, 2026-10-18):** Die leichte Kette der einfachen Steuerung wechselt schon rechts/links. Ausbau: Abschluss-Hieb nach N Treffern (z. B. rechts, links, oben), Richtung je nach Kombo-Schritt, so dass der Spieler aus mehreren Richtungen schlägt, ohne sie zu wählen. CLAUDE.md schließt Combo-Ketten für v1 aus, Entscheidung nach dem M1-Fun-Gate.
 - Sprung-Angriff vom Pferd (Dismount-Attack)
 - Waffen brechen bei Energie über Schwellwert (Schilde zuerst)
 - Umgebung als Waffe: Stoß in Abgrund, Fluss verlangsamt
