@@ -1,0 +1,189 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37dd89ecb5f62544085383c758ec71a4, type: 3}
+  m_Name: SoldierVisual_Default
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.SoldierVisualDefinition
+  material: {fileID: 2100000, guid: 4ab1ce2ecb0ba534c8e0fcd059d80ccc, type: 2}
+  teams:
+  - body:
+      mesh: {fileID: 4170527316775785747, guid: 703f47a5d55067a478681773a13d4127, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+    helmet:
+      mesh: {fileID: -9111743586186854435, guid: 013a2b86d063982439c4196d4385c95c, type: 3}
+      offset: {x: 0, y: 1.65, z: 0}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+    shield:
+      mesh: {fileID: -5744093873693277639, guid: af01b209f94ddbd448c151bf47729cc1, type: 3}
+      offset: {x: -0.24, y: 1, z: 0.2}
+      yaw: -8
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+    weapon:
+      mesh: {fileID: -1563556284307290769, guid: 3b6acee2976d18e499d7bad2ef87230a, type: 3}
+      offset: {x: 0.29, y: 0.95, z: 0.04}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+  - body:
+      mesh: {fileID: -3607303458309990310, guid: cc12d4d9e7f91cc47a5608ced4280179, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+    helmet:
+      mesh: {fileID: -4117143991681714661, guid: 618fec76c3068094bbb1151ad63878ab, type: 3}
+      offset: {x: 0, y: 1.65, z: 0}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+    shield:
+      mesh: {fileID: -4497485402158102328, guid: 2101d24d8a6bcb647b8f42a7d09b6e15, type: 3}
+      offset: {x: -0.24, y: 1, z: 0.2}
+      yaw: -8
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+    weapon:
+      mesh: {fileID: -1563556284307290769, guid: 3b6acee2976d18e499d7bad2ef87230a, type: 3}
+      offset: {x: 0.29, y: 0.95, z: 0.04}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+  selectionMesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+  selectionMaterials:
+  - {fileID: 2100000, guid: 3a30f45db02546b4684445835616db6e, type: 2}
+  - {fileID: 2100000, guid: bd2c8aed190615146b17cbb59f5e95a9, type: 2}
+  selectionRadius: 0.45

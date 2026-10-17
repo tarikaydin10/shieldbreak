@@ -2,11 +2,38 @@
   "comment": "Beschreibung jeder Aktion aus Shieldbreak.inputactions für das Admin-Menü (F1). ControlsDocumentationTests schlägt fehl, wenn eine Aktion fehlt oder ein Eintrag auf keine Aktion zeigt.",
   "maps": [
     { "map": "Global", "title": "Immer" },
+    { "map": "Sim", "title": "Simulation" },
+    { "map": "DebugCamera", "title": "Kamera (Draufsicht)" },
+    { "map": "DebugOrders", "title": "Auswahl und Befehle" },
+    { "map": "DebugOverlay", "title": "Debug-Anzeigen" },
     { "map": "ProtoCamera", "title": "Style-Kamera (Proto_Style)" }
   ],
   "entries": [
     { "action": "Global/ToggleAdminMenu", "text": "Admin-Menü ein/aus" },
     { "action": "Global/Pause", "text": "Pause (Freeze) mit Menü; Kamera bleibt bedienbar" },
+
+    { "action": "Sim/SlowMotion", "text": "Zeitlupe ein/aus" },
+    { "action": "Sim/StepOnce", "text": "Bei Pause: einen Sim-Tick weiter" },
+
+    { "action": "DebugCamera/Move", "text": "Kamera verschieben" },
+    { "action": "DebugCamera/Rotate", "text": "Kamera drehen" },
+    { "action": "DebugCamera/Zoom", "text": "Zoom" },
+    { "action": "DebugCamera/PanHold", "text": "Gedrückt halten und ziehen: Kamera verschieben" },
+    { "action": "DebugCamera/Look", "text": "Mausbewegung (verschiebt, solange die mittlere Taste gehalten wird)" },
+    { "action": "DebugCamera/Fast", "text": "Gedrückt halten: schneller verschieben" },
+
+    { "action": "DebugOrders/Point", "text": "Mauszeiger (Ziel für Auswahl und Befehle)" },
+    { "action": "DebugOrders/Select", "text": "Klicken oder Rahmen ziehen: Soldaten auswählen" },
+    { "action": "DebugOrders/Command", "text": "Auswahl marschiert hierher und stellt sich auf" },
+    { "action": "DebugOrders/Additive", "text": "Gedrückt halten: zur Auswahl hinzufügen" },
+    { "action": "DebugOrders/SelectTeamA", "text": "Team A (rot) auswählen" },
+    { "action": "DebugOrders/SelectTeamB", "text": "Team B (blau) auswählen" },
+    { "action": "DebugOrders/SelectAll", "text": "Alle auswählen" },
+
+    { "action": "DebugOverlay/ToggleGrid", "text": "Grid ein/aus" },
+    { "action": "DebugOverlay/ToggleVelocity", "text": "Geschwindigkeitspfeile ein/aus" },
+    { "action": "DebugOverlay/ToggleTargets", "text": "Ziele der Auswahl ein/aus" },
+
     { "action": "ProtoCamera/View1", "text": "Ansicht Nahkampf, 4 m" },
     { "action": "ProtoCamera/View2", "text": "Ansicht Kampf, 15 m" },
     { "action": "ProtoCamera/View3", "text": "Ansicht Lesbarkeit, 40 m" },

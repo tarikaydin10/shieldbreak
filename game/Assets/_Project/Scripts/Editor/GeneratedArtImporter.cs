@@ -121,7 +121,7 @@ namespace Shieldbreak.EditorTools
             if (AssetDatabase.LoadAssetAtPath<Material>(MaterialPath) != null) return;
             var shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) throw new InvalidOperationException("URP Lit shader not found.");
-            var material = new Material(shader) { name = "M_Palette" };
+            var material = new Material(shader) { name = "M_Palette", enableInstancing = true };
             material.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(PalettePath));
             material.SetColor("_BaseColor", Color.white);
             material.SetFloat("_Smoothness", 0.1f);

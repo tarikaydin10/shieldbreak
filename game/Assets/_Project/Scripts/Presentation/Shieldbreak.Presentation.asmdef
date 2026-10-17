@@ -3,6 +3,7 @@
     "rootNamespace": "Shieldbreak.Presentation",
     "references": [
         "Shieldbreak.Sim",
+        "Shieldbreak.Data",
         "Unity.Mathematics",
         "Unity.Collections",
         "Unity.Burst",

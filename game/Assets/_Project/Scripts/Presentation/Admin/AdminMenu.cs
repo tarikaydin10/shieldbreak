@@ -18,6 +18,8 @@ namespace Shieldbreak.Presentation.Admin
         const float StatusRefreshSeconds = 0.5f;
 
         bool open;
+        // Screen-space rect (GUI coordinates, y down) of the open panel; empty while closed
+        static Rect panelScreenRect;
         bool openBeforePause;
         bool showHint, showInactive, showFps;
         Vector2 scroll;
@@ -99,6 +101,7 @@ namespace Shieldbreak.Presentation.Admin
 
             if (!open)
             {
+                panelScreenRect = Rect.zero;
                 if (showHint)
                 {
                     string label = GamePause.IsPaused ? "PAUSIERT · Esc fortsetzen" : $"{Binding(toggleAction)}  Steuerung & Admin";
@@ -150,6 +153,11 @@ namespace Shieldbreak.Presentation.Admin
 
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
+            if (Event.current.type == EventType.Repaint)
+            {
+                Rect r = GUILayoutUtility.GetLastRect();
+                panelScreenRect = new Rect((16 + r.x) * scale, (16 + r.y) * scale, r.width * scale, r.height * scale);
+            }
             GUILayout.EndArea();
         }
 
@@ -157,6 +165,13 @@ namespace Shieldbreak.Presentation.Admin
         {
             Vector2 size = hint.CalcSize(new GUIContent(label));
             GUI.Label(new Rect(alignRight ? x - size.x : x, 10, size.x, size.y), label, hint);
+        }
+
+        /// <summary>True if a pointer at <paramref name="screenPosition"/> (input space, y up) is over the open menu.</summary>
+        public static bool BlocksPointer(Vector2 screenPosition)
+        {
+            if (panelScreenRect.width <= 0f) return false;
+            return panelScreenRect.Contains(new Vector2(screenPosition.x, Screen.height - screenPosition.y));
         }
 
         static string Binding(InputAction action)

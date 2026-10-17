@@ -61,6 +61,14 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Ziele nur per `SetTargetRange`-Befehl über die InputQueue; Agenten-Spawns nur beim Szenario-Setup vor Tick 0 | Jede Eingabe in die Sim läuft durch die Queue (3.3); Spawns sind Map-Daten und auf allen Peers gleich | Direktes Setzen von Zielen aus der Presentation |
 | Bewegungswerte im ScriptableObject `AgentMovementDefinition` (Assembly `Shieldbreak.Data`), die Sim sieht nur den Struct `AgentMoveSettings` | Data-driven (Arbeitsregel 7), `Sim/` bleibt frei von UnityEngine | Werte als Konstanten im Job |
 
+## 2026-10-17 — Sandbox mit Pipeline-Soldaten statt Kapseln
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| `M0_Sandbox` zeichnet Agenten mit den Pipeline-Assets (Dummy, Helm, Schild, Speer) per Instancing, Boden aus Graskacheln; Ausnahme zu „Kapseln bis M2 / Keine Assets vor M4" | Wunsch von Tarik: die spielbare Szene soll wie der Style-Proof aussehen. Kostet kaum Zeit, weil die Assets schon existieren; die Sim bleibt unberührt | Kapseln bis M2, Umschalter Kapsel/Pipeline |
+| Aussehen eines Soldaten im ScriptableObject `SoldierVisualDefinition` (Meshes, Befestigungspunkte, Auswahlring) | Data-driven; Waffen und Teams später ohne Code tauschbar | Hartcodierte Offsets im Renderer |
+| Schwert, Bogen, Pfeil kommen erst mit ihren Archetypen (M1 bzw. M3) in die Pipeline | Maße und Griffpunkte müssen zur Kampf-Grammatik passen | Jetzt auf Vorrat bauen |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

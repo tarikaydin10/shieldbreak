@@ -2,9 +2,12 @@
     "name": "Shieldbreak.Editor",
     "rootNamespace": "Shieldbreak.EditorTools",
     "references": [
+        "Shieldbreak.Sim",
         "Shieldbreak.Presentation",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Shieldbreak.Data",
+        "Shieldbreak.DebugTools"
     ],
     "includePlatforms": [
         "Editor"

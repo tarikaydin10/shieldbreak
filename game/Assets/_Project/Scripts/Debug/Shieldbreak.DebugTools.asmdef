@@ -1,0 +1,21 @@
+{
+    "name": "Shieldbreak.DebugTools",
+    "rootNamespace": "Shieldbreak.DebugTools",
+    "references": [
+        "Shieldbreak.Sim",
+        "Shieldbreak.Presentation",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

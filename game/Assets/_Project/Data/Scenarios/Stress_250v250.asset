@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2b04126a7011e244bbd3e597a1aa16a, type: 3}
+  m_Name: Stress_250v250
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.SandboxScenarioDefinition
+  seed: 1
+  inputDelayTicks: 6
+  mapWidth: 128
+  mapHeight: 128
+  agentRadius: 0.3
+  spawnSpacing: 1.1
+  spawnJitter: 0.15
+  groups:
+  - name: A Block
+    team: 0
+    count: 250
+    files: 25
+    front: {x: 52, y: 64}
+    faceTowards: {x: 76, y: 64}
+  - name: B Block
+    team: 1
+    count: 250
+    files: 25
+    front: {x: 76, y: 64}
+    faceTowards: {x: 52, y: 64}

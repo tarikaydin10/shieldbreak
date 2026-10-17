@@ -76,8 +76,9 @@ namespace Shieldbreak.Sim.Core
         /// Adds an agent standing at <paramref name="position"/> with its target on the spot. Scenario setup only:
         /// every peer must run the same spawns before tick 0. Returns the agent id.
         /// </summary>
-        public int SpawnAgent(int team, float2 position, float radius)
+        public int SpawnAgent(int team, float2 position, float radius, float2 facing = default)
         {
+            facing = math.normalizesafe(facing, new float2(0f, 1f));
             if (AgentCount >= agents.Length) throw new InvalidOperationException($"Agent capacity {agents.Length} reached.");
             int id = AgentCount++;
             agents[id] = new AgentData
@@ -86,7 +87,7 @@ namespace Shieldbreak.Sim.Core
                 Team = team,
                 Position = position,
                 Velocity = float2.zero,
-                Facing = new float2(0f, 1f),
+                Facing = facing,
                 Target = position,
                 Radius = radius,
             };
