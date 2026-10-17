@@ -58,6 +58,16 @@ namespace Shieldbreak.Sim.Combat.Grammar
             return 1f;
         }
 
+        /// <summary>Inverse of PoseTime: fractional ticks since the start at which the pose timeline reaches <paramref name="poseTime"/>.</summary>
+        public float ElapsedForPose(float poseTime)
+        {
+            float t = math.saturate(poseTime);
+            float w = WindupTicks, r = ReleaseTicks, c = RecoveryTicks;
+            if (t <= ReleaseStartPose) return t / ReleaseStartPose * w;
+            if (t <= RecoveryStartPose) return w + (t - ReleaseStartPose) / (RecoveryStartPose - ReleaseStartPose) * r;
+            return w + r + (t - RecoveryStartPose) / (1f - RecoveryStartPose) * c;
+        }
+
         /// <summary>Converts milliseconds to whole ticks (at least one).</summary>
         public static int MsToTicks(float ms) => math.max(1, (int)math.round(ms * 0.001f * Core.SimConstants.TickRate));
     }

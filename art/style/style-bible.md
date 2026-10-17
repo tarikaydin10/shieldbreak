@@ -27,6 +27,7 @@ Konstanz entsteht durch Einschränkung, nicht durch Geschmack. Kein Asset wird f
 - **Waffen:** entlang +Z (Blender) = +Y (Unity), Griffpunkt im Ursprung.
 - **Schilde:** Front zeigt nach −Y (Blender) = +Z/forward (Unity), Griff im Ursprung.
 - **Helme:** Ursprung mittig an der Unterkante des Stirnreifs (Befestigungspunkt am Kopf).
+- **Figuren:** Ursprung zwischen den Füßen (darf asymmetrisch sein, z. B. ein Arm fehlt für prozedurale IK).
 - **Props, Umgebung:** Ursprung unten mittig.
 
 ## Licht und Nachbearbeitung

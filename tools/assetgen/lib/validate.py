@@ -61,6 +61,15 @@ def check_object(obj, spec, style, palette):
         cx, cy = (mn[0] + mx[0]) * 0.5, (mn[1] + mx[1]) * 0.5
         if abs(cx) > 0.01 or abs(cy) > 0.01:
             errors.append(f"pivot 'ground': bbox center xy ({cx:.3f}, {cy:.3f}) not at origin")
+    elif cat["pivot"] == "ground_axis":
+        # Figures may be asymmetric (one arm, a raised weapon); the origin must sit between the feet instead
+        if abs(mn[2]) > 0.001:
+            errors.append(f"pivot 'ground_axis': min z is {mn[2]:.4f}, expected 0")
+        feet = [v.co for v in mesh.vertices if v.co.z < 0.05]
+        fx = sum(c.x for c in feet) / len(feet)
+        fy = sum(c.y for c in feet) / len(feet)
+        if abs(fx) > 0.03 or abs(fy) > 0.03:
+            errors.append(f"pivot 'ground_axis': feet centre ({fx:.3f}, {fy:.3f}) not at origin")
 
     if len(mesh.materials) != g["max_materials"] or mesh.materials[0].name != g["material_name"]:
         errors.append(f"exactly one material '{g['material_name']}' required")

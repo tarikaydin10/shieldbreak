@@ -23,7 +23,7 @@ namespace Shieldbreak.EditorTools
         const string MovementPath = "Assets/_Project/Data/Agents/AgentMovement_Default.asset";
         const string SandboxPath = "Assets/_Project/Data/Scenarios/Sandbox_20v20.asset";
         const string StressPath = "Assets/_Project/Data/Scenarios/Stress_250v250.asset";
-        const string VisualPath = "Assets/_Project/Data/Visuals/SoldierVisual_Default.asset";
+        internal const string VisualPath = "Assets/_Project/Data/Visuals/SoldierVisual_Default.asset";
         const string Gen = GeneratedArtImporter.GeneratedDir;
         const float GroundTile = 20f;
         // Ground patches have up to 0.3 m of bumps; sink them a little so feet do not float over the dips
@@ -119,7 +119,7 @@ namespace Shieldbreak.EditorTools
             Debug.Log($"[sandbox] built {ScenePath}");
         }
 
-        static void BuildGround(float w, float h)
+        internal static void BuildGround(float w, float h)
         {
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(Gen + "ENV_ground_grass.fbx");
             if (model == null) throw new FileNotFoundException("ENV_ground_grass.fbx missing; run tools/assetgen/run.ps1");
@@ -172,7 +172,7 @@ namespace Shieldbreak.EditorTools
             AssetDatabase.SaveAssets();
         }
 
-        static void SetMesh(SoldierVisualDefinition.Part part, string asset)
+        internal static void SetMesh(SoldierVisualDefinition.Part part, string asset)
         {
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(Gen + asset + ".fbx");
             if (model == null) throw new FileNotFoundException($"{asset}.fbx missing; run tools/assetgen/run.ps1");
@@ -210,7 +210,7 @@ namespace Shieldbreak.EditorTools
         static SandboxScenarioDefinition.SpawnGroup Group(string name, int team, int count, int files, Vector2 front, Vector2 face) =>
             new SandboxScenarioDefinition.SpawnGroup { name = name, team = team, count = count, files = files, front = front, faceTowards = face };
 
-        static T LoadOrCreate<T>(string path, System.Action<T> fill) where T : ScriptableObject
+        internal static T LoadOrCreate<T>(string path, System.Action<T> fill) where T : ScriptableObject
         {
             var asset = AssetDatabase.LoadAssetAtPath<T>(path);
             if (asset != null) return asset;
@@ -222,7 +222,7 @@ namespace Shieldbreak.EditorTools
             return asset;
         }
 
-        static Material LitMaterial(string name, string hex, float emission = 0f, bool instancing = true)
+        internal static Material LitMaterial(string name, string hex, float emission = 0f, bool instancing = true)
         {
             string path = $"{MaterialDir}/{name}.mat";
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);

@@ -793,6 +793,85 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "ProtoAttack",
+            "id": "3795335f-413d-4550-886a-a0fa0e5cb2e8",
+            "actions": [
+                {
+                    "name": "PlayPause",
+                    "type": "Button",
+                    "id": "eed9a66c-5a0c-45bf-9b73-6733234d9616",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "StepTick",
+                    "type": "Button",
+                    "id": "26cb4e61-262a-48c4-b622-53c88695c686",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "SlowMotion",
+                    "type": "Button",
+                    "id": "38260069-36f6-4844-8692-72a023afbd51",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "aa71c5e9-4705-4a95-9fd2-67e5b1707f4d",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PlayPause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a2e3a846-cbfa-46ee-99f9-f66ffe757050",
+                    "path": "<Keyboard>/n",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "StepTick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a3eea085-0550-4444-80c5-ae165ef04bd7",
+                    "path": "<Keyboard>/period",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "StepTick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5a10cb03-554b-4f8b-aac2-8dff158b3707",
+                    "path": "<Keyboard>/z",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SlowMotion",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

@@ -4,6 +4,7 @@ Low-Poly-Schlachtsimulator, Unity 6 (URP). Stand: M0, laufende Arbeit auf `m0`.
 
 ![Nahkampf](docs/screenshots/proto_close.jpg)
 ![Kommandoansicht](docs/screenshots/proto_command.jpg)
+![Oben-Hieb: Seite und 15 m](docs/screenshots/proto_attack.jpg)
 
 ## Setup
 
@@ -12,7 +13,7 @@ git lfs install
 git clone https://github.com/tarikaydin10/shieldbreak.git
 ```
 
-Unity Hub → Add → Ordner `game`. Szene `Assets/_Project/Scenes/Proto_Style.unity`. **F1** zeigt alle Tasten, **Esc** pausiert.
+Unity Hub → Add → Ordner `game`. Szenen in `Assets/_Project/Scenes/`: `M0_Sandbox` (spielbar), `Proto_Animation` (Hieb), `Proto_Style` (Look). **F1** zeigt alle Tasten, **Esc** pausiert.
 
 ## Befehle
 

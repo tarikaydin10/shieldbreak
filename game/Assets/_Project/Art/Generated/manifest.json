@@ -1,6 +1,6 @@
 {
   "generator_version": 1,
-  "style_sha256": "fb86881b393d314505d9367c640694f367bacfeb1275b4fd92d9438d65bbc608",
+  "style_sha256": "9081ef2ad51219788053308354906abf7f64553a79c82a3bdd2e4abef1164df6",
   "palette_png_sha256": "157744b75ed04e44008c3a7f5d8bf0f0182fe4073f6c913b7d1630989f53b520",
   "assets": [
     {
@@ -32,6 +32,16 @@
       "geometry_sha256": "f9ea79dde91621b0f6cf693822b684181801cfa7185b744a43770b4bc1c51060",
       "fbx": "game/Assets/_Project/Art/Generated/CHR_dummy_team_a.fbx",
       "fbx_sha256": "1457d4f883cbac0b26c88dbe2bd15d9ea86b8748357a3fc717db8678a28c6bb7"
+    },
+    {
+      "name": "CHR_dummy_team_a_left_arm",
+      "category": "character",
+      "generator": "dummy_soldier",
+      "spec": "art/specs/CHR_dummy_team_a_left_arm.json",
+      "tris": 356,
+      "geometry_sha256": "45981f93a3b434f2d19d20dd206f54fb74a3db3a792e9714395b771743ed1b04",
+      "fbx": "game/Assets/_Project/Art/Generated/CHR_dummy_team_a_left_arm.fbx",
+      "fbx_sha256": "f3a2c07a120eb0354ca344ba1f999408831a90c9b989ed9f8132513ff3c6dfa7"
     },
     {
       "name": "CHR_dummy_team_b",

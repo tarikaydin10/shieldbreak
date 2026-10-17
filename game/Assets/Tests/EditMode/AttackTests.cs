@@ -54,6 +54,13 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void ElapsedForPose_InvertsPoseTime()
+        {
+            for (float ticks = 0f; ticks <= timing.TotalTicks; ticks += 0.25f)
+                Assert.That(timing.ElapsedForPose(timing.PoseTime(ticks)), Is.EqualTo(ticks).Within(1e-3f), $"ticks {ticks}");
+        }
+
+        [Test]
         public void WeaponPath_HitsEveryKeyExactly()
         {
             foreach (var key in keys)
