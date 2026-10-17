@@ -168,7 +168,7 @@ Kameras sind reine Presentation; die Sim ist perspektivenunabhängig. Kamerazust
 | Input | Unity Input System, Controller-Support von Anfang an |
 | Kamera | Cinemachine (Third-Person, Schulter-Offset, Zielpunkt per Kamera-Raycast) |
 | Daten | ScriptableObjects für Einheiten, Waffen, Formationen, Taktiken, Maps. Kein Balancing im Code. |
-| Assets | Kapseln + Debug-Gizmos bis M2. Synty POLYGON ab M4. |
+| Assets | Kapseln + Debug-Gizmos bis M2. Ab M4 Synty POLYGON oder eigener Pipeline-Style (offen, siehe `DECISIONS.md`). Alle eigenen Assets über `tools/assetgen` (headless Blender, Palette, Validator). |
 | Animation | **Pose-basiert prozedural** (Overgrowth-Methode): Angriffe = 3–4 Key-Posen + Easing-Kurven + Laufzeit-IK (Unity Animation Rigging) + prozedurale Secondary Motion. Angriffs-Definition ist ein ScriptableObject, aus dem Grammatik (Phasendauern) und SwingTrace (Waffenbahn) dieselben Daten lesen. Posen werden in Blender gesetzt (Blender MCP für Batch/Varianten), optional Cascadeur für physikalisch plausible Referenzposen. Mixamo nur für Locomotion/Idles. Gekaufte Clips nur als Fallback, falls der M0-Prototyp scheitert. |
 | Tooling | Blender MCP (ahujasid/blender-mcp) und Unity MCP (Open Source, Stand prüfen) als Claude-Anbindung für Posen, Prefabs, ScriptableObjects. |
 | Netz | Facepunch.Steamworks (M6) |
@@ -184,7 +184,12 @@ shieldbreak/                 # Repo-Root (dieses Dokument liegt hier)
   IDEAS.md                   # Ideen außerhalb des aktuellen Meilensteins
   .mcp.json                  # Claude-Code-MCP-Server (Blender; Unity trägt sich selbst ein)
   docs/                      # Design-Notizen, Research, Posen-Vorgaben
+  art/
+    style/                   # palette.json, style.json, style-bible.md (Quelle der Wahrheit für den Look)
+    specs/                   # eine JSON-Spec pro Asset
+    contact-sheet.png        # alle Assets nebeneinander, von der Pipeline gerendert
   tools/                     # Setup-Skripte
+    assetgen/                # headless-Blender-Pipeline: Generatoren, Validator, run.ps1
   game/                      # Unity-Projekt (von Unity Hub erzeugt, URP-Template)
 ```
 
@@ -271,6 +276,7 @@ Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebni
 - Bei Architektur-Entscheidungen, die von Abschnitt 3 abweichen: erst `DECISIONS.md` ergänzen (Datum, Grund, Alternative), dann umsetzen.
 - Boilerplate, Jobs, Tests, Tooling: Claude Code. Design-Entscheidungen, Tuning, Fun-Gate-Bewertung: Tarik.
 - **Drittanbieter-Assets:** Gameplay-Frameworks (Combat-, Formation-, AI-Systeme) kommen nie ins Repo; sie setzen MonoBehaviour/PhysX/NavMesh voraus und brechen Determinismus und Sim/Presentation-Trennung. Erlaubt sind reine Presentation-Tools (Rendering, VFX, Audio, Editor-Tooling) und Daten (Modelle, Posen). Gekaufte Systeme dürfen als Teardown in einem separaten Projekt studiert werden; Erkenntnisse nach `docs/research/`.
+- **Assets nur über die Pipeline** (`art/style/style-bible.md`): Finale Modelle entstehen ausschließlich aus einer Spec in `art/specs/` über `tools/assetgen/run.ps1` und landen in `game/Assets/_Project/Art/Generated/`. Nie FBX von Hand ablegen oder nachbearbeiten, nie Farben als Hex in Specs. Passt ein Asset nicht, Generator oder `style.json` ändern, nicht das Asset. Blender MCP und KI-Text-zu-3D nur zum Erkunden bzw. als Rohmaterial für einen Normalize-Generator. Vor jedem Commit mit Änderungen an `art/` oder `tools/assetgen/`: `run.ps1` (Kontaktbogen ansehen) und `run.ps1 -Check`.
 - **MCP-Regeln (Blender MCP, Unity MCP):** Vor jeder Batch-Operation über MCP ein Git-Commit; in Blender vorher speichern. Keine Lösch- oder Überschreib-Operationen in Blender/Unity ohne explizite Bestätigung. Server bleiben auf localhost; nur eine Client-Instanz pro Server. Unity-MCP-Package auf feste Version gepinnt (`#v10.0.0`), Upgrade nur bewusst mit Eintrag in `DECISIONS.md`. Konfiguration liegt in `.mcp.json` im Repo.
 
 ## 9. Offene Entscheidungen (bis M3 erlaubt)

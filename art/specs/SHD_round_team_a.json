@@ -1,0 +1,11 @@
+{
+  "name": "SHD_round_team_a",
+  "category": "shield",
+  "generator": "round_shield",
+  "seed": 1,
+  "params": {
+    "radius": 0.44, "segments": 12, "thickness": 0.03, "dome": 0.035,
+    "rim_width": 0.035, "boss_radius": 0.09, "boss_height": 0.07, "pattern": "quarters"
+  },
+  "colors": { "face_a": "team_a", "face_b": "white_paint", "rim": "iron_dark", "boss": "iron", "back": "wood_mid", "brace": "wood_dark", "grip": "leather_dark" }
+}

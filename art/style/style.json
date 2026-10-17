@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "comment": "Machine-readable style rules. tools/assetgen/validate.py enforces every field. Change rules here, never in code.",
+  "global": {
+    "max_materials": 1,
+    "material_name": "M_Palette",
+    "flat_shading": true,
+    "uv_mode": "palette_cell_per_face",
+    "uv_epsilon": 0.0005,
+    "forbidden_colors": ["debug_magenta"],
+    "name_pattern": "^(WPN|SHD|ARM|PRP|ENV)_[a-z0-9_]+$",
+    "min_face_area_m2": 1e-6
+  },
+  "categories": {
+    "weapon_polearm": { "prefix": "WPN", "max_tris": 300,  "size_m": { "longest": [1.8, 3.2] }, "pivot": "grip" },
+    "weapon_onehand": { "prefix": "WPN", "max_tris": 250,  "size_m": { "longest": [0.6, 1.1] }, "pivot": "grip" },
+    "shield":         { "prefix": "SHD", "max_tris": 400,  "size_m": { "longest": [0.6, 1.2] }, "pivot": "grip" },
+    "armor_head":     { "prefix": "ARM", "max_tris": 350,  "size_m": { "longest": [0.2, 0.45] }, "pivot": "attach" },
+    "prop":           { "prefix": "PRP", "max_tris": 800,  "size_m": { "longest": [0.2, 4.0] }, "pivot": "ground" },
+    "environment":    { "prefix": "ENV", "max_tris": 1500, "size_m": { "longest": [0.3, 20.0] }, "pivot": "ground" }
+  }
+}

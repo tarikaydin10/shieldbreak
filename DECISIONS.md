@@ -42,9 +42,20 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 |---|---|---|
 | `Shieldbreak.Sim.asmdef` mit `noEngineReferences: false`; die Regel „kein UnityEngine in `Sim/`" sichert der EditMode-Test `SimPurityTests` (scannt `Sim/**/*.cs` auf `UnityEngine`, `Mathf`, `Time.`, `System.Random`, `DateTime`, `Stopwatch`, `Physics`) | In Unity 6000.5 liegen `NativeArray`, `Allocator`, `UnsafeUtility` und sogar `Unity.Mathematics` (`UnityEngine.MathematicsModule`) in Engine-Assemblies; mit `noEngineReferences: true` kompiliert `Sim/` nicht (CS1069/CS0246, verifiziert) | `noEngineReferences: true` (nicht kompilierbar), eigene Container statt `NativeArray` (bricht Burst-Jobs) |
 
+## 2026-10-17 — Engine bleibt Unity, Asset-Pipeline über headless Blender
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Engine bleibt Unity 6 (URP) | 150v150 + Hit-Traces brauchen Burst/NativeArrays; Determinismus, Input-Latenz, Cinemachine/Animation Rigging und Steam-Release sind dort gelöst; M0 Task 1+2 stehen | Three.js (GC-Ruckler, Browser-Mathe nicht garantiert deterministisch, Input-Latenz, Steam nur über Electron/Tauri), eigene C++-Engine (Hunderte Stunden bei ~650 h Gesamtbudget) |
+| Finale Assets entstehen nur über `tools/assetgen` (headless Blender, `--factory-startup`): Spec in `art/specs/` → Generator → Validator gegen `art/style/` → FBX + `manifest.json` + Kontaktbogen | Style-Konstanz entsteht durch harte Regeln im Repo, nicht durch das Gedächtnis eines Menschen oder Modells. Jede Session (Claude, anderes Modell, Mensch) muss durch denselben Filter | Freies Modellieren über Blender MCP (nicht reproduzierbar), KI-Text-zu-3D direkt ins Spiel (Topologie/Texturen inkonsistent) |
+| Eine Palette-Textur (`palette.json` → `palette.png`, Point-Filter), ein Material `M_Palette`, eine Palettenfarbe pro Fläche, Flat Shading | Einheitlicher Look ohne Texturarbeit; KI-tauglich, weil Farben nur per Name referenziert werden | Eigene Texturen pro Asset, Vertex-Farben |
+| Reproduzierbarkeit über Geometrie-Hash (`run.ps1 -Check`), Unverfälschtheit über FBX-Hash im Manifest (Unity-Import-Check + `ArtPipelineTests`) | FBX enthält Zeitstempel, Byte-Gleichheit wäre unmöglich; der Geometrie-Hash prüft, was zählt | Byte-Vergleich der FBX |
+| Pipeline-Proof vorgezogen in M0 (Ausnahme zu „Keine Assets vor M4") | Ausdrücklicher Wunsch, früh zu beweisen, dass der Style trägt. Es ist Tooling, keine Optik-Politur; die fünf Proof-Assets sind Platzhalter | Pipeline erst in M4 |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)
 - Spielname (Arbeitstitel SHIELDBREAK)
 - Befehlsreichweite / Sichtlinie: Experiment in M3, Parameter
 - Progression zwischen Schlachten
+- Synty POLYGON ab M4 vs. eigener Pipeline-Style (Synty passt nur, wenn Palette und Proportionen übernommen werden)

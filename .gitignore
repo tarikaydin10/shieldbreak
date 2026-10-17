@@ -46,3 +46,7 @@ Thumbs.db
 
 # Lokale Claude-Code-Einstellungen (Projekt-.mcp.json wird versioniert)
 .claude/settings.local.json
+
+# Python (tools/assetgen laeuft in Blender)
+__pycache__/
+*.pyc

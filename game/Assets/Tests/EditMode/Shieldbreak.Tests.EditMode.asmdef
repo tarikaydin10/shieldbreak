@@ -3,6 +3,7 @@
     "rootNamespace": "Shieldbreak.Tests",
     "references": [
         "Shieldbreak.Sim",
+        "Shieldbreak.Editor",
         "Unity.Mathematics",
         "Unity.Collections",
         "UnityEngine.TestRunner",

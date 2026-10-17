@@ -1,0 +1,57 @@
+{
+  "generator_version": 1,
+  "style_sha256": "7ed41a454894a8d5fbed3b145db66b3a7cd3c74f9fd6833247905d99275b12a7",
+  "palette_png_sha256": "157744b75ed04e44008c3a7f5d8bf0f0182fe4073f6c913b7d1630989f53b520",
+  "assets": [
+    {
+      "name": "ARM_helmet_nasal",
+      "category": "armor_head",
+      "generator": "helmet",
+      "spec": "art/specs/ARM_helmet_nasal.json",
+      "tris": 90,
+      "geometry_sha256": "90b127d0ac671d76af8d06a6515847ef81c4ccb3a9fb1e6cdb02ae06a66fcc9c",
+      "fbx": "game/Assets/_Project/Art/Generated/ARM_helmet_nasal.fbx",
+      "fbx_sha256": "4d971ca4c4687def9c93c90084c1597e17b7fcc7d945d4a8e59c757aed57aedf"
+    },
+    {
+      "name": "ARM_helmet_nasal_crest_a",
+      "category": "armor_head",
+      "generator": "helmet",
+      "spec": "art/specs/ARM_helmet_nasal_crest_a.json",
+      "tris": 102,
+      "geometry_sha256": "db8b0d04e62c69641c2799629694832b6ef7f4ef57eba80383d90405031035c9",
+      "fbx": "game/Assets/_Project/Art/Generated/ARM_helmet_nasal_crest_a.fbx",
+      "fbx_sha256": "257705fd4619b42501db023e4ae9f5fcb88684676e5770ba4cbf25686140dfcd"
+    },
+    {
+      "name": "SHD_round_team_a",
+      "category": "shield",
+      "generator": "round_shield",
+      "spec": "art/specs/SHD_round_team_a.json",
+      "tris": 168,
+      "geometry_sha256": "84eefc0aedfb198c68f3f19e23bdd6be3d755e81c72a17f13be89e1d69de7318",
+      "fbx": "game/Assets/_Project/Art/Generated/SHD_round_team_a.fbx",
+      "fbx_sha256": "418fea855d780773be1ee16f66c3d54a3af2ae53da7fa6f166ea4c83dfe1ee60"
+    },
+    {
+      "name": "SHD_round_team_b",
+      "category": "shield",
+      "generator": "round_shield",
+      "spec": "art/specs/SHD_round_team_b.json",
+      "tris": 168,
+      "geometry_sha256": "4f95108a19ada4454e95555057f1ae2f70c2da33277051e040d0f522555037c5",
+      "fbx": "game/Assets/_Project/Art/Generated/SHD_round_team_b.fbx",
+      "fbx_sha256": "fcb9394f231fdfeb539edcc712b083b4cfe5061252cfa0af1af6b7c1daec50b1"
+    },
+    {
+      "name": "WPN_spear_basic",
+      "category": "weapon_polearm",
+      "generator": "spear",
+      "spec": "art/specs/WPN_spear_basic.json",
+      "tris": 88,
+      "geometry_sha256": "a7ad38b424cb7855196e0b908de4c05e7e77117f4b49f8d949f40d844257a2e6",
+      "fbx": "game/Assets/_Project/Art/Generated/WPN_spear_basic.fbx",
+      "fbx_sha256": "1ada1cdbed2a9f30f2a83b54e132858056b9873aaf5732854db044d326c7c23e"
+    }
+  ]
+}

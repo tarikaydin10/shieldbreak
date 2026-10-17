@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "grid": 8,
+  "cell_px": 8,
+  "comment": "Single source of truth for all asset colors. Index = row * grid + col, row 0 is the top row of the texture. Only append or replace names; never reorder (UVs of existing assets point at indices).",
+  "colors": [
+    { "name": "ink",            "hex": "#1E1B22" },
+    { "name": "iron_dark",      "hex": "#3A3D45" },
+    { "name": "iron",           "hex": "#6B717C" },
+    { "name": "steel_light",    "hex": "#A9AFB8" },
+    { "name": "bone",           "hex": "#E6DCC3" },
+    { "name": "linen",          "hex": "#CBBE9C" },
+    { "name": "linen_dark",     "hex": "#9A8C6C" },
+    { "name": "white_paint",    "hex": "#EFE9DD" },
+
+    { "name": "wood_dark",      "hex": "#4A2F22" },
+    { "name": "wood_mid",       "hex": "#7A4E31" },
+    { "name": "wood_light",     "hex": "#A8764A" },
+    { "name": "leather_dark",   "hex": "#4F2F20" },
+    { "name": "leather",        "hex": "#8A5634" },
+    { "name": "rope",           "hex": "#B89A64" },
+    { "name": "bronze",         "hex": "#9C6B2F" },
+    { "name": "gold",           "hex": "#D2A341" },
+
+    { "name": "team_a_dark",    "hex": "#6E1E1E" },
+    { "name": "team_a",         "hex": "#B2352B" },
+    { "name": "team_a_light",   "hex": "#E0664B" },
+    { "name": "team_b_dark",    "hex": "#1E3560" },
+    { "name": "team_b",         "hex": "#2F5FA8" },
+    { "name": "team_b_light",   "hex": "#5E92D6" },
+    { "name": "neutral_dark",   "hex": "#3E4A3A" },
+    { "name": "neutral",        "hex": "#6F7F5A" },
+
+    { "name": "grass_dark",     "hex": "#3F5A2C" },
+    { "name": "grass",          "hex": "#5F8238" },
+    { "name": "grass_light",    "hex": "#8DAA4E" },
+    { "name": "foliage",        "hex": "#2F4A2A" },
+    { "name": "stone_dark",     "hex": "#55565A" },
+    { "name": "stone",          "hex": "#83827D" },
+    { "name": "stone_light",    "hex": "#B3AFA4" },
+    { "name": "dirt",           "hex": "#7A6246" },
+
+    { "name": "skin_light",     "hex": "#E2B895" },
+    { "name": "skin_mid",       "hex": "#B9835C" },
+    { "name": "skin_dark",      "hex": "#7A4F35" },
+    { "name": "hair_dark",      "hex": "#2A211C" },
+    { "name": "hair_brown",     "hex": "#5C3B24" },
+    { "name": "hair_blond",     "hex": "#C9A464" },
+    { "name": "blood",          "hex": "#6A1414" },
+    { "name": "debug_magenta",  "hex": "#FF00FF" }
+  ]
+}

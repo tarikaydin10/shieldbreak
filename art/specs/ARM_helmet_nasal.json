@@ -1,0 +1,8 @@
+{
+  "name": "ARM_helmet_nasal",
+  "category": "armor_head",
+  "generator": "helmet",
+  "seed": 1,
+  "params": { "radius": 0.115, "height": 0.17, "segments": 8, "band_height": 0.03, "nasal_length": 0.07 },
+  "colors": { "band": "bronze", "plate_a": "iron", "plate_b": "steel_light", "nasal": "iron_dark", "inside": "ink" }
+}
