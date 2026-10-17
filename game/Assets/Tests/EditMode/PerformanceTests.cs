@@ -49,5 +49,44 @@ namespace Shieldbreak.Tests
 
             Assert.That(median, Is.LessThan(BudgetMs), $"median {median:0.000} ms, p95 {p95:0.000} ms");
         }
+
+        [Test, Category("Performance")]
+        public void FiveHundredBots_InMelee_MedianStepUnderBudget()
+        {
+            using var setup = TestCombat.Setup();
+            using var world = TestCombat.World(setup, 500, 128, 3);
+            for (int team = 0; team < 2; team++)
+            for (int k = 0; k < 250; k++)
+            {
+                float x = team == 0 ? 60f - (k / 25) * 1.1f : 66f + (k / 25) * 1.1f;
+                float y = 64f + (k % 25 - 12f) * 1.1f;
+                world.SpawnAgent(team, new float2(x, y), TestScenarios.AgentRadius, new float2(team == 0 ? 1f : -1f, 0f), 0, 3);
+            }
+
+            // Let the lines close and the melee start
+            for (int t = 0; t < 300; t++) world.Step();
+
+            const int ticks = 600;
+            var samples = new double[ticks];
+            var watch = new Stopwatch();
+            int hits = 0, deaths = 0;
+            for (int t = 0; t < ticks; t++)
+            {
+                watch.Restart();
+                world.Step();
+                watch.Stop();
+                samples[t] = watch.Elapsed.TotalMilliseconds;
+                foreach (var e in world.LastEvents)
+                {
+                    if (e.Type == Shieldbreak.Sim.Combat.Grammar.CombatEventType.Hit) hits++;
+                    if (e.Type == Shieldbreak.Sim.Combat.Grammar.CombatEventType.Death) deaths++;
+                }
+            }
+            Array.Sort(samples);
+            double median = samples[ticks / 2], p95 = samples[(int)(ticks * 0.95)];
+            TestContext.WriteLine($"500 L3 bots in melee: median {median:0.000} ms, p95 {p95:0.000} ms, max {samples[ticks - 1]:0.000} ms; {hits} hits, {deaths} deaths in 10 s");
+            Assert.That(hits, Is.GreaterThan(0), "the lines must actually fight");
+            Assert.That(median, Is.LessThan(BudgetMs));
+        }
     }
 }

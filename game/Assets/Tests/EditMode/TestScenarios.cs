@@ -17,6 +17,7 @@ namespace Shieldbreak.Tests
             StopRadius = 0.1f,
             SeparationRadius = 0.8f,
             SeparationWeight = 1.5f,
+            MaxTurnRateDeg = 540f,
         };
 
         public static SimConfig Config(ulong seed, int size, int maxAgents) => new SimConfig

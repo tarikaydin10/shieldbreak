@@ -49,11 +49,15 @@ namespace Shieldbreak.Sim.Combat.Resolvers
             }
         }
 
-        public static void Evaluate(NativeArray<WeaponPathKey> keys, float poseTime, out float3 hand, out float3 blade)
+        public static void Evaluate(NativeArray<WeaponPathKey> keys, float poseTime, out float3 hand, out float3 blade) =>
+            Evaluate(keys, 0, keys.Length, poseTime, out hand, out blade);
+
+        /// <summary>Evaluates the keys keys[first .. first + count) (attack tables share one key array).</summary>
+        public static void Evaluate(NativeArray<WeaponPathKey> keys, int first, int count, float poseTime, out float3 hand, out float3 blade)
         {
             float t = math.saturate(poseTime);
-            int last = keys.Length - 1;
-            int i = 0;
+            int last = first + count - 1;
+            int i = first;
             while (i < last - 1 && t >= keys[i + 1].Time) i++;
             var a = keys[i];
             var b = keys[math.min(i + 1, last)];

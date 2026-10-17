@@ -5,8 +5,13 @@ using Shieldbreak.Sim.Core;
 
 namespace Shieldbreak.Sim.Agents
 {
+    public static class AgentFlags
+    {
+        public const int Dead = 1 << 0;
+    }
+
     /// <summary>
-    /// One soldier in the sim. Hashed as raw bytes, so the layout has no padding (2 ints, 4 float2, 1 float = 44 bytes).
+    /// One soldier in the sim. Hashed as raw bytes, so the layout has no padding (only 4-byte fields: 56 bytes).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct AgentData
@@ -15,10 +20,18 @@ namespace Shieldbreak.Sim.Agents
         public int Team;
         public float2 Position;
         public float2 Velocity;
-        /// <summary>Unit vector the agent looks along; kept when standing still.</summary>
+        /// <summary>Unit vector the agent looks along.</summary>
         public float2 Facing;
         public float2 Target;
         public float Radius;
+        /// <summary>Multiplier on MaxSpeed set by the combat system (slower while attacking or blocking).</summary>
+        public float SpeedScale;
+        /// <summary>Agent id to keep facing (combat), or -1 to face the walking direction.</summary>
+        public int FaceAgent;
+        /// <summary>AgentFlags bits.</summary>
+        public int Flags;
+
+        public bool IsDead => (Flags & AgentFlags.Dead) != 0;
     }
 
     /// <summary>
@@ -40,6 +53,8 @@ namespace Shieldbreak.Sim.Agents
         public float SeparationRadius;
         /// <summary>Strength of the push relative to MaxSpeed.</summary>
         public float SeparationWeight;
+        /// <summary>Maximum turning speed in degrees per second.</summary>
+        public float MaxTurnRateDeg;
 
         public void Validate()
         {
@@ -48,6 +63,7 @@ namespace Shieldbreak.Sim.Agents
             if (SeparationRadius <= 0f || SeparationRadius > SimConstants.CellSize)
                 throw new ArgumentException("SeparationRadius must be in (0, CellSize] for the 3x3 neighbour query.");
             if (SeparationWeight < 0f) throw new ArgumentException("SeparationWeight must be >= 0.");
+            if (MaxTurnRateDeg <= 0f) throw new ArgumentException("MaxTurnRateDeg must be positive.");
         }
     }
 }

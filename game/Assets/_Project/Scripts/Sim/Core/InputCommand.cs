@@ -9,6 +9,12 @@ namespace Shieldbreak.Sim.Core
         None = 0,
         /// <summary>IntArgs.x = first agent id, IntArgs.y = count, FloatArgs.xy = target. Clamped to existing agents.</summary>
         SetTargetRange = 1,
+        /// <summary>IntArgs.x = own agent id, IntArgs.y = AttackDirection. Starts, morphs or buffers an attack.</summary>
+        CombatAttack = 2,
+        /// <summary>IntArgs.x = own agent id, IntArgs.y = 1 raise / 0 lower the block.</summary>
+        CombatBlock = 3,
+        /// <summary>IntArgs.x = own agent id. Cancels a young windup.</summary>
+        CombatFeint = 4,
     }
 
     /// <summary>

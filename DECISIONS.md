@@ -79,6 +79,13 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Release als Ease-InOut (Exponent 2) statt reines Ease-in | Die Posen-Vorgabe verlangt die höchste Klingengeschwindigkeit kurz vor dem Kontakt (t ≈ 0,63); Ease-in hätte sie genau auf den Kontakt gelegt. Gemessen: 0,628 | Ease-in kubisch |
 | Rig für den Posen-Prototyp offen | Synty-Rig (vorhanden: POLYGON Apocalypse) oder Low-Poly-Gliederpuppe aus der Pipeline; Entscheidung Tarik | – |
 
+## 2026-10-17 — Start M1, Rig für den Prototyp
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| M1 beginnt auf Tariks Anweisung („nach bestem Wissen"), bevor das M0-Fun-Gate formal bewertet ist; die Bewertung des Hiebs (`Proto_Animation`) bleibt offen und wird nachgeholt | Technische M0-Kriterien erfüllt (Determinismus grün, 500 Agenten 0,11 ms); Tarik will spielbaren Kampf | Warten auf das Fun-Gate |
+| Vorerst Low-Poly-Gliederpuppe aus der Pipeline mit prozeduraler Arm-IK statt Synty-Rig | Sofort nutzbar, deterministisch, stilkonsistent; die Sim (Waffenbahn, SwingTrace) hängt nicht am Rig. Synty-Vergleich wird nachgeholt | Synty POLYGON Apocalypse jetzt einbinden (Retargeting-Aufwand vor dem ersten Kampf) |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)
