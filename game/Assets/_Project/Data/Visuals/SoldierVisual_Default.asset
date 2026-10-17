@@ -98,6 +98,48 @@ MonoBehaviour:
         e31: 0
         e32: 0
         e33: 1
+    armlessBody:
+      mesh: {fileID: 4579266147760371387, guid: aaec8a8e5ab157f439f608c31c38efb9, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+    upperArm:
+      mesh: {fileID: 4635540959724466646, guid: 296b79db54e2865459947f71e57a5d2c, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
   - body:
       mesh: {fileID: -3607303458309990310, guid: cc12d4d9e7f91cc47a5608ced4280179, type: 3}
       offset: {x: 0, y: 0, z: 0}
@@ -182,6 +224,110 @@ MonoBehaviour:
         e31: 0
         e32: 0
         e33: 1
+    armlessBody:
+      mesh: {fileID: 4983804631856928599, guid: e72d8f4758f5d9e4493ba702709dadba, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+    upperArm:
+      mesh: {fileID: 41271798606736809, guid: 7c8f130bd3d3abd4890b4aad0bfc8cf2, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      yaw: 0
+      meshMatrix:
+        e00: 1
+        e01: 0
+        e02: 0
+        e03: 0
+        e10: 0
+        e11: 1
+        e12: 0
+        e13: 0
+        e20: 0
+        e21: 0
+        e22: 1
+        e23: 0
+        e30: 0
+        e31: 0
+        e32: 0
+        e33: 1
+  oneHandWeapon:
+    mesh: {fileID: 4954434326277119819, guid: e785da5d576b25643b68ae5928f94fc8, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    yaw: 0
+    meshMatrix:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+  forearms:
+  - mesh: {fileID: -3605468071795502585, guid: 77aa96efb27c86c4093cc7832593f991, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    yaw: 0
+    meshMatrix:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+  - mesh: {fileID: 3990127924848233766, guid: 908cac8a01bc5744fb7a406fdacd5ded, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    yaw: 0
+    meshMatrix:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
   selectionMesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
   selectionMaterials:
   - {fileID: 2100000, guid: 3a30f45db02546b4684445835616db6e, type: 2}

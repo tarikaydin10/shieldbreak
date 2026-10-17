@@ -5,8 +5,10 @@ Tunebare Werte als ScriptableObject-Assets. Im Inspector ändern, Play drücken;
 | Ordner | Assets |
 |---|---|
 | `Agents/` | `AgentMovement_Default` |
-| `Scenarios/` | `Sandbox_20v20`, `Stress_250v250` |
-| `Attacks/` | `Attack_OneHand_Overhead` (Hieb-Prototyp) |
+| `Scenarios/` | `Duel_M1`, `Sandbox_20v20`, `Stress_250v250` |
+| `Attacks/` | `OneHand_Overhead/Left/Right/Thrust`, `Attack_OneHand_Overhead` (Hieb-Prototyp) |
+| `Weapons/` | `Weapon_OneHandShield` |
+| `Combat/` | Presets `CombatTuning_Schwer/Mittel/Toedlich`, `BotRoster_Default` (L1–L5) |
 | `Visuals/` | `SoldierVisual_Default` |
 
 Szenen-Builder legen fehlende Assets an, überschreiben aber nie bestehende Werte.

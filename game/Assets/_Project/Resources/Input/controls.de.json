@@ -6,6 +6,14 @@
       "title": "Immer"
     },
     {
+      "map": "Combat",
+      "title": "Kampf"
+    },
+    {
+      "map": "Duel",
+      "title": "Duell"
+    },
+    {
       "map": "Sim",
       "title": "Simulation"
     },
@@ -158,6 +166,46 @@
     {
       "action": "ProtoAttack/SlowMotion",
       "text": "Zeitlupe ein/aus"
+    },
+    {
+      "action": "Combat/Move",
+      "text": "Laufen (relativ zur Kamera)"
+    },
+    {
+      "action": "Combat/Look",
+      "text": "Umschauen; die Mausbewegung kurz vor dem Angriff bestimmt die Richtung (hoch = oben, seitlich = Seitenhieb, runter = Stich)"
+    },
+    {
+      "action": "Combat/Attack",
+      "text": "Angriff in Richtung der letzten Mausbewegung; ohne Bewegung: Hieb von oben"
+    },
+    {
+      "action": "Combat/Block",
+      "text": "Halten: Block im Frontbogen; kurz vor dem Treffer gedrückt = Perfect Block"
+    },
+    {
+      "action": "Combat/Feint",
+      "text": "Finte: bricht den eigenen Angriff früh im Ausholen ab"
+    },
+    {
+      "action": "Duel/Restart",
+      "text": "Duell neu starten"
+    },
+    {
+      "action": "Duel/NextPreset",
+      "text": "Kampfgefühl wechseln (Schwer / Mittel / Tödlich), startet neu"
+    },
+    {
+      "action": "Duel/NextBotLevel",
+      "text": "Gegner-Stufe wechseln (L1 bis L5), startet neu"
+    },
+    {
+      "action": "Duel/ToggleSpectator",
+      "text": "Zuschauen: Bot gegen Bot, startet neu"
+    },
+    {
+      "action": "Duel/ToggleBars",
+      "text": "Lebens- und Ausdauerbalken über den Köpfen ein/aus (Debug)"
     }
   ]
 }

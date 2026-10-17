@@ -13,6 +13,5 @@ Editor  ──►  DebugTools  ──►  Presentation  ──►  Data  ──�
 | [Presentation/](Presentation/README.md) | `Shieldbreak.Presentation` | SimRunner, Rendering, Kameras, F1-Menü | liest die Sim, ändert sie nur über Befehle |
 | `Debug/` | `Shieldbreak.DebugTools` | Sandbox-Auswahl und -Befehle, Grid-Overlay | reine Werkzeuge |
 | `Editor/` | `Shieldbreak.Editor` | Szenen-Builder, Build, Import-Regeln | nur im Editor |
-| `Player/` | – | leer, Spieler-Steuerung kommt mit M1 | |
 
 Eingaben: jede Taste ist eine Action in `Resources/Input/Shieldbreak.inputactions` mit Beschreibung in `controls.de.json`. Kein `Keyboard.current` o. ä. (Test prüft das).

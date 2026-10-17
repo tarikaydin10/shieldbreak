@@ -18,6 +18,8 @@ namespace Shieldbreak.Presentation.Admin
         const float StatusRefreshSeconds = 0.5f;
 
         bool open;
+        /// <summary>True while the menu is shown; gameplay input (mouse look, attacks) pauses then.</summary>
+        public static bool IsOpen { get; private set; }
         // Screen-space rect (GUI coordinates, y down) of the open panel; empty while closed
         static Rect panelScreenRect;
         bool openBeforePause;
@@ -78,6 +80,7 @@ namespace Shieldbreak.Presentation.Admin
 
         void Update()
         {
+            IsOpen = open;
             float dt = Time.unscaledDeltaTime;
             if (dt > 0f) fps = Mathf.Lerp(fps <= 0f ? 1f / dt : fps, 1f / dt, 0.1f);
             if (open && Time.unscaledTime >= nextStatusRefresh)

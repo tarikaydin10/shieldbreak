@@ -18,6 +18,7 @@ namespace Shieldbreak.EditorTools
 
         static readonly string[] Scenes =
         {
+            DuelSceneBuilder.ScenePath,
             SandboxSceneBuilder.ScenePath,
             ProtoAnimationSceneBuilder.ScenePath,
             ProtoStyleSceneBuilder.ScenePath,

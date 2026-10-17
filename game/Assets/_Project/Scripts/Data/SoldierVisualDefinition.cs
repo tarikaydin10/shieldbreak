@@ -31,6 +31,10 @@ namespace Shieldbreak.Data
             public Part helmet = new Part();
             public Part shield = new Part();
             public Part weapon = new Part();
+            [Tooltip("Combat figure: body without arms; the arms are limb segments driven by IK.")]
+            public Part armlessBody = new Part();
+            [Tooltip("Limb segment (unit prism along +Y) in tunic colour, scaled to the upper arm.")]
+            public Part upperArm = new Part();
 
             public Part[] Parts => new[] { body, helmet, shield, weapon };
         }
@@ -39,6 +43,12 @@ namespace Shieldbreak.Data
         public Material material;
         [Tooltip("Index = team.")]
         public TeamLook[] teams = { new TeamLook(), new TeamLook() };
+
+        [Header("Combat figures")]
+        [Tooltip("One-hand weapon drawn in the hand (grip at the origin, blade along +Y).")]
+        public Part oneHandWeapon = new Part();
+        [Tooltip("Limb segment in skin colour for the forearms, per team.")]
+        public Part[] forearms = { new Part(), new Part() };
 
         [Header("Selection")]
         public Mesh selectionMesh;

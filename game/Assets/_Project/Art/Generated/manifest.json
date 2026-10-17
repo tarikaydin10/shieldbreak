@@ -84,6 +84,46 @@
       "fbx_sha256": "fdc10ffa09e93dda4cca93c49305e9534b4023b01011a3b80d84d18b86d39ef7"
     },
     {
+      "name": "PRP_limb_skin_light",
+      "category": "prop",
+      "generator": "limb",
+      "spec": "art/specs/PRP_limb_skin_light.json",
+      "tris": 20,
+      "geometry_sha256": "c4f4ce6bc33ccec9b2f5d53bed54c16e71abd88102293ff721df8d161c9952cf",
+      "fbx": "game/Assets/_Project/Art/Generated/PRP_limb_skin_light.fbx",
+      "fbx_sha256": "7a41114bbfeddcd6aecf35ddb521a379b00d52215aa42a2f4a673016f965fd27"
+    },
+    {
+      "name": "PRP_limb_skin_mid",
+      "category": "prop",
+      "generator": "limb",
+      "spec": "art/specs/PRP_limb_skin_mid.json",
+      "tris": 20,
+      "geometry_sha256": "3540464fddf69680a36e297baf7e3e273993256156467fb1b8445d27880a388a",
+      "fbx": "game/Assets/_Project/Art/Generated/PRP_limb_skin_mid.fbx",
+      "fbx_sha256": "6ec97dbbd8065225c4bf44bbfdf132dcc975d3749cd54983c8915ad3392b1965"
+    },
+    {
+      "name": "PRP_limb_team_a",
+      "category": "prop",
+      "generator": "limb",
+      "spec": "art/specs/PRP_limb_team_a.json",
+      "tris": 20,
+      "geometry_sha256": "1c7479f5c88555fe3f8048ffe115b7ce797ae0499cd2b4a18a0fb5b13133db5d",
+      "fbx": "game/Assets/_Project/Art/Generated/PRP_limb_team_a.fbx",
+      "fbx_sha256": "dc120804fb5cb5d76af0a4638db715f3f60e72860f74f822635a342122e1b51d"
+    },
+    {
+      "name": "PRP_limb_team_b",
+      "category": "prop",
+      "generator": "limb",
+      "spec": "art/specs/PRP_limb_team_b.json",
+      "tris": 20,
+      "geometry_sha256": "3c66942dd29a5ce08af4fd0942b84e9f80dfb7bcb9888a637cbec144b7892b16",
+      "fbx": "game/Assets/_Project/Art/Generated/PRP_limb_team_b.fbx",
+      "fbx_sha256": "6df55952800691a3fd62c2703a70e27f2c64c7371a9898515c738df3fd31fd8b"
+    },
+    {
       "name": "SHD_round_team_a",
       "category": "shield",
       "generator": "round_shield",

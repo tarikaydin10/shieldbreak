@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a134d40051cd498fcf6bb2a941c6cd92, type: 3}
+  m_Name: Duel_M1
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.DuelScenarioDefinition
+  seed: 1
+  inputDelayTicks: 1
+  arenaSize: 32
+  weapons:
+  - {fileID: 11400000, guid: 8a86d0d595f33364c9019681623497d4, type: 2}
+  presets:
+  - {fileID: 11400000, guid: 1481bac9f8fcbc346bcbe61c499850f7, type: 2}
+  - {fileID: 11400000, guid: 11d7b1dc0de997d49b4379fe4034cffc, type: 2}
+  - {fileID: 11400000, guid: 436fe4f9f1f12e443b6a3db4380edf19, type: 2}
+  activePreset: 1
+  roster: {fileID: 11400000, guid: 50d1c94144ec20f4da5d2d9a64a39b87, type: 2}
+  botLevel: 3
+  opponents: 1
+  spectator: 0
+  spectatorHeroLevel: 5
+  fighterSpeedScale: 1.6
+  fighterAccelScale: 4
+  startDistance: 6

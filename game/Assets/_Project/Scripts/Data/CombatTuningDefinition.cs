@@ -44,6 +44,12 @@ namespace Shieldbreak.Data
         [Tooltip("Energy kept per additional target of a side cut.")]
         [Range(0f, 1f)] public float multiHitEnergyKeep = 0.6f;
 
+        [Header("Feel (presentation only, not part of the sim)")]
+        [Tooltip("Hitstop for a weak and a full-energy impact (ms); scales with effective energy.")]
+        public Vector2 hitstopMs = new Vector2(40f, 80f);
+        [Tooltip("Effective energy (J) that gives the maximum hitstop.")]
+        [Min(1f)] public float hitstopFullEnergy = 500f;
+
         [Header("Movement in combat")]
         [Range(0f, 1f)] public float attackSpeedScale = 0.5f;
         [Range(0f, 1f)] public float blockSpeedScale = 0.6f;

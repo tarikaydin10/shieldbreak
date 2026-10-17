@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1e9fe40b9088de2dcb219eae6b89740, type: 3}
+  m_Name: BotRoster_Default
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.BotRosterDefinition
+  levels:
+  - label: L1
+    reactionMs: {x: 500, y: 750}
+    blockChance: 0.3
+    perfectBlockChance: 0
+    feintChance: 0
+    attackChance: 0.08
+    openingAttackChance: 0.15
+    decisionIntervalMs: 330
+    engageRange: 1.25
+    acquireRange: 8
+    holdBlock: 1
+  - label: L2
+    reactionMs: {x: 400, y: 600}
+    blockChance: 0.5
+    perfectBlockChance: 0.02
+    feintChance: 0
+    attackChance: 0.15
+    openingAttackChance: 0.3
+    decisionIntervalMs: 250
+    engageRange: 1.25
+    acquireRange: 8
+    holdBlock: 0
+  - label: L3
+    reactionMs: {x: 250, y: 450}
+    blockChance: 0.6
+    perfectBlockChance: 0.1
+    feintChance: 0.05
+    attackChance: 0.25
+    openingAttackChance: 0.5
+    decisionIntervalMs: 200
+    engageRange: 1.25
+    acquireRange: 8
+    holdBlock: 0
+  - label: L4
+    reactionMs: {x: 200, y: 330}
+    blockChance: 0.6
+    perfectBlockChance: 0.25
+    feintChance: 0.1
+    attackChance: 0.3
+    openingAttackChance: 0.65
+    decisionIntervalMs: 170
+    engageRange: 1.25
+    acquireRange: 8
+    holdBlock: 0
+  - label: L5
+    reactionMs: {x: 150, y: 250}
+    blockChance: 0.55
+    perfectBlockChance: 0.4
+    feintChance: 0.15
+    attackChance: 0.3
+    openingAttackChance: 0.8
+    decisionIntervalMs: 130
+    engageRange: 1.25
+    acquireRange: 8
+    holdBlock: 0

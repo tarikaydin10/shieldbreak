@@ -11,7 +11,7 @@ namespace Shieldbreak.Data
     /// identically on every peer (positions jittered by the world's own SimRandom).
     /// </summary>
     [CreateAssetMenu(menuName = "Shieldbreak/Sandbox Scenario", fileName = "SandboxScenario")]
-    public class SandboxScenarioDefinition : ScriptableObject
+    public class SandboxScenarioDefinition : ScriptableObject, ISimScenario
     {
         [Serializable]
         public class SpawnGroup
@@ -60,6 +60,14 @@ namespace Shieldbreak.Data
             MaxAgents = TotalAgents,
             Movement = movement,
         };
+
+        public SimWorld CreateWorld(AgentMoveSettings movement, out int playerAgent)
+        {
+            var world = new SimWorld(ToConfig(movement));
+            Spawn(world);
+            playerAgent = -1;
+            return world;
+        }
 
         /// <summary>Spawns all groups in list order; agent ids are contiguous per group.</summary>
         public void Spawn(SimWorld world)

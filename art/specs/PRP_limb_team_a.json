@@ -1,0 +1,8 @@
+{
+  "name": "PRP_limb_team_a",
+  "category": "prop",
+  "generator": "limb",
+  "seed": 1,
+  "params": { "end_radius": 0.42, "segments": 6 },
+  "colors": { "surface": "team_a" }
+}

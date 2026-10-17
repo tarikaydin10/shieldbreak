@@ -95,6 +95,16 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Seitenhiebe und Oben-Hieb mit Durchschwung: die Kontakt-Pose liegt hinter dem Ziel, das Ziel wird im schnellsten Moment des Release gekreuzt; Werte per Offline-Analyse der Waffenbahn gesetzt | Sonst trifft die Klinge erst am abbremsenden Ende, Schaden je nach Richtung um Faktor 5 verschieden | Kontakt-Pose genau auf dem Ziel |
 | Spieler-Bewegung als gespeicherte Absicht pro Spieler (Sim-Zustand, gehasht), jeden Tick neu angewendet | Ein verspäteter Befehl (Jitter) lässt den Helden nicht stehen | Bewegungsziel nur beim Befehl setzen |
 
+## 2026-10-17 — M1 Schritt 2: spielbares Duell
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Hitstop im Singleplayer über angehaltene Sim-Ticks (wie Zeitlupe, `DT` unverändert) | Einfach, echter „Gewicht"-Effekt; im Multiplayer (M6) wird er rein visuell | Hitstop nur in der Darstellung schon jetzt (aufwendiger, M6-Thema) |
+| Eigene `ThirdPersonCamera` statt Cinemachine | Wenige Zeilen, voll kontrollierbar (Kick, FOV-Puls, Zuschauer-Orbit), ohne ungetestete Paket-API; Cinemachine bleibt möglich, die Kamera ist reine Darstellung | Cinemachine 3 sofort |
+| Kampf-Figuren aus Pipeline-Teilen mit prozeduralen Armen (Zwei-Knochen-IK) an Waffe und Schild; Gliedmaßen als Pipeline-Segmente | Ein Material, Palette, Validator gelten auch für prozedurale Teile; Waffenbahn kommt aus der Sim | Debug-Materialien für Arme |
+| Angriffsrichtung aus der Mausbewegung der letzten 120 ms vor dem Klick, ohne Bewegung „Auto" (oben) | CLAUDE.md 3.5: Richtung aus Maus-Delta, Auto-Richtung für Einsteiger | Feste Tasten pro Richtung |
+| Singleplayer-Eingabeverzögerung 1 Tick (`DuelScenarioDefinition.inputDelayTicks`) | Game-Feel-Spec: Windup sichtbar ≤ 50 ms; Multiplayer nutzt 6–9 Ticks | 6 Ticks auch im Singleplayer |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)
