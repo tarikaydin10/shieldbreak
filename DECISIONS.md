@@ -69,6 +69,16 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Aussehen eines Soldaten im ScriptableObject `SoldierVisualDefinition` (Meshes, Befestigungspunkte, Auswahlring) | Data-driven; Waffen und Teams später ohne Code tauschbar | Hartcodierte Offsets im Renderer |
 | Schwert, Bogen, Pfeil kommen erst mit ihren Archetypen (M1 bzw. M3) in die Pipeline | Maße und Griffpunkte müssen zur Kampf-Grammatik passen | Jetzt auf Vorrat bauen |
 
+## 2026-10-17 — Performance (M0 Task 7) und Waffenbahn (M0 Task 8, Sim-Teil)
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Task 7 erfüllt: 500 Agenten, zwei Blöcke im Kontakt, Median 0,11 ms pro `SimWorld.Step` (p95 0,14 ms, Budget 2 ms); `PerformanceTests` prüft das bei jedem Lauf | Messung im Härtefall (volle Nachbarschaften), Median robust gegen Ausreißer | Durchschnitt über zufällig verteilte Agenten (zu harmlos) |
+| Waffenbahn als Keyframes (Hand + Klingenrichtung) mit parametrischem Easing (`Ease.In/Out/InOut` + Exponent) statt `AnimationCurve` | `AnimationCurve` gehört zu UnityEngine und ist in `Sim/` verboten; die Bahn ist Quelle der SwingTrace-Sockets und muss in der Sim laufen | `AnimationCurve` (nur Presentation-tauglich) |
+| Klingenrichtung per Slerp (konstante Winkelgeschwindigkeit) | Normalisierter Lerp ließ die Winkelgeschwindigkeit großer Schwünge in der Mitte hochschnellen (Spitze 89 m/s statt plausibler Werte); geht direkt in die Kontaktenergie | Normalisierter Lerp |
+| Release als Ease-InOut (Exponent 2) statt reines Ease-in | Die Posen-Vorgabe verlangt die höchste Klingengeschwindigkeit kurz vor dem Kontakt (t ≈ 0,63); Ease-in hätte sie genau auf den Kontakt gelegt. Gemessen: 0,628 | Ease-in kubisch |
+| Rig für den Posen-Prototyp offen | Synty-Rig (vorhanden: POLYGON Apocalypse) oder Low-Poly-Gliederpuppe aus der Pipeline; Entscheidung Tarik | – |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)
