@@ -126,16 +126,19 @@ def render(entries, palette_material, palette, out_path):
 
     scene.render.resolution_x = 2000
     scene.render.resolution_y = 1000
-    bpy.context.view_layer.update()
-    coords = []
-    for p in all_pts:
-        coords += [p.x, p.y, p.z]
-    for p in (Vector((all_pts[0].x, 0, 0)), Vector((total_w, 0, 2.0))):
-        coords += [p.x, p.y, p.z]
-    loc, scale = cam.camera_fit_coords(bpy.context.evaluated_depsgraph_get(), coords)
-    cam.location = loc
-    cam_data.ortho_scale = scale * 1.08
-    cam.location += cam.matrix_world.to_quaternion() @ Vector((0, 0, 20.0))
+    # Fit the ortho camera to every bounding-box corner in camera space
+    rot = cam.rotation_euler.to_matrix()
+    inv = rot.inverted()
+    pts = []
+    for obj, _, _ in items:
+        pts += [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+    pts += [Vector((p.x, p.y, 0.0)) for p in all_pts]
+    local = [inv @ p for p in pts]
+    xs, ys = [p.x for p in local], [p.y for p in local]
+    aspect = scene.render.resolution_x / scene.render.resolution_y
+    cam_data.ortho_scale = max(max(xs) - min(xs), (max(ys) - min(ys)) * aspect) * 1.08
+    center = Vector(((max(xs) + min(xs)) * 0.5, (max(ys) + min(ys)) * 0.5, max(p.z for p in local) + 20.0))
+    cam.location = rot @ center
     cam_data.clip_end = 100.0
 
     engine = _set_enum(scene.render, "engine", ["BLENDER_EEVEE", "BLENDER_EEVEE_NEXT", "BLENDER_WORKBENCH"])

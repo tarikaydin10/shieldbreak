@@ -1,7 +1,11 @@
 {
     "name": "Shieldbreak.Editor",
     "rootNamespace": "Shieldbreak.EditorTools",
-    "references": [],
+    "references": [
+        "Shieldbreak.Presentation",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
     "includePlatforms": [
         "Editor"
     ],

@@ -183,7 +183,10 @@ def main(argv):
         f.write("\n")
 
     if render:
-        engine = contact_sheet.render(entries, material, palette, CONTACT_SHEET)
+        sheet = [e for e in entries if e["category"] != "environment"]
+        for e in entries:
+            e["object"].hide_render = e not in sheet
+        engine = contact_sheet.render(sheet, material, palette, CONTACT_SHEET)
         print(f"contact sheet: {rel(CONTACT_SHEET)} ({engine})")
     print("BUILD PASSED")
     return 0

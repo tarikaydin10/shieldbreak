@@ -44,6 +44,21 @@ class MeshBuilder:
         self._tag_verts(res["verts"], color)
         return res["verts"]
 
+    def sphere(self, color, radius, center, u_segments, v_segments):
+        """Built via lathe: bmesh.ops.create_uvsphere emits faces in a run-dependent order."""
+        cx, cy, cz = center
+        profile = []
+        for k in range(v_segments + 1):
+            a = math.pi * k / v_segments
+            r = 0.0 if k in (0, v_segments) else radius * math.sin(a)
+            profile.append((r, cz - radius * math.cos(a)))
+        rings = self.lathe(profile, u_segments, lambda band, s: color)
+        for ring in rings:
+            for v in ring:
+                v.co.x += cx
+                v.co.y += cy
+        return [v for ring in rings for v in ring]
+
     def bipyramid(self, color, ring, z_ring, z_bottom, z_top):
         """Closed double pyramid: ring of (x, y) points at z_ring, apexes on the Z axis."""
         bottom = self.bm.verts.new((0, 0, z_bottom))
@@ -94,6 +109,17 @@ class MeshBuilder:
     def to_object(self, name, material):
         bm = self.bm
         bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        # Canonical face order: some bmesh ops emit faces in a run-dependent order, which would break
+        # the reproducibility hash and make FBX output differ between identical builds
+        bm.verts.index_update()
+
+        def face_key(f):
+            c = f.calc_center_median()
+            return (round(c.x * 1e5), round(c.y * 1e5), round(c.z * 1e5), sorted(v.index for v in f.verts))
+
+        for i, f in enumerate(sorted(bm.faces, key=face_key)):
+            f.index = i
+        bm.faces.sort()
         uv_layer = bm.loops.layers.uv.new("UVMap")
         for f in bm.faces:
             uv = self.palette.uv(f[self.pal])

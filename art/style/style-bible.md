@@ -43,3 +43,11 @@ Text-/Bild-zu-3D (z. B. `generate_3d` im Blender MCP) liefert nur Rohmaterial. E
 2. `.\tools\assetgen\run.ps1` → baut alle Specs, validiert, exportiert FBX nach `game/Assets/_Project/Art/Generated/`, schreibt `manifest.json` und `art/contact-sheet.png`.
 3. Kontaktbogen ansehen. Passt ein Asset nicht neben die anderen: Generator oder Regel ändern, nicht das Asset von Hand.
 4. `.\tools\assetgen\run.ps1 -Check` → baut neu und vergleicht Geometrie-Hashes mit dem Manifest (Reproduzierbarkeit).
+
+## Im Spiel prüfen
+
+`Scenes/Proto_Style.unity` zeigt alle Assets mit Licht, Nebel und dem Post-FX-Profil `Art/PostFX/VP_Style.asset`. Tasten 1–5 wechseln zwischen Nahkampf (4 m), Kampf (15 m), Lesbarkeit (40 m), Kommandoansicht und Asset-Reihe; rechte Maustaste dreht, Mausrad zoomt, O startet einen Orbit. Neu bauen über **Shieldbreak → Art → Build Proto_Style Scene**, Screenshots aller Ansichten über **Capture Proto_Style Shots** (`game/Logs/proto-style/`).
+
+## Reproduzierbarkeit (Regel für Generatoren)
+
+Generatoren nutzen nur `lib/meshkit.py`. Neue Grundformen dort selbst konstruieren statt über bmesh-Ops mit undefinierter Ausgabereihenfolge (Beispiel: `create_uvsphere` lieferte Flächen in wechselnder Reihenfolge; `-Check` hat das gefunden). Zusätzlich sortiert `to_object` alle Flächen kanonisch. Zufall nur über das übergebene `rng` (Seed aus der Spec).

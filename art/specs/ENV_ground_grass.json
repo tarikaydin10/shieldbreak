@@ -1,0 +1,8 @@
+{
+  "name": "ENV_ground_grass",
+  "category": "environment",
+  "generator": "ground_patch",
+  "seed": 7,
+  "params": { "size": 20.0, "cells": 10, "height_jitter": 0.3, "dark_weight": 0.06, "light_weight": 0.06 },
+  "colors": { "base": "grass", "dark": "grass_dark", "light": "grass_light" }
+}

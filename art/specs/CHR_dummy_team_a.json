@@ -1,0 +1,8 @@
+{
+  "name": "CHR_dummy_team_a",
+  "category": "character",
+  "generator": "dummy_soldier",
+  "seed": 1,
+  "params": { "height": 1.8, "hand_z": 0.9, "hand_x": 0.29 },
+  "colors": { "tunic": "team_a", "tunic_trim": "team_a_dark", "legs": "linen_dark", "boots": "leather_dark", "belt": "leather", "skin": "skin_mid" }
+}
