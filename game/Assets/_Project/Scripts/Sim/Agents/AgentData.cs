@@ -11,7 +11,7 @@ namespace Shieldbreak.Sim.Agents
     }
 
     /// <summary>
-    /// One soldier in the sim. Hashed as raw bytes, so the layout has no padding (only 4-byte fields: 56 bytes).
+    /// One soldier in the sim. Hashed as raw bytes, so the layout has no padding (only 4-byte fields: 72 bytes).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct AgentData
@@ -26,10 +26,18 @@ namespace Shieldbreak.Sim.Agents
         public float Radius;
         /// <summary>Multiplier on MaxSpeed set by the combat system (slower while attacking or blocking).</summary>
         public float SpeedScale;
-        /// <summary>Agent id to keep facing (combat), or -1 to face the walking direction.</summary>
+        /// <summary>Agent id to keep facing (combat), -1 to face the walking direction, FaceFixed to use FaceDirection.</summary>
         public int FaceAgent;
         /// <summary>AgentFlags bits.</summary>
         public int Flags;
+        /// <summary>Facing wanted when FaceAgent == FaceFixed (a player looking along the camera).</summary>
+        public float2 FaceDirection;
+        /// <summary>Per-agent multiplier on MaxSpeed (heroes run faster than line soldiers march).</summary>
+        public float BaseSpeedScale;
+        /// <summary>Per-agent multiplier on MaxAcceleration (the player reacts in ~100 ms).</summary>
+        public float AccelScale;
+
+        public const int FaceFixed = -2;
 
         public bool IsDead => (Flags & AgentFlags.Dead) != 0;
     }

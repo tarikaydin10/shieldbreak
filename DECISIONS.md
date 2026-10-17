@@ -86,6 +86,15 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | M1 beginnt auf Tariks Anweisung („nach bestem Wissen"), bevor das M0-Fun-Gate formal bewertet ist; die Bewertung des Hiebs (`Proto_Animation`) bleibt offen und wird nachgeholt | Technische M0-Kriterien erfüllt (Determinismus grün, 500 Agenten 0,11 ms); Tarik will spielbaren Kampf | Warten auf das Fun-Gate |
 | Vorerst Low-Poly-Gliederpuppe aus der Pipeline mit prozeduraler Arm-IK statt Synty-Rig | Sofort nutzbar, deterministisch, stilkonsistent; die Sim (Waffenbahn, SwingTrace) hängt nicht am Rig. Synty-Vergleich wird nachgeholt | Synty POLYGON Apocalypse jetzt einbinden (Retargeting-Aufwand vor dem ersten Kampf) |
 
+## 2026-10-17 — Nur noch `main`
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Alle Arbeit direkt auf `main`; Branches `m0` und `m1` gelöscht | Wunsch von Tarik: ein Stand, kein Abgleich zwischen Branches. Absicherung über die Regel „Commit nur mit grünen Tests" (inkl. Determinismus) | Branch pro Meilenstein (CLAUDE.md alt) |
+| M1 Schritt 1: Kampf-Grammatik in der Sim, Bots nach derselben Grammatik, SwingTrace mit Energie-Schaden | CLAUDE.md 3.5; Bot-Stufen unterscheiden sich nur in Reaktion, Fehlerquote, Techniken (L5:L1 12:0, L5:L3 11:1) | Stat-Boni für höhere Stufen |
+| Seitenhiebe und Oben-Hieb mit Durchschwung: die Kontakt-Pose liegt hinter dem Ziel, das Ziel wird im schnellsten Moment des Release gekreuzt; Werte per Offline-Analyse der Waffenbahn gesetzt | Sonst trifft die Klinge erst am abbremsenden Ende, Schaden je nach Richtung um Faktor 5 verschieden | Kontakt-Pose genau auf dem Ziel |
+| Spieler-Bewegung als gespeicherte Absicht pro Spieler (Sim-Zustand, gehasht), jeden Tick neu angewendet | Ein verspäteter Befehl (Jitter) lässt den Helden nicht stehen | Bewegungsziel nur beim Befehl setzen |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

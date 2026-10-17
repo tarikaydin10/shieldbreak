@@ -79,7 +79,7 @@ namespace Shieldbreak.Sim.Agents
                     NewFacing[i] = a.Facing;
                     return;
                 }
-                float maxSpeed = Settings.MaxSpeed * math.max(a.SpeedScale, 0f);
+                float maxSpeed = Settings.MaxSpeed * math.max(a.BaseSpeedScale, 0f) * math.max(a.SpeedScale, 0f);
 
                 // Seek with linear slow-down inside SlowRadius
                 float2 desired = float2.zero;
@@ -122,7 +122,7 @@ namespace Shieldbreak.Sim.Agents
 
                 // Limited acceleration towards the desired velocity, then cap the speed
                 float2 steer = desired - a.Velocity;
-                float maxDelta = Settings.MaxAcceleration * SimConstants.DT;
+                float maxDelta = Settings.MaxAcceleration * math.max(a.AccelScale, 0f) * SimConstants.DT;
                 float steerSq = math.lengthsq(steer);
                 if (steerSq > maxDelta * maxDelta) steer *= maxDelta / math.sqrt(steerSq);
                 float2 v = a.Velocity + steer;
@@ -134,7 +134,9 @@ namespace Shieldbreak.Sim.Agents
                 // Facing: towards the combat target if any, else along the walking direction; turn-rate limited
                 const float FacingMinSpeed = 0.05f;
                 float2 wanted = a.Facing;
-                if (a.FaceAgent >= 0 && a.FaceAgent < Agents.Length && a.FaceAgent != i)
+                if (a.FaceAgent == AgentData.FaceFixed)
+                    wanted = math.normalizesafe(a.FaceDirection, a.Facing);
+                else if (a.FaceAgent >= 0 && a.FaceAgent < Agents.Length && a.FaceAgent != i)
                     wanted = math.normalizesafe(Agents[a.FaceAgent].Position - a.Position, a.Facing);
                 else if (math.lengthsq(v) > FacingMinSpeed * FacingMinSpeed)
                     wanted = math.normalize(v);

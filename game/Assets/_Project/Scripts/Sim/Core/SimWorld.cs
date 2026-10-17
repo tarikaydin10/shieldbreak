@@ -39,6 +39,8 @@ namespace Shieldbreak.Sim.Core
         NativeList<InputCommand> tickInputs;
         NativeArray<int> nextSequence;
         NativeArray<int> playerAgent;
+        /// <summary>Walk direction per player (sim state: re-applied every tick, so a late command never stalls the hero).</summary>
+        NativeArray<float2> playerMoveIntent;
         // Running hash of every applied command; diverging input streams show up in the world hash
         // immediately, before they cause visible divergence.
         ulong appliedInputHash;
@@ -68,6 +70,7 @@ namespace Shieldbreak.Sim.Core
             nextSequence = new NativeArray<int>(SimConstants.MaxPlayers, Allocator.Persistent);
             playerAgent = new NativeArray<int>(SimConstants.MaxPlayers, Allocator.Persistent);
             for (int p = 0; p < playerAgent.Length; p++) playerAgent[p] = -1;
+            playerMoveIntent = new NativeArray<float2>(SimConstants.MaxPlayers, Allocator.Persistent);
             appliedInputHash = SimHash.Create().Value;
 
             agents = new NativeArray<AgentData>(config.MaxAgents, Allocator.Persistent);
@@ -135,6 +138,9 @@ namespace Shieldbreak.Sim.Core
                 SpeedScale = 1f,
                 FaceAgent = -1,
                 Flags = 0,
+                FaceDirection = facing,
+                BaseSpeedScale = 1f,
+                AccelScale = 1f,
             };
             combat[id] = new CombatData
             {
@@ -155,6 +161,17 @@ namespace Shieldbreak.Sim.Core
                 OrderTarget = position,
             };
             return id;
+        }
+
+        /// <summary>Per-agent movement multipliers (scenario setup), e.g. a hero that runs and turns like a player.</summary>
+        public void SetAgentMotion(int agentId, float baseSpeedScale, float accelScale)
+        {
+            if (agentId < 0 || agentId >= AgentCount) throw new ArgumentOutOfRangeException(nameof(agentId));
+            if (baseSpeedScale <= 0f || accelScale <= 0f) throw new ArgumentOutOfRangeException(nameof(baseSpeedScale), "Scales must be positive.");
+            var a = agents[agentId];
+            a.BaseSpeedScale = baseSpeedScale;
+            a.AccelScale = accelScale;
+            agents[agentId] = a;
         }
 
         /// <summary>Gives a player control of one agent (scenario setup). Combat commands only act on the own agent.</summary>
@@ -200,6 +217,7 @@ namespace Shieldbreak.Sim.Core
             for (int i = 0; i < tickInputs.Length; i++)
                 ApplyInput(tickInputs[i]);
 
+            ApplyMoveIntents();
             AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement);
             CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events);
 
@@ -239,6 +257,49 @@ namespace Shieldbreak.Sim.Core
                 case InputCommandType.CombatFeint:
                     ApplyCombatInput(command);
                     break;
+                case InputCommandType.PlayerMove:
+                    ApplyPlayerMove(command);
+                    break;
+            }
+        }
+
+        /// <summary>Walk and look direction of the player's own agent; they hold until the next PlayerMove.</summary>
+        void ApplyPlayerMove(in InputCommand command)
+        {
+            int id = command.IntArgs.x;
+            if (command.PlayerId >= SimConstants.MaxPlayers || playerAgent[command.PlayerId] != id || id < 0 || id >= AgentCount) return;
+            float2 move = command.FloatArgs.xy;
+            float2 look = command.FloatArgs.zw;
+            if (!math.all(math.isfinite(move)) || !math.all(math.isfinite(look))) return;
+            float moveLen = math.length(move);
+            if (moveLen > 1f) move /= moveLen;
+            var a = agents[id];
+            if (a.IsDead) return;
+            playerMoveIntent[command.PlayerId] = moveLen > 0.05f ? move : float2.zero;
+            if (math.lengthsq(look) > 1e-6f)
+            {
+                a.FaceAgent = AgentData.FaceFixed;
+                a.FaceDirection = math.normalize(look);
+            }
+            agents[id] = a;
+        }
+
+        /// <summary>Steering arrives at its target; a point ahead of each hero turns that into "walk this way".</summary>
+        void ApplyMoveIntents()
+        {
+            const float Lead = 1.5f;
+            for (int p = 0; p < SimConstants.MaxPlayers; p++)
+            {
+                int id = playerAgent[p];
+                if (id < 0 || id >= AgentCount) continue;
+                var a = agents[id];
+                if (a.IsDead) continue;
+                float2 move = playerMoveIntent[p];
+                a.Target = math.lengthsq(move) > 0f ? a.Position + move * Lead : a.Position;
+                agents[id] = a;
+                var c = combat[id];
+                c.OrderTarget = a.Target;
+                combat[id] = c;
             }
         }
 
@@ -275,6 +336,8 @@ namespace Shieldbreak.Sim.Core
             h.Add(AgentCount);
             h.Add(agents.GetSubArray(0, AgentCount));
             h.Add(combat.GetSubArray(0, AgentCount));
+            h.Add(playerAgent);
+            h.Add(playerMoveIntent);
             return h.Value;
         }
 
@@ -287,6 +350,7 @@ namespace Shieldbreak.Sim.Core
             if (tickInputs.IsCreated) tickInputs.Dispose();
             if (nextSequence.IsCreated) nextSequence.Dispose();
             if (playerAgent.IsCreated) playerAgent.Dispose();
+            if (playerMoveIntent.IsCreated) playerMoveIntent.Dispose();
             if (agents.IsCreated) agents.Dispose();
             if (combat.IsCreated) combat.Dispose();
             if (positionScratch.IsCreated) positionScratch.Dispose();

@@ -47,7 +47,7 @@ namespace Shieldbreak.Tests
         [Test]
         public void SimStructs_HaveNoPadding()
         {
-            Assert.That(UnsafeUtility.SizeOf<AgentData>(), Is.EqualTo(56));
+            Assert.That(UnsafeUtility.SizeOf<AgentData>(), Is.EqualTo(72));
             Assert.That(UnsafeUtility.SizeOf<CombatData>(), Is.EqualTo(120));
         }
 
@@ -176,6 +176,30 @@ namespace Shieldbreak.Tests
             input.RunUntil(idleAt + 3, log);
             Assert.That(log.Count(e => e.Type == CombatEventType.AttackStart && e.Attacker == a), Is.EqualTo(2));
             Assert.That(C(a).Direction, Is.EqualTo(AttackDirection.Left));
+        }
+
+        [Test]
+        public void PlayerMove_WalksWhileLookingElsewhere_AndKeepsWalkingWithoutNewCommands()
+        {
+            Build();
+            world.SetAgentMotion(a, 1.6f, 4f);
+            // Walk +x while looking +y (strafing), one command only
+            world.Enqueue(new InputCommand { Tick = 10, PlayerId = PlayerA, Sequence = 0, Type = InputCommandType.PlayerMove, IntArgs = new int4(a, 0, 0, 0), FloatArgs = new float4(1f, 0f, 0f, 1f) });
+            for (int t = 0; t < 130; t++) world.Step();
+            var agent = world.Agents[a];
+            Assert.That(agent.Position.x, Is.GreaterThan(13f), "keeps walking from a single command");
+            Assert.That(math.dot(agent.Facing, new float2(0f, 1f)), Is.GreaterThan(0.99f), "faces the look direction, not the walk direction");
+
+            world.Enqueue(new InputCommand { Tick = 140, PlayerId = PlayerA, Sequence = 1, Type = InputCommandType.PlayerMove, IntArgs = new int4(a, 0, 0, 0), FloatArgs = new float4(0f, 0f, 0f, 1f) });
+            for (int t = 0; t < 40; t++) world.Step();
+            Assert.That(math.length(world.Agents[a].Velocity), Is.LessThan(0.05f), "stops when the intent is zero");
+
+            // Foreign or broken commands change nothing
+            float2 before = world.Agents[b].Position;
+            world.Enqueue(new InputCommand { Tick = 180, PlayerId = PlayerA, Sequence = 2, Type = InputCommandType.PlayerMove, IntArgs = new int4(b, 0, 0, 0), FloatArgs = new float4(1f, 0f, 0f, 1f) });
+            world.Enqueue(new InputCommand { Tick = 180, PlayerId = PlayerB, Sequence = 0, Type = InputCommandType.PlayerMove, IntArgs = new int4(b, 0, 0, 0), FloatArgs = new float4(float.NaN, 0f, 0f, 1f) });
+            for (int t = 0; t < 60; t++) world.Step();
+            Assert.That(math.distance(world.Agents[b].Position, before), Is.LessThan(0.05f));
         }
 
         [Test]

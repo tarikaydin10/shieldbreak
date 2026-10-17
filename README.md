@@ -1,6 +1,6 @@
 # SHIELDBREAK
 
-Low-Poly-Schlachtsimulator, Unity 6 (URP). Stand: M0, laufende Arbeit auf `m0`.
+Low-Poly-Schlachtsimulator, Unity 6 (URP). Stand: M1 (Kampf), alles auf `main`.
 
 ![Nahkampf](docs/screenshots/proto_close.jpg)
 ![Kommandoansicht](docs/screenshots/proto_command.jpg)

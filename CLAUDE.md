@@ -173,7 +173,7 @@ Kameras sind reine Presentation; die Sim ist perspektivenunabhängig. Kamerazust
 | Tooling | Blender MCP (ahujasid/blender-mcp) und Unity MCP (Open Source, Stand prüfen) als Claude-Anbindung für Posen, Prefabs, ScriptableObjects. |
 | Netz | Facepunch.Steamworks (M6) |
 | Tests | Unity Test Framework, EditMode. Determinismus-Test ist Pflicht. |
-| Versionierung | Git + Git LFS für Binärassets. Branch pro Meilenstein. |
+| Versionierung | Git + Git LFS für Binärassets. Alles direkt auf `main`, keine Meilenstein-Branches; jeder Commit nur mit grünen Tests. |
 
 ## 5. Repo-Layout und Ordnerstruktur
 
