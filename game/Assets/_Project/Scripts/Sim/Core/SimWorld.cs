@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using Unity.Mathematics;
+using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Grid;
 
 namespace Shieldbreak.Sim.Core
@@ -14,6 +15,9 @@ namespace Shieldbreak.Sim.Core
         public int GridWidth;
         public int GridHeight;
         public float2 GridOrigin;
+        /// <summary>Capacity of the agent arrays; agents are spawned during scenario setup.</summary>
+        public int MaxAgents;
+        public AgentMoveSettings Movement;
     }
 
     /// <summary>
@@ -26,6 +30,7 @@ namespace Shieldbreak.Sim.Core
         public int Tick { get; private set; }
         public SimRandom Random;
         public readonly WorldGrid Grid;
+        public int AgentCount { get; private set; }
 
         readonly InputQueue inputQueue;
         NativeList<InputCommand> tickInputs;
@@ -34,19 +39,59 @@ namespace Shieldbreak.Sim.Core
         // immediately, before they cause visible divergence.
         ulong appliedInputHash;
 
+        NativeArray<AgentData> agents;
+        SpatialHash spatial;
+        NativeArray<float2> positionScratch;
+        NativeArray<float2> velocityScratch;
+
         public SimWorld(SimConfig config)
         {
             if (config.InputDelayTicks < 0) throw new ArgumentOutOfRangeException(nameof(config), "InputDelayTicks must be >= 0.");
+            if (config.MaxAgents < 0) throw new ArgumentOutOfRangeException(nameof(config), "MaxAgents must be >= 0.");
+            if (config.MaxAgents > 0) config.Movement.Validate();
             Config = config;
             Random = new SimRandom(config.Seed);
-            Grid = new WorldGrid(new GridLayout(config.GridWidth, config.GridHeight, config.GridOrigin), Allocator.Persistent);
+            var layout = new GridLayout(config.GridWidth, config.GridHeight, config.GridOrigin);
+            Grid = new WorldGrid(layout, Allocator.Persistent);
             inputQueue = new InputQueue(256, Allocator.Persistent);
             tickInputs = new NativeList<InputCommand>(64, Allocator.Persistent);
             nextSequence = new NativeArray<int>(SimConstants.MaxPlayers, Allocator.Persistent);
             appliedInputHash = SimHash.Create().Value;
+
+            agents = new NativeArray<AgentData>(config.MaxAgents, Allocator.Persistent);
+            spatial = new SpatialHash(layout, config.MaxAgents, Allocator.Persistent);
+            positionScratch = new NativeArray<float2>(config.MaxAgents, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            velocityScratch = new NativeArray<float2>(config.MaxAgents, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         }
 
         public int PendingInputCount => inputQueue.Count;
+
+        /// <summary>Live agents for reading (presentation, debug). Valid until the next Step.</summary>
+        public NativeArray<AgentData>.ReadOnly Agents => agents.GetSubArray(0, AgentCount).AsReadOnly();
+
+        /// <summary>Spatial hash from the last Step, for debug overlays.</summary>
+        public SpatialHash Spatial => spatial;
+
+        /// <summary>
+        /// Adds an agent standing at <paramref name="position"/> with its target on the spot. Scenario setup only:
+        /// every peer must run the same spawns before tick 0. Returns the agent id.
+        /// </summary>
+        public int SpawnAgent(int team, float2 position, float radius)
+        {
+            if (AgentCount >= agents.Length) throw new InvalidOperationException($"Agent capacity {agents.Length} reached.");
+            int id = AgentCount++;
+            agents[id] = new AgentData
+            {
+                Id = id,
+                Team = team,
+                Position = position,
+                Velocity = float2.zero,
+                Facing = new float2(0f, 1f),
+                Target = position,
+                Radius = radius,
+            };
+            return id;
+        }
 
         /// <summary>Enqueues an already stamped command (from a remote peer or a replayed input log).</summary>
         public void Enqueue(in InputCommand command)
@@ -80,7 +125,7 @@ namespace Shieldbreak.Sim.Core
             for (int i = 0; i < tickInputs.Length; i++)
                 ApplyInput(tickInputs[i]);
 
-            // Systems (grid, agents, combat) run here from M0 task 3 on.
+            AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, Config.Movement);
 
             Tick++;
         }
@@ -95,6 +140,21 @@ namespace Shieldbreak.Sim.Core
             {
                 case InputCommandType.None:
                     break;
+                case InputCommandType.SetTargetRange:
+                {
+                    // Invalid ranges are clamped, never thrown: a remote peer's input must not crash the sim
+                    int first = math.max(command.IntArgs.x, 0);
+                    int end = (int)Math.Min((long)first + math.max(command.IntArgs.y, 0), AgentCount);
+                    float2 target = command.FloatArgs.xy;
+                    if (!math.all(math.isfinite(target))) break;
+                    for (int i = first; i < end; i++)
+                    {
+                        AgentData a = agents[i];
+                        a.Target = target;
+                        agents[i] = a;
+                    }
+                    break;
+                }
             }
         }
 
@@ -105,6 +165,8 @@ namespace Shieldbreak.Sim.Core
             h.Add(Random.State);
             h.Add(appliedInputHash);
             h.Add(Grid.NavCost);
+            h.Add(AgentCount);
+            h.Add(agents.GetSubArray(0, AgentCount));
             return h.Value;
         }
 
@@ -112,8 +174,12 @@ namespace Shieldbreak.Sim.Core
         {
             inputQueue.Dispose();
             Grid.Dispose();
+            spatial.Dispose();
             if (tickInputs.IsCreated) tickInputs.Dispose();
             if (nextSequence.IsCreated) nextSequence.Dispose();
+            if (agents.IsCreated) agents.Dispose();
+            if (positionScratch.IsCreated) positionScratch.Dispose();
+            if (velocityScratch.IsCreated) velocityScratch.Dispose();
         }
     }
 }

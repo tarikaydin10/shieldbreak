@@ -7,6 +7,8 @@ namespace Shieldbreak.Sim.Core
     public enum InputCommandType : ushort
     {
         None = 0,
+        /// <summary>IntArgs.x = first agent id, IntArgs.y = count, FloatArgs.xy = target. Clamped to existing agents.</summary>
+        SetTargetRange = 1,
     }
 
     /// <summary>

@@ -1,0 +1,17 @@
+{
+    "name": "Shieldbreak.Data",
+    "rootNamespace": "Shieldbreak.Data",
+    "references": [
+        "Shieldbreak.Sim",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

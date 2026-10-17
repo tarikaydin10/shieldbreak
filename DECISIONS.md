@@ -52,6 +52,15 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Reproduzierbarkeit über Geometrie-Hash (`run.ps1 -Check`), Unverfälschtheit über FBX-Hash im Manifest (Unity-Import-Check + `ArtPipelineTests`) | FBX enthält Zeitstempel, Byte-Gleichheit wäre unmöglich; der Geometrie-Hash prüft, was zählt | Byte-Vergleich der FBX |
 | Pipeline-Proof vorgezogen in M0 (Ausnahme zu „Keine Assets vor M4") | Ausdrücklicher Wunsch, früh zu beweisen, dass der Style trägt. Es ist Tooling, keine Optik-Politur; die fünf Proof-Assets sind Platzhalter | Pipeline erst in M4 |
 
+## 2026-10-17 — Agenten (M0 Task 4)
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Alle Sim-Burst-Jobs mit `FloatMode.Deterministic` | Burst wählt sonst je nach CPU (AVX2 oder nicht) anderen Code, z. B. FMA; zwei Lockstep-Rechner mit demselben Build würden auseinanderlaufen | Standard-FloatMode (schneller, aber CPU-abhängig) |
+| Sim-Jobs schreiben nur ihren eigenen Index aus schreibgeschützten Eingaben (Steering → Scratch-Array → Integration) | Parallele Ausführung kann das Ergebnis nicht verändern | In-place-Update der Agenten im Steering-Job (Ergebnis hinge von der Thread-Reihenfolge ab) |
+| Ziele nur per `SetTargetRange`-Befehl über die InputQueue; Agenten-Spawns nur beim Szenario-Setup vor Tick 0 | Jede Eingabe in die Sim läuft durch die Queue (3.3); Spawns sind Map-Daten und auf allen Peers gleich | Direktes Setzen von Zielen aus der Presentation |
+| Bewegungswerte im ScriptableObject `AgentMovementDefinition` (Assembly `Shieldbreak.Data`), die Sim sieht nur den Struct `AgentMoveSettings` | Data-driven (Arbeitsregel 7), `Sim/` bleibt frei von UnityEngine | Werte als Konstanten im Job |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

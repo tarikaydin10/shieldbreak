@@ -13,10 +13,15 @@ namespace Shieldbreak.Tests
         const int TickCount = 10_000;
         const int HashInterval = 100;
         const ulong Seed = 0xC0FFEE;
+        const int AgentCount = 200;
+        const int MapSize = 64;
 
-        static SimConfig Config(ulong seed) => new SimConfig { Seed = seed, InputDelayTicks = 6, GridWidth = 64, GridHeight = 64 };
+        static SimConfig Config(ulong seed) => TestScenarios.Config(seed, MapSize, AgentCount);
 
-        /// <summary>Reproducible log: several players, commands every few ticks, sometimes multiple per tick.</summary>
+        /// <summary>
+        /// Reproducible log: several players, commands every few ticks, sometimes multiple per tick. Most commands
+        /// retarget a random range of agents, so movement, separation and the spatial hash are all exercised.
+        /// </summary>
         static List<InputCommand> BuildInputLog(ulong logSeed)
         {
             var rng = new SimRandom(logSeed);
@@ -28,14 +33,15 @@ namespace Shieldbreak.Tests
                 for (int i = 0; i < count; i++)
                 {
                     ushort player = (ushort)rng.NextInt(4);
+                    bool move = rng.NextInt(4) != 0;
                     log.Add(new InputCommand
                     {
                         Tick = tick,
                         Sequence = sequence[player]++,
                         PlayerId = player,
-                        Type = InputCommandType.None,
-                        IntArgs = new int4(rng.NextInt(-1000, 1000), rng.NextInt(100), tick, i),
-                        FloatArgs = rng.NextFloat2(-50f, 50f).xyxy,
+                        Type = move ? InputCommandType.SetTargetRange : InputCommandType.None,
+                        IntArgs = new int4(rng.NextInt(AgentCount), rng.NextInt(1, 60), tick, i),
+                        FloatArgs = rng.NextFloat2(1f, MapSize - 1f).xyxy,
                     });
                 }
             }
@@ -46,6 +52,7 @@ namespace Shieldbreak.Tests
         {
             var hashes = new List<ulong>();
             using var world = new SimWorld(config);
+            TestScenarios.SpawnRandom(world, AgentCount);
             if (reverseArrival)
                 for (int i = log.Count - 1; i >= 0; i--) world.Enqueue(log[i]);
             else
