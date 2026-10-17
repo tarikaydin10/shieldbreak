@@ -4,6 +4,8 @@
     "references": [
         "Shieldbreak.Sim",
         "Shieldbreak.Editor",
+        "Shieldbreak.Presentation",
+        "Unity.InputSystem",
         "Unity.Mathematics",
         "Unity.Collections",
         "UnityEngine.TestRunner",

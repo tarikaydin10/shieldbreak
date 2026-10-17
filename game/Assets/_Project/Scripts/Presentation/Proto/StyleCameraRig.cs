@@ -1,4 +1,5 @@
 using System;
+using Shieldbreak.Presentation.Admin;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,10 +7,11 @@ namespace Shieldbreak.Presentation.Proto
 {
     /// <summary>
     /// Viewer for Scenes/Proto_Style: bookmarks at the distances the style has to work at (close combat,
-    /// 15 m, 40 m readability, command view). Keys 1-9 switch, right mouse orbits, wheel zooms, O auto-orbits.
+    /// 15 m, 40 m readability, command view). Controls come from the "ProtoCamera" action map (see F1 menu).
+    /// Runs on unscaled time so the view stays usable while the game is paused.
     /// </summary>
     [RequireComponent(typeof(Camera))]
-    public class StyleCameraRig : MonoBehaviour
+    public class StyleCameraRig : MonoBehaviour, IAdminStatus
     {
         [Serializable]
         public struct Bookmark
@@ -21,11 +23,12 @@ namespace Shieldbreak.Presentation.Proto
             public float distance;
         }
 
+        const string MapName = "ProtoCamera";
+
         public Bookmark[] bookmarks = Array.Empty<Bookmark>();
         public float blendTime = 0.5f;
         public float orbitSensitivity = 0.2f;
         public float autoOrbitDegPerSec = 6f;
-        public bool showHelp = true;
 
         int current;
         Vector3 target;
@@ -33,7 +36,33 @@ namespace Shieldbreak.Presentation.Proto
         float yawOffset, pitchOffset, zoom = 1f;
         bool autoOrbit;
 
+        InputActionMap map;
+        InputAction[] views;
+        InputAction orbitHold, look, zoomAxis, autoOrbitToggle;
+
         public int Count => bookmarks.Length;
+
+        public string AdminStatusLabel => "Kamera";
+        public string AdminStatus => bookmarks.Length == 0
+            ? "keine Ansichten"
+            : $"[{current + 1}] {bookmarks[current].label}{(autoOrbit ? " · Orbit" : "")}";
+
+        void OnEnable()
+        {
+            map = GameInput.Map(MapName);
+            views = new InputAction[5];
+            for (int i = 0; i < views.Length; i++) views[i] = map.FindAction("View" + (i + 1), throwIfNotFound: true);
+            orbitHold = map.FindAction("OrbitHold", throwIfNotFound: true);
+            look = map.FindAction("Look", throwIfNotFound: true);
+            zoomAxis = map.FindAction("Zoom", throwIfNotFound: true);
+            autoOrbitToggle = map.FindAction("AutoOrbit", throwIfNotFound: true);
+            map.Enable();
+        }
+
+        void OnDisable()
+        {
+            map?.Disable();
+        }
 
         void Start()
         {
@@ -58,30 +87,24 @@ namespace Shieldbreak.Presentation.Proto
         void Update()
         {
             if (bookmarks.Length == 0) return;
-            var keyboard = Keyboard.current;
-            var mouse = Mouse.current;
-            if (keyboard != null)
+            float dt = Time.unscaledDeltaTime;
+
+            for (int i = 0; i < views.Length && i < bookmarks.Length; i++)
+                if (views[i].WasPressedThisFrame()) Apply(i, false);
+            if (autoOrbitToggle.WasPressedThisFrame()) autoOrbit = !autoOrbit;
+
+            if (orbitHold.IsPressed())
             {
-                for (int i = 0; i < bookmarks.Length && i < 9; i++)
-                    if (keyboard[Key.Digit1 + i].wasPressedThisFrame) Apply(i, false);
-                if (keyboard.oKey.wasPressedThisFrame) autoOrbit = !autoOrbit;
-                if (keyboard.hKey.wasPressedThisFrame) showHelp = !showHelp;
+                Vector2 delta = look.ReadValue<Vector2>();
+                yawOffset += delta.x * orbitSensitivity;
+                pitchOffset = Mathf.Clamp(pitchOffset - delta.y * orbitSensitivity, -60f, 60f);
             }
-            if (mouse != null)
-            {
-                if (mouse.rightButton.isPressed)
-                {
-                    Vector2 delta = mouse.delta.ReadValue();
-                    yawOffset += delta.x * orbitSensitivity;
-                    pitchOffset = Mathf.Clamp(pitchOffset - delta.y * orbitSensitivity, -60f, 60f);
-                }
-                float scroll = mouse.scroll.ReadValue().y;
-                if (scroll != 0f) zoom = Mathf.Clamp(zoom * (1f - scroll * 0.001f), 0.2f, 3f);
-            }
-            if (autoOrbit) yawOffset += autoOrbitDegPerSec * Time.deltaTime;
+            float scroll = zoomAxis.ReadValue<float>();
+            if (scroll != 0f) zoom = Mathf.Clamp(zoom * (1f - scroll * 0.001f), 0.2f, 3f);
+            if (autoOrbit) yawOffset += autoOrbitDegPerSec * dt;
 
             var b = bookmarks[current];
-            float k = 1f - Mathf.Exp(-Time.deltaTime * 4f / Mathf.Max(0.01f, blendTime));
+            float k = 1f - Mathf.Exp(-dt * 4f / Mathf.Max(0.01f, blendTime));
             target = Vector3.Lerp(target, b.target, k);
             yaw = Mathf.LerpAngle(yaw, b.yaw + yawOffset, k);
             pitch = Mathf.Lerp(pitch, Mathf.Clamp(b.pitch + pitchOffset, -10f, 89f), k);
@@ -93,14 +116,6 @@ namespace Shieldbreak.Presentation.Proto
         {
             var rotation = Quaternion.Euler(pitch, yaw, 0f);
             transform.SetPositionAndRotation(target - rotation * Vector3.forward * distance, rotation);
-        }
-
-        void OnGUI()
-        {
-            if (!showHelp || bookmarks.Length == 0) return;
-            string text = $"[{current + 1}] {bookmarks[current].label}\n" +
-                          $"1-{Mathf.Min(9, bookmarks.Length)}: Ansicht   RMB: drehen   Rad: Zoom   O: Orbit   H: Hilfe";
-            GUI.Label(new Rect(12, 10, 700, 44), text);
         }
     }
 }

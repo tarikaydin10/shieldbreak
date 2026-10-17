@@ -46,7 +46,7 @@ Text-/Bild-zu-3D (z. B. `generate_3d` im Blender MCP) liefert nur Rohmaterial. E
 
 ## Im Spiel prüfen
 
-`Scenes/Proto_Style.unity` zeigt alle Assets mit Licht, Nebel und dem Post-FX-Profil `Art/PostFX/VP_Style.asset`. Tasten 1–5 wechseln zwischen Nahkampf (4 m), Kampf (15 m), Lesbarkeit (40 m), Kommandoansicht und Asset-Reihe; rechte Maustaste dreht, Mausrad zoomt, O startet einen Orbit. Neu bauen über **Shieldbreak → Art → Build Proto_Style Scene**, Screenshots aller Ansichten über **Capture Proto_Style Shots** (`game/Logs/proto-style/`).
+`Scenes/Proto_Style.unity` zeigt alle Assets mit Licht, Nebel und dem Post-FX-Profil `Art/PostFX/VP_Style.asset`. Tasten 1–5 wechseln zwischen Nahkampf (4 m), Kampf (15 m), Lesbarkeit (40 m), Kommandoansicht und Asset-Reihe; rechte Maustaste dreht, Mausrad zoomt, O startet einen Orbit. F1 zeigt alle Tasten, Esc friert das Bild ein (Kamera bleibt frei). Neu bauen über **Shieldbreak → Art → Build Proto_Style Scene**, Screenshots aller Ansichten über **Capture Proto_Style Shots** (`game/Logs/proto-style/`).
 
 ## Reproduzierbarkeit (Regel für Generatoren)
 
