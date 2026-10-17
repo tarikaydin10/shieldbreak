@@ -100,7 +100,7 @@ namespace Shieldbreak.Tests
         [Test]
         public void SimWorld_Submit_StampsDelayedTickAndPerPlayerSequence()
         {
-            using var world = new SimWorld(new SimConfig { Seed = 1, InputDelayTicks = 6 });
+            using var world = new SimWorld(new SimConfig { Seed = 1, InputDelayTicks = 6, GridWidth = 64, GridHeight = 64 });
             world.Step();
             world.Step();
 

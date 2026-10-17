@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using Unity.Mathematics;
+using Shieldbreak.Sim.Grid;
 
 namespace Shieldbreak.Sim.Core
 {
@@ -9,6 +10,10 @@ namespace Shieldbreak.Sim.Core
         public ulong Seed;
         /// <summary>Locally submitted inputs execute this many ticks in the future (lockstep latency budget).</summary>
         public int InputDelayTicks;
+        /// <summary>Map size in cells and world position of the grid's lower-left corner (from map data later).</summary>
+        public int GridWidth;
+        public int GridHeight;
+        public float2 GridOrigin;
     }
 
     /// <summary>
@@ -20,6 +25,7 @@ namespace Shieldbreak.Sim.Core
         public readonly SimConfig Config;
         public int Tick { get; private set; }
         public SimRandom Random;
+        public readonly WorldGrid Grid;
 
         readonly InputQueue inputQueue;
         NativeList<InputCommand> tickInputs;
@@ -33,6 +39,7 @@ namespace Shieldbreak.Sim.Core
             if (config.InputDelayTicks < 0) throw new ArgumentOutOfRangeException(nameof(config), "InputDelayTicks must be >= 0.");
             Config = config;
             Random = new SimRandom(config.Seed);
+            Grid = new WorldGrid(new GridLayout(config.GridWidth, config.GridHeight, config.GridOrigin), Allocator.Persistent);
             inputQueue = new InputQueue(256, Allocator.Persistent);
             tickInputs = new NativeList<InputCommand>(64, Allocator.Persistent);
             nextSequence = new NativeArray<int>(SimConstants.MaxPlayers, Allocator.Persistent);
@@ -97,12 +104,14 @@ namespace Shieldbreak.Sim.Core
             h.Add(Tick);
             h.Add(Random.State);
             h.Add(appliedInputHash);
+            h.Add(Grid.NavCost);
             return h.Value;
         }
 
         public void Dispose()
         {
             inputQueue.Dispose();
+            Grid.Dispose();
             if (tickInputs.IsCreated) tickInputs.Dispose();
             if (nextSequence.IsCreated) nextSequence.Dispose();
         }

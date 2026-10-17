@@ -11,5 +11,8 @@ namespace Shieldbreak.Sim.Core
 
         /// <summary>Upper bound for player ids; sizes per-player bookkeeping arrays.</summary>
         public const int MaxPlayers = 8;
+
+        /// <summary>Edge length of a WorldGrid cell in meters (navigation, spatial hash, morale field).</summary>
+        public const float CellSize = 1f;
     }
 }

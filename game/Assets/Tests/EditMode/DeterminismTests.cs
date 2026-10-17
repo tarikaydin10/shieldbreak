@@ -14,7 +14,7 @@ namespace Shieldbreak.Tests
         const int HashInterval = 100;
         const ulong Seed = 0xC0FFEE;
 
-        static SimConfig Config(ulong seed) => new SimConfig { Seed = seed, InputDelayTicks = 6 };
+        static SimConfig Config(ulong seed) => new SimConfig { Seed = seed, InputDelayTicks = 6, GridWidth = 64, GridHeight = 64 };
 
         /// <summary>Reproducible log: several players, commands every few ticks, sometimes multiple per tick.</summary>
         static List<InputCommand> BuildInputLog(ulong logSeed)
