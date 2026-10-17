@@ -1,6 +1,6 @@
 {
   "generator_version": 1,
-  "style_sha256": "9081ef2ad51219788053308354906abf7f64553a79c82a3bdd2e4abef1164df6",
+  "style_sha256": "d3c5f6a97e8f773ccd638383ee9d3c4364a10a71e197aaac33c0326b7c905127",
   "palette_png_sha256": "157744b75ed04e44008c3a7f5d8bf0f0182fe4073f6c913b7d1630989f53b520",
   "assets": [
     {
@@ -44,6 +44,16 @@
       "fbx_sha256": "f3a2c07a120eb0354ca344ba1f999408831a90c9b989ed9f8132513ff3c6dfa7"
     },
     {
+      "name": "CHR_dummy_team_a_noarms",
+      "category": "character",
+      "generator": "dummy_soldier",
+      "spec": "art/specs/CHR_dummy_team_a_noarms.json",
+      "tris": 304,
+      "geometry_sha256": "e462c7a59ee4d9bb44544e39142407fd59f4731bd3f7ee251f5984a52a75d488",
+      "fbx": "game/Assets/_Project/Art/Generated/CHR_dummy_team_a_noarms.fbx",
+      "fbx_sha256": "18872365992e0f4c2843da45f7083a256c370cc0fcfb5409366ef8fa645bc758"
+    },
+    {
       "name": "CHR_dummy_team_b",
       "category": "character",
       "generator": "dummy_soldier",
@@ -52,6 +62,16 @@
       "geometry_sha256": "4dd1c3d81f78c5ebb04b94c88d5976597f22225e2c7f442187e8c8e4a3e02b0e",
       "fbx": "game/Assets/_Project/Art/Generated/CHR_dummy_team_b.fbx",
       "fbx_sha256": "e8af73774b1a0c517c4064484b42b91d2e7da60784d4436a3bdb181d0193442b"
+    },
+    {
+      "name": "CHR_dummy_team_b_noarms",
+      "category": "character",
+      "generator": "dummy_soldier",
+      "spec": "art/specs/CHR_dummy_team_b_noarms.json",
+      "tris": 304,
+      "geometry_sha256": "846ca45099b6a867ba641c3676d403e125621a2ed6115632a14e49c747991816",
+      "fbx": "game/Assets/_Project/Art/Generated/CHR_dummy_team_b_noarms.fbx",
+      "fbx_sha256": "a4170dd9367c8b325552c297f106045a7149e285c5f3fea23a396578c8013b38"
     },
     {
       "name": "ENV_ground_grass",
@@ -92,6 +112,16 @@
       "geometry_sha256": "87dd5fea72f55f146347e615aa6d37a7672ba5795cd6be3f93b7361b9d891385",
       "fbx": "game/Assets/_Project/Art/Generated/WPN_spear_basic.fbx",
       "fbx_sha256": "f3d7453c65dc4e304f21295b5ddce232de6f716f4a5f075e10ea0e5a59e705d2"
+    },
+    {
+      "name": "WPN_sword_onehand",
+      "category": "weapon_onehand",
+      "generator": "sword",
+      "spec": "art/specs/WPN_sword_onehand.json",
+      "tris": 82,
+      "geometry_sha256": "d514a254b5dae0461fd86cc2262f0e85b3fea87e3e10dca760c61616e20f5cbc",
+      "fbx": "game/Assets/_Project/Art/Generated/WPN_sword_onehand.fbx",
+      "fbx_sha256": "30af113c5cbc17fba47226d48f7da1f049c72be0c228d3dfef80d270f449565b"
     }
   ]
 }

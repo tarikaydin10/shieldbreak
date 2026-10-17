@@ -32,8 +32,9 @@ def build(b, p, c, rng):
     # Arms hang slightly outwards; hands end at hand_z
     hand_z = p.get("hand_z", 0.9) * s
     hand_x = p.get("hand_x", 0.29) * s
-    # "left" leaves out the right arm (Blender -X = soldier's right) so a procedural arm can be attached at runtime
-    sides = (-1, 1) if p.get("arms", "both") == "both" else (1,)
+    # "left" leaves out the right arm (Blender -X = soldier right), "none" both: procedural arms are attached at runtime
+    arms = p.get("arms", "both")
+    sides = (-1, 1) if arms == "both" else (1,) if arms == "left" else ()
     for side in sides:
         top = (side * 0.24 * s, 0, shoulder - 0.04 * s)
         bottom = (side * hand_x, 0, hand_z + 0.06 * s)

@@ -1,0 +1,8 @@
+{
+  "name": "WPN_sword_onehand",
+  "category": "weapon_onehand",
+  "generator": "sword",
+  "seed": 1,
+  "params": { "blade_length": 0.8, "blade_width": 0.05, "blade_thickness": 0.012, "grip_length": 0.18, "guard_width": 0.2, "point_length": 0.16 },
+  "colors": { "blade": "steel_light", "guard": "iron_dark", "grip": "leather_dark", "pommel": "iron" }
+}

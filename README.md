@@ -27,4 +27,4 @@ Unity Hub → Add → Ordner `game`. Szenen in `Assets/_Project/Scenes/`: `M0_Sa
 
 ## Doku
 
-[CLAUDE.md](CLAUDE.md) · [DECISIONS.md](DECISIONS.md) · [IDEAS.md](IDEAS.md) · [Style-Bible](art/style/style-bible.md) · [Asset-Pipeline](tools/assetgen/README.md)
+[CLAUDE.md](CLAUDE.md) · [DECISIONS.md](DECISIONS.md) · [IDEAS.md](IDEAS.md) · [Unity-Projekt](game/README.md) · [Code](game/Assets/_Project/Scripts/README.md) · [Tests](game/Assets/Tests/EditMode/README.md) · [Art](art/README.md) · [Tools](tools/README.md) · [Docs](docs/README.md)
