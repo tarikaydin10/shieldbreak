@@ -15,8 +15,12 @@ namespace Shieldbreak.Sim.Core
         CombatBlock = 3,
         /// <summary>IntArgs.x = own agent id. Cancels a young windup.</summary>
         CombatFeint = 4,
-        /// <summary>IntArgs.x = own agent id, FloatArgs.xy = walk direction (length 0..1), FloatArgs.zw = look direction.</summary>
+        /// <summary>IntArgs.x = own agent id, IntArgs.y = 1 sprint, FloatArgs.xy = walk direction (length 0..1), FloatArgs.zw = look direction.</summary>
         PlayerMove = 5,
+        /// <summary>IntArgs.x = own agent id, IntArgs.y = StepDirection (relative to the facing).</summary>
+        CombatStep = 6,
+        /// <summary>IntArgs.x = own agent id. Archetype special (shield bash).</summary>
+        CombatSpecial = 7,
     }
 
     /// <summary>

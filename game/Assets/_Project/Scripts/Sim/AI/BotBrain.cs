@@ -43,10 +43,16 @@ namespace Shieldbreak.Sim.AI
             float dist = math.length(toEnemy);
             float2 dir = dist > 1e-4f ? toEnemy / dist : me.Facing;
 
-            // Keep engage distance and face the enemy
+            // Attack token (1vX): only a limited number of bots swing at the same target; the others hold back and threaten
+            bool swinging = c.State == CombatState.Windup || c.State == CombatState.Release;
+            bool tokenFree = rules.MaxAttackersPerTarget <= 0 || swinging || job.AttackersSwingingAt(c.BotTarget) < rules.MaxAttackersPerTarget;
+
+            // Keep engage distance (further back while waiting for a token), face the enemy, sprint to close in
+            float keep = tokenFree ? p.EngageRange : p.EngageRange + rules.WaitingDistance;
             me.FaceAgent = c.BotTarget;
-            me.Target = enemy.Position - dir * p.EngageRange;
+            me.Target = enemy.Position - dir * keep;
             job.SetAgent(i, me);
+            c.Sprinting = c.State == CombatState.Idle && c.BlockHeld == 0 && dist > p.EngageRange + 3f ? 1 : 0;
 
             // Threat: the enemy swings at us (faces us, close enough)
             bool threat = (ec.State == CombatState.Windup || ec.State == CombatState.Release) &&
@@ -67,7 +73,12 @@ namespace Shieldbreak.Sim.AI
                     float roll = rng.NextFloat();
                     if (roll < p.PerfectBlockChance) c.BotPlannedBlockTick = math.max(tick, contactTick - rules.PerfectBlockTicks / 2);
                     else if (roll < p.PerfectBlockChance + p.BlockChance) c.BotPlannedBlockTick = tick;
-                    else c.BotPlannedBlockTick = -1;
+                    else
+                    {
+                        c.BotPlannedBlockTick = -1;
+                        if (roll < p.PerfectBlockChance + p.BlockChance + p.StepChance)
+                            CombatSystem.TryStep(ref c, StepDirection.Back, tick, rules, job.EventList, i);
+                    }
                 }
                 if (c.BotPlannedBlockTick >= 0 && tick >= c.BotPlannedBlockTick)
                 {
@@ -95,11 +106,20 @@ namespace Shieldbreak.Sim.AI
             if (tick >= c.BotNextDecisionTick)
             {
                 c.BotNextDecisionTick = tick + p.DecisionIntervalTicks;
-                if (c.State == CombatState.Idle && !threat && dist <= p.EngageRange + 0.35f)
+                if (c.State == CombatState.Idle && !threat && tokenFree && dist <= p.EngageRange + 0.35f)
                 {
-                    bool opening = ec.State == CombatState.Recovery || ec.State == CombatState.Stunned;
-                    if (rng.NextFloat() < (opening ? p.OpeningAttackChance : p.AttackChance))
-                        CombatSystem.TryAttack(ref c, rng.NextInt(AttackDirection.Count), tick, job.Attack(c), rules, job.EventList, i);
+                    // A raised enemy block invites the shield bash; otherwise attack, more often into an opening
+                    if (ec.BlockHeld == 1 && dist <= rules.SpecialRange + 0.4f && rng.NextFloat() < p.SpecialChance)
+                        CombatSystem.TrySpecial(ref c, tick, rules, job.EventList, i);
+                    else
+                    {
+                        bool opening = ec.State == CombatState.Recovery || ec.State == CombatState.Stunned;
+                        if (rng.NextFloat() < (opening ? p.OpeningAttackChance : p.AttackChance))
+                        {
+                            CombatSystem.TryAttack(ref c, rng.NextInt(AttackDirection.Count), tick, job.Attack(c), rules, job.EventList, i);
+                            if (c.State == CombatState.Windup) job.ClaimAttackToken(c.BotTarget);
+                        }
+                    }
                 }
             }
 

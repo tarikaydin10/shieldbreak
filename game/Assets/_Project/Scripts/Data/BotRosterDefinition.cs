@@ -28,17 +28,19 @@ namespace Shieldbreak.Data
             [Min(0.5f)] public float engageRange = 1.25f;
             [Min(1f)] public float acquireRange = 8f;
             public bool holdBlock;
+            [Range(0f, 1f)] public float stepChance;
+            [Range(0f, 1f)] public float specialChance;
         }
 
         public Level[] levels = DefaultLevels();
 
         public static Level[] DefaultLevels() => new[]
         {
-            new Level { label = "L1", reactionMs = new Vector2(500f, 750f), blockChance = 0.3f, perfectBlockChance = 0f, feintChance = 0f, attackChance = 0.08f, openingAttackChance = 0.15f, decisionIntervalMs = 330f, holdBlock = true },
-            new Level { label = "L2", reactionMs = new Vector2(400f, 600f), blockChance = 0.5f, perfectBlockChance = 0.02f, feintChance = 0f, attackChance = 0.15f, openingAttackChance = 0.3f, decisionIntervalMs = 250f },
-            new Level { label = "L3", reactionMs = new Vector2(250f, 450f), blockChance = 0.6f, perfectBlockChance = 0.1f, feintChance = 0.05f, attackChance = 0.25f, openingAttackChance = 0.5f, decisionIntervalMs = 200f },
-            new Level { label = "L4", reactionMs = new Vector2(200f, 330f), blockChance = 0.6f, perfectBlockChance = 0.25f, feintChance = 0.1f, attackChance = 0.3f, openingAttackChance = 0.65f, decisionIntervalMs = 170f },
-            new Level { label = "L5", reactionMs = new Vector2(150f, 250f), blockChance = 0.55f, perfectBlockChance = 0.4f, feintChance = 0.15f, attackChance = 0.3f, openingAttackChance = 0.8f, decisionIntervalMs = 130f },
+            new Level { label = "L1", reactionMs = new Vector2(500f, 750f), blockChance = 0.3f, perfectBlockChance = 0f, feintChance = 0f, attackChance = 0.08f, openingAttackChance = 0.15f, decisionIntervalMs = 330f, holdBlock = true, stepChance = 0f, specialChance = 0f },
+            new Level { label = "L2", reactionMs = new Vector2(400f, 600f), blockChance = 0.5f, perfectBlockChance = 0.02f, feintChance = 0f, attackChance = 0.15f, openingAttackChance = 0.3f, decisionIntervalMs = 250f, stepChance = 0.05f, specialChance = 0.05f },
+            new Level { label = "L3", reactionMs = new Vector2(250f, 450f), blockChance = 0.6f, perfectBlockChance = 0.1f, feintChance = 0.05f, attackChance = 0.25f, openingAttackChance = 0.5f, decisionIntervalMs = 200f, stepChance = 0.1f, specialChance = 0.15f },
+            new Level { label = "L4", reactionMs = new Vector2(200f, 330f), blockChance = 0.6f, perfectBlockChance = 0.25f, feintChance = 0.1f, attackChance = 0.3f, openingAttackChance = 0.65f, decisionIntervalMs = 170f, stepChance = 0.15f, specialChance = 0.25f },
+            new Level { label = "L5", reactionMs = new Vector2(150f, 250f), blockChance = 0.55f, perfectBlockChance = 0.4f, feintChance = 0.15f, attackChance = 0.3f, openingAttackChance = 0.8f, decisionIntervalMs = 130f, stepChance = 0.2f, specialChance = 0.35f },
         };
 
         public static BotProfile ToProfile(Level l) => new BotProfile
@@ -54,6 +56,8 @@ namespace Shieldbreak.Data
             EngageRange = l.engageRange,
             AcquireRange = l.acquireRange,
             HoldBlock = l.holdBlock ? 1 : 0,
+            StepChance = l.stepChance,
+            SpecialChance = l.specialChance,
         };
     }
 }

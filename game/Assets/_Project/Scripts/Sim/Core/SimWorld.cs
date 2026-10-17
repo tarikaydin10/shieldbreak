@@ -41,6 +41,8 @@ namespace Shieldbreak.Sim.Core
         NativeArray<int> playerAgent;
         /// <summary>Walk direction per player (sim state: re-applied every tick, so a late command never stalls the hero).</summary>
         NativeArray<float2> playerMoveIntent;
+        NativeArray<int> playerSprint;
+        NativeArray<int> attackerScratch;
         // Running hash of every applied command; diverging input streams show up in the world hash
         // immediately, before they cause visible divergence.
         ulong appliedInputHash;
@@ -71,6 +73,7 @@ namespace Shieldbreak.Sim.Core
             playerAgent = new NativeArray<int>(SimConstants.MaxPlayers, Allocator.Persistent);
             for (int p = 0; p < playerAgent.Length; p++) playerAgent[p] = -1;
             playerMoveIntent = new NativeArray<float2>(SimConstants.MaxPlayers, Allocator.Persistent);
+            playerSprint = new NativeArray<int>(SimConstants.MaxPlayers, Allocator.Persistent);
             appliedInputHash = SimHash.Create().Value;
 
             agents = new NativeArray<AgentData>(config.MaxAgents, Allocator.Persistent);
@@ -80,6 +83,7 @@ namespace Shieldbreak.Sim.Core
             velocityScratch = new NativeArray<float2>(config.MaxAgents, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             facingScratch = new NativeArray<float2>(config.MaxAgents, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             events = new NativeList<CombatEvent>(64, Allocator.Persistent);
+            attackerScratch = new NativeArray<int>(config.MaxAgents, Allocator.Persistent);
 
             this.combatSetup = Copy(combatSetup);
         }
@@ -219,7 +223,7 @@ namespace Shieldbreak.Sim.Core
 
             ApplyMoveIntents();
             AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement);
-            CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events);
+            CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch);
 
             Tick++;
         }
@@ -255,6 +259,8 @@ namespace Shieldbreak.Sim.Core
                 case InputCommandType.CombatAttack:
                 case InputCommandType.CombatBlock:
                 case InputCommandType.CombatFeint:
+                case InputCommandType.CombatStep:
+                case InputCommandType.CombatSpecial:
                     ApplyCombatInput(command);
                     break;
                 case InputCommandType.PlayerMove:
@@ -276,6 +282,7 @@ namespace Shieldbreak.Sim.Core
             var a = agents[id];
             if (a.IsDead) return;
             playerMoveIntent[command.PlayerId] = moveLen > 0.05f ? move : float2.zero;
+            playerSprint[command.PlayerId] = command.IntArgs.y != 0 ? 1 : 0;
             if (math.lengthsq(look) > 1e-6f)
             {
                 a.FaceAgent = AgentData.FaceFixed;
@@ -299,6 +306,7 @@ namespace Shieldbreak.Sim.Core
                 agents[id] = a;
                 var c = combat[id];
                 c.OrderTarget = a.Target;
+                c.Sprinting = playerSprint[p] == 1 && math.lengthsq(move) > 0f ? 1 : 0;
                 combat[id] = c;
             }
         }
@@ -322,6 +330,12 @@ namespace Shieldbreak.Sim.Core
                 case InputCommandType.CombatFeint:
                     CombatSystem.TryFeint(ref c, Tick, attack, tuning, events, id);
                     break;
+                case InputCommandType.CombatStep:
+                    CombatSystem.TryStep(ref c, command.IntArgs.y, Tick, tuning, events, id);
+                    break;
+                case InputCommandType.CombatSpecial:
+                    CombatSystem.TrySpecial(ref c, Tick, tuning, events, id);
+                    break;
             }
             combat[id] = c;
         }
@@ -338,6 +352,7 @@ namespace Shieldbreak.Sim.Core
             h.Add(combat.GetSubArray(0, AgentCount));
             h.Add(playerAgent);
             h.Add(playerMoveIntent);
+            h.Add(playerSprint);
             return h.Value;
         }
 
@@ -351,6 +366,8 @@ namespace Shieldbreak.Sim.Core
             if (nextSequence.IsCreated) nextSequence.Dispose();
             if (playerAgent.IsCreated) playerAgent.Dispose();
             if (playerMoveIntent.IsCreated) playerMoveIntent.Dispose();
+            if (playerSprint.IsCreated) playerSprint.Dispose();
+            if (attackerScratch.IsCreated) attackerScratch.Dispose();
             if (agents.IsCreated) agents.Dispose();
             if (combat.IsCreated) combat.Dispose();
             if (positionScratch.IsCreated) positionScratch.Dispose();

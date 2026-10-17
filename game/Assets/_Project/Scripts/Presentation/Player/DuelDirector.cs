@@ -20,7 +20,7 @@ namespace Shieldbreak.Presentation.Player
 
         DuelScenarioDefinition scenario;
         InputActionMap map;
-        InputAction restart, nextPreset, nextLevel, spectator, bars;
+        InputAction restart, nextPreset, nextLevel, nextOpponents, spectator, bars;
         Texture2D pixel;
         GUIStyle banner;
 
@@ -45,12 +45,14 @@ namespace Shieldbreak.Presentation.Player
                 scenario = Instantiate(source);
                 scenario.name = source.name;
                 runner.scenario = scenario;
-                // Build smoke test: SHIELDBREAK.exe -duelSpectator watches two bots
-                if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-duelSpectator") >= 0)
-                {
-                    scenario.spectator = true;
-                    runner.Restart();
-                }
+                // Build smoke test: SHIELDBREAK.exe -duelSpectator [-duelOpponents 3] watches bots fight
+                var args = System.Environment.GetCommandLineArgs();
+                bool watch = System.Array.IndexOf(args, "-duelSpectator") >= 0;
+                int at = System.Array.IndexOf(args, "-duelOpponents");
+                bool many = at >= 0 && at + 1 < args.Length && int.TryParse(args[at + 1], out int n) && n >= 1;
+                if (many) scenario.opponents = Mathf.Clamp(int.Parse(args[at + 1]), 1, 6);
+                if (watch) scenario.spectator = true;
+                if (watch || many) runner.Restart();
             }
         }
 
@@ -60,6 +62,7 @@ namespace Shieldbreak.Presentation.Player
             restart = map.FindAction("Restart", true);
             nextPreset = map.FindAction("NextPreset", true);
             nextLevel = map.FindAction("NextBotLevel", true);
+            nextOpponents = map.FindAction("NextOpponentCount", true);
             spectator = map.FindAction("ToggleSpectator", true);
             bars = map.FindAction("ToggleBars", true);
             map.Enable();
@@ -91,6 +94,11 @@ namespace Shieldbreak.Presentation.Player
             if (nextLevel.WasPressedThisFrame())
             {
                 scenario.botLevel = scenario.botLevel % 5 + 1;
+                rebuild = true;
+            }
+            if (nextOpponents.WasPressedThisFrame())
+            {
+                scenario.opponents = scenario.opponents % 3 + 1;
                 rebuild = true;
             }
             if (spectator.WasPressedThisFrame())
@@ -168,7 +176,7 @@ namespace Shieldbreak.Presentation.Player
                 GUI.color = heroDead ? new Color(1f, 0.45f, 0.4f) : new Color(1f, 0.9f, 0.5f);
                 GUI.Label(new Rect(0, Screen.height * 0.3f, Screen.width, 60), text, banner);
                 GUI.color = Color.white;
-                GUI.Label(new Rect(0, Screen.height * 0.3f + 50, Screen.width, 30), "F5 neu · F6 Kampfgefühl · F7 Gegner-Stufe · F8 Zuschauen", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter });
+                GUI.Label(new Rect(0, Screen.height * 0.3f + 50, Screen.width, 30), "F5 neu · F6 Kampfgefühl · F7 Gegner-Stufe · F10 Gegnerzahl · F8 Zuschauen", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter });
             }
         }
 

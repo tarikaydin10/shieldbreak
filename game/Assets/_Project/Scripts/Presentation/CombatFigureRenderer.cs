@@ -42,6 +42,8 @@ namespace Shieldbreak.Presentation
         public float flinchDegrees = 10f;
         [Min(0.01f)] public float flinchSeconds = 0.25f;
         [Min(0.05f)] public float fallSeconds = 0.6f;
+        [Tooltip("How far the hip drops when a fighter falls (m).")]
+        public float deadDrop = 0.75f;
 
         class Figure
         {
@@ -141,6 +143,19 @@ namespace Shieldbreak.Presentation
                 }
 
                 if (c.State == CombatState.Stunned) lean = stunLean;
+
+                // Shield bash: pull back in the windup, punch forward in the active phase, lean into it
+                bool bashing = c.State == CombatState.Special;
+                float bashPush = 0f;
+                if (bashing && world.HasCombat)
+                {
+                    var rules = setup.Tuning;
+                    float tick = c.StateTick - 1 + runner.Alpha;
+                    float windup = rules.SpecialWindupTicks, active = rules.SpecialActiveTicks;
+                    bashPush = tick <= windup ? -0.15f * (tick / windup)
+                        : tick <= windup + active ? 0.35f : Mathf.Lerp(0.35f, 0f, (tick - windup - active) / Mathf.Max(1f, rules.SpecialRecoveryTicks));
+                    lean += bashPush * 30f;
+                }
                 f.flinch = Mathf.MoveTowards(f.flinch, 0f, dt / flinchSeconds);
                 lean -= flinchDegrees * f.flinch;
 
@@ -157,7 +172,8 @@ namespace Shieldbreak.Presentation
                 var hip = new Vector3(0f, 0.95f, 0f);
                 var bodyRot = Quaternion.AngleAxis(lean, Vector3.right) * Quaternion.AngleAxis(-85f * fall, Vector3.forward);
                 f.body.localRotation = bodyRot;
-                f.body.localPosition = hip - bodyRot * hip;
+                // A fallen body rolls about the hip, so it also drops to lie on the ground
+                f.body.localPosition = hip - bodyRot * hip + Vector3.down * (deadDrop * fall);
                 Matrix4x4 bodyToRoot = Matrix4x4.TRS(f.body.localPosition, bodyRot, Vector3.one);
                 Matrix4x4 rootToWorld = f.root.localToWorldMatrix;
                 Matrix4x4 bodyToWorld = rootToWorld * bodyToRoot;
@@ -173,12 +189,20 @@ namespace Shieldbreak.Presentation
                 PlaceLimb(f.foreR, elbowR, handWorld);
 
                 // Shield and left arm: raised while blocking
-                float target = c.BlockHeld == 1 && c.State == CombatState.Idle ? 1f : 0f;
+                float target = (c.BlockHeld == 1 && c.State == CombatState.Idle) || bashing ? 1f : 0f;
                 f.shieldT = Mathf.MoveTowards(f.shieldT, target, dt / shieldBlend);
                 Vector3 grip = Vector3.Lerp(shieldRest, shieldGuard, f.shieldT);
+                grip += new Vector3(bashing ? 0.05f : 0f, 0f, bashPush);
                 Vector3 gripWorld = bodyToWorld.MultiplyPoint3x4(grip);
                 var shieldData = visual.teams[Mathf.Clamp(a.Team, 0, 1)].shield;
-                f.shield.SetPositionAndRotation(gripWorld, f.root.rotation * bodyRot * Quaternion.Euler(0f, Mathf.Lerp(shieldData.yaw, 0f, f.shieldT), 0f) * shieldData.meshMatrix.rotation);
+                var shieldRot = f.root.rotation * bodyRot * Quaternion.Euler(0f, Mathf.Lerp(shieldData.yaw, 0f, f.shieldT), 0f) * shieldData.meshMatrix.rotation;
+                if (fall > 0f)
+                {
+                    // The falling body rolls around its forward axis, which would leave the shield on its edge: tip it flat
+                    shieldRot = Quaternion.AngleAxis(85f * fall, f.root.right) * shieldRot;
+                    gripWorld.y = Mathf.Lerp(gripWorld.y, pos.y + 0.1f, fall);
+                }
+                f.shield.SetPositionAndRotation(gripWorld, shieldRot);
                 Vector3 shoulderL = bodyToWorld.MultiplyPoint3x4(leftShoulder);
                 Vector3 elbowL = SolveElbow(shoulderL, gripWorld, upperArmLength, forearmLength, bodyToWorld.MultiplyVector(leftElbowHint));
                 PlaceLimb(f.upperL, shoulderL, elbowL);

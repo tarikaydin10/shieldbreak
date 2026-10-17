@@ -112,6 +112,16 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Standard-Steuerung „Einfach": tippen = leichter Angriff (Kette rechts/links, mit Vorwärts: Stich), halten = schwerer Hieb von oben; Richtungs-Steuerung per Maus bleibt per Tab wählbar | Tarik will Kampf ohne Richtungs-Komplexität; der Kopf bleibt frei fürs Kommandieren. Die Sim-Grammatik (vier Richtungen als Geometrie, ein richtungsloser Block) bleibt unverändert, nur die Eingabe-Übersetzung ändert sich. Fun-Gate entscheidet endgültig | Nur Richtungen per Maus (CLAUDE.md alt), Light/Heavy auch in der Sim (verliert Kopf/Mehrfachtreffer-Geometrie) |
 | „Schwer" startet sofort als leichter Hieb und wird per Morph umgewandelt, sobald die Taste gehalten wird | Kein Warten auf Tippen-oder-Halten, Windup bleibt innerhalb eines Ticks sichtbar; Test sichert, dass auch bei 30 FPS das Morph-Fenster reicht | Angriff erst nach Loslassen auslösen (100–200 ms Verzögerung) |
 
+## 2026-10-18 — M1 Schritt 3: Sprint, Schritt, Schildstoß, Angriffs-Tokens
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Ausweichschritt verschiebt die Position direkt (2 m in 300 ms), Steering steht in der Zeit still | Exakt, deterministisch, unabhängig von Beschleunigungs-Grenzen; nicht unterbrechbar, aber Eingaben werden gepuffert | Schritt als Geschwindigkeits-Impuls (Weg hängt vom Steering ab) |
+| Körpergeschwindigkeit geht in die Trefferenergie ein (Klingenweg + Körperweg pro Tick) | CLAUDE.md: „Sprint-Angriff mit Energie-Bonus", Ansturm in die Linie wird mechanisch belohnt, ohne Sonderregel. Stich aus dem Sprint ≈ 614 J statt 289 J | Fester Sprint-Multiplikator |
+| Schildstoß: 250 ms ausholen, 100 ms aktiv, 250 ms erholen; bricht jeden erhobenen Block (ohne Schaden), sonst 6 Schaden und 800 ms Taumeln | „Schildstoß + schneller Nachstich": Test sichert, dass ein sofortiger Stich trifft, bevor der Gegner wieder blocken kann. Antwort für Schildwall-Patt und Bots auf L1 | Schildstoß mit Energie-Schaden über SwingTrace (unnötig für einen Stoß) |
+| Angriffs-Tokens: höchstens 2 Bots holen gleichzeitig gegen dasselbe Ziel aus (Tuning-Wert), der Rest wartet 1,2 m außerhalb der Reichweite | CLAUDE.md 3.5 D (1vX); Spieler soll sich gegen Überzahl mächtig, aber bedroht fühlen. Reines Bot-Verhalten, kein Sonderpfad | Alle Bots greifen an (Spieler chancenlos), Bots greifen einzeln an (langweilig) |
+| Duell bekommt F10 für 1–3 Gegner | Fun-Gate-Test der Macht-Fantasie und der Tokens | Eigene Szene |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

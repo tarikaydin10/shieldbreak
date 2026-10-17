@@ -200,6 +200,10 @@
       "text": "Gegner-Stufe wechseln (L1 bis L5), startet neu"
     },
     {
+      "action": "Duel/NextOpponentCount",
+      "text": "Anzahl Gegner wechseln (1 / 2 / 3; höchstens zwei greifen gleichzeitig an), startet neu"
+    },
+    {
       "action": "Duel/ToggleSpectator",
       "text": "Zuschauen: Bot gegen Bot, startet neu"
     },
@@ -210,6 +214,18 @@
     {
       "action": "Combat/ToggleScheme",
       "text": "Steuerung wechseln: Einfach (leicht/schwer) oder Richtungen (Maus)"
+    },
+    {
+      "action": "Combat/Sprint",
+      "text": "Halten: sprinten (kostet Ausdauer); ein Angriff aus dem Sprint trifft härter"
+    },
+    {
+      "action": "Combat/Step",
+      "text": "Ausweichschritt in Laufrichtung (ohne Richtung: zurück), 2 m, kostet Ausdauer"
+    },
+    {
+      "action": "Combat/Special",
+      "text": "Schildstoß: bricht jeden erhobenen Block, sonst Taumeln und leichter Schaden"
     }
   ]
 }

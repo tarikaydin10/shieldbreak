@@ -24,6 +24,8 @@ MonoBehaviour:
     engageRange: 1.25
     acquireRange: 8
     holdBlock: 1
+    stepChance: 0
+    specialChance: 0
   - label: L2
     reactionMs: {x: 400, y: 600}
     blockChance: 0.5
@@ -35,6 +37,8 @@ MonoBehaviour:
     engageRange: 1.25
     acquireRange: 8
     holdBlock: 0
+    stepChance: 0.05
+    specialChance: 0.05
   - label: L3
     reactionMs: {x: 250, y: 450}
     blockChance: 0.6
@@ -46,6 +50,8 @@ MonoBehaviour:
     engageRange: 1.25
     acquireRange: 8
     holdBlock: 0
+    stepChance: 0.1
+    specialChance: 0.15
   - label: L4
     reactionMs: {x: 200, y: 330}
     blockChance: 0.6
@@ -57,6 +63,8 @@ MonoBehaviour:
     engageRange: 1.25
     acquireRange: 8
     holdBlock: 0
+    stepChance: 0.15
+    specialChance: 0.25
   - label: L5
     reactionMs: {x: 150, y: 250}
     blockChance: 0.55
@@ -68,3 +76,5 @@ MonoBehaviour:
     engageRange: 1.25
     acquireRange: 8
     holdBlock: 0
+    stepChance: 0.2
+    specialChance: 0.35

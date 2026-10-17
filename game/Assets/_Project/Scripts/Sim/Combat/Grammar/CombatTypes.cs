@@ -12,6 +12,18 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int Recovery = 3;
         public const int Stunned = 4;
         public const int Dead = 5;
+        /// <summary>Dodge step: a short fixed-speed move (Direction holds the StepDirection).</summary>
+        public const int Stepping = 6;
+        /// <summary>Archetype special (one-hand + shield: shield bash).</summary>
+        public const int Special = 7;
+    }
+
+    public static class StepDirection
+    {
+        public const int Forward = 0;
+        public const int Back = 1;
+        public const int Left = 2;
+        public const int Right = 3;
     }
 
     /// <summary>Attack directions are geometry (CLAUDE.md 3.5): overhead hits the head zone, side cuts several targets, thrust reaches far.</summary>
@@ -41,7 +53,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
 
     /// <summary>
     /// Combat state of one agent, parallel to AgentData (same index). Hashed raw: the ulong comes first and every other
-    /// field is 4 bytes; Reserved fills the tail, so the 120 bytes contain no padding (checked by a test).
+    /// field is 4 bytes, 120 bytes in total without padding (checked by a test).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CombatData
@@ -77,8 +89,8 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public int BotDefenseDecidedFor;
         /// <summary>Where the agent goes when it has no enemy to engage (set by move orders).</summary>
         public float2 OrderTarget;
-        /// <summary>Explicit tail padding: the ulong makes the struct 8-byte aligned (116 -> 120 bytes); implicit padding would hash garbage.</summary>
-        public int Reserved;
+        /// <summary>1 while sprinting (players via PlayerMove, bots when closing distance). Also fills the 8-byte tail.</summary>
+        public int Sprinting;
     }
 
     public static class CombatEventType
@@ -90,6 +102,8 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int Death = 4;
         public const int Feint = 5;
         public const int AttackStart = 6;
+        public const int Step = 7;
+        public const int SpecialStart = 8;
     }
 
     /// <summary>What happened in a tick, for presentation (hitstop, sounds, effects) and tests. Not part of the hash.</summary>
@@ -141,12 +155,36 @@ namespace Shieldbreak.Sim.Combat.Grammar
         /// <summary>Energy lost per additional target of a multi-target swing (0..1 kept).</summary>
         public float MultiHitEnergyKeep;
 
+        /// <summary>1vX attack tokens: bots that may swing at the same target at once (0 = unlimited).</summary>
+        public int MaxAttackersPerTarget;
+        /// <summary>Extra distance waiting bots keep while another bot holds the token (m).</summary>
+        public float WaitingDistance;
+
+        public float SprintSpeedScale;
+        public float SprintStaminaPerSecond;
+
+        public int StepTicks;
+        public float StepDistance;
+        public float StepStaminaCost;
+
+        public int SpecialWindupTicks;
+        public int SpecialActiveTicks;
+        public int SpecialRecoveryTicks;
+        public float SpecialRange;
+        public float SpecialArcDeg;
+        public float SpecialStaminaCost;
+        /// <summary>Stun and damage when the bash meets a body instead of a raised block.</summary>
+        public int SpecialStunTicks;
+        public float SpecialDamage;
+
         public void Validate()
         {
             if (HealthMax <= 0f || StaminaMax <= 0f) throw new ArgumentException("HealthMax and StaminaMax must be positive.");
             if (FeintWindow < 0f || FeintWindow > 1f || MorphWindow < 0f || MorphWindow > 1f) throw new ArgumentException("Feint/morph windows are fractions of the windup.");
             if (PerfectBlockTicks < 0 || InputBufferTicks < 0) throw new ArgumentException("Tick windows must be >= 0.");
             if (DamagePerJoule < 0f) throw new ArgumentException("DamagePerJoule must be >= 0.");
+            if (StepTicks < 1 || SpecialWindupTicks < 1 || SpecialActiveTicks < 1 || SpecialRecoveryTicks < 0) throw new ArgumentException("Step and special need positive tick lengths.");
+            if (SprintSpeedScale < 1f) throw new ArgumentException("SprintSpeedScale must be >= 1.");
         }
     }
 
@@ -173,5 +211,9 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public float AcquireRange;
         /// <summary>1 = keeps the block raised whenever it is not attacking (level 1).</summary>
         public int HoldBlock;
+        /// <summary>Chance to dodge a seen attack with a back step (checked after perfect block and block).</summary>
+        public float StepChance;
+        /// <summary>Chance per decision to shield-bash an enemy that holds its block.</summary>
+        public float SpecialChance;
     }
 }

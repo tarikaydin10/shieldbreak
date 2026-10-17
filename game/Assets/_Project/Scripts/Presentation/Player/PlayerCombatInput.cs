@@ -51,7 +51,8 @@ namespace Shieldbreak.Presentation.Player
         public float keepAlive = 0.25f;
 
         InputActionMap map;
-        InputAction move, look, attack, block, feint, toggleScheme;
+        InputAction move, look, attack, block, feint, toggleScheme, sprint, step, special;
+        int lastSprint;
         readonly Queue<(float time, Vector2 delta)> recent = new Queue<(float, Vector2)>();
         float2 lastMove, lastLook;
         float lastSent;
@@ -84,6 +85,9 @@ namespace Shieldbreak.Presentation.Player
             block = map.FindAction("Block", true);
             feint = map.FindAction("Feint", true);
             toggleScheme = map.FindAction("ToggleScheme", true);
+            sprint = map.FindAction("Sprint", true);
+            step = map.FindAction("Step", true);
+            special = map.FindAction("Special", true);
             map.Enable();
         }
 
@@ -130,9 +134,11 @@ namespace Shieldbreak.Presentation.Player
             Vector3 forward = yawRot * Vector3.forward;
             float2 walk2 = new float2(walk.x, walk.z);
             float2 look2 = new float2(forward.x, forward.z);
-            if (math.distance(walk2, lastMove) > 0.05f || math.dot(look2, lastLook) < 0.9994f || now - lastSent > keepAlive)
+            int sprinting = sprint.IsPressed() && m.sqrMagnitude > 0.04f ? 1 : 0;
+            if (math.distance(walk2, lastMove) > 0.05f || math.dot(look2, lastLook) < 0.9994f || sprinting != lastSprint || now - lastSent > keepAlive)
             {
-                world.Submit(LocalPlayer, InputCommandType.PlayerMove, new int4(agent, 0, 0, 0), new float4(walk2, look2));
+                world.Submit(LocalPlayer, InputCommandType.PlayerMove, new int4(agent, sprinting, 0, 0), new float4(walk2, look2));
+                lastSprint = sprinting;
                 lastMove = walk2;
                 lastLook = look2;
                 lastSent = now;
@@ -148,6 +154,15 @@ namespace Shieldbreak.Presentation.Player
             if (block.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatBlock, new int4(agent, 1, 0, 0));
             if (block.WasReleasedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatBlock, new int4(agent, 0, 0, 0));
             if (feint.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatFeint, new int4(agent, 0, 0, 0));
+            if (special.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatSpecial, new int4(agent, 0, 0, 0));
+            if (step.WasPressedThisFrame())
+            {
+                // Step along the walk input relative to the view (the hero faces the camera direction); none = back
+                int dir = m.sqrMagnitude < 0.04f ? StepDirection.Back :
+                    Mathf.Abs(m.y) >= Mathf.Abs(m.x) ? (m.y > 0f ? StepDirection.Forward : StepDirection.Back) :
+                    (m.x < 0f ? StepDirection.Left : StepDirection.Right);
+                world.Submit(LocalPlayer, InputCommandType.CombatStep, new int4(agent, dir, 0, 0));
+            }
         }
 
         /// <summary>

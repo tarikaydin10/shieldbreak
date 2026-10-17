@@ -50,6 +50,30 @@ namespace Shieldbreak.Data
         [Tooltip("Effective energy (J) that gives the maximum hitstop.")]
         [Min(1f)] public float hitstopFullEnergy = 500f;
 
+        [Header("Groups (1vX)")]
+        [Tooltip("Bots that may swing at the same target at once; the rest hold back and threaten (0 = unlimited).")]
+        [Min(0)] public int maxAttackersPerTarget = 2;
+        [Tooltip("Extra distance waiting bots keep (m).")]
+        [Min(0f)] public float waitingDistance = 1.2f;
+
+        [Header("Sprint, step, special")]
+        [Min(1f)] public float sprintSpeedScale = 1.6f;
+        [Min(0f)] public float sprintStaminaPerSecond = 12f;
+        [Tooltip("Dodge step duration (ms) and distance (m).")]
+        [Min(17f)] public float stepMs = 300f;
+        [Min(0.1f)] public float stepDistance = 2f;
+        [Min(0f)] public float stepStaminaCost = 12f;
+        [Tooltip("Shield bash: windup, active and recovery (ms).")]
+        [Min(17f)] public float specialWindupMs = 250f;
+        [Min(17f)] public float specialActiveMs = 100f;
+        [Min(0f)] public float specialRecoveryMs = 250f;
+        [Min(0.3f)] public float specialRange = 1.3f;
+        [Range(10f, 180f)] public float specialArcDeg = 70f;
+        [Min(0f)] public float specialStaminaCost = 18f;
+        [Tooltip("Stun and damage when the bash hits a body instead of a block.")]
+        [Min(0f)] public float specialStunMs = 800f;
+        [Min(0f)] public float specialDamage = 6f;
+
         [Header("Movement in combat")]
         [Range(0f, 1f)] public float attackSpeedScale = 0.5f;
         [Range(0f, 1f)] public float blockSpeedScale = 0.6f;
@@ -78,6 +102,21 @@ namespace Shieldbreak.Data
             BlockSpeedScale = blockSpeedScale,
             StunSpeedScale = stunSpeedScale,
             MultiHitEnergyKeep = multiHitEnergyKeep,
+            MaxAttackersPerTarget = maxAttackersPerTarget,
+            WaitingDistance = waitingDistance,
+            SprintSpeedScale = sprintSpeedScale,
+            SprintStaminaPerSecond = sprintStaminaPerSecond,
+            StepTicks = AttackTiming.MsToTicks(stepMs),
+            StepDistance = stepDistance,
+            StepStaminaCost = stepStaminaCost,
+            SpecialWindupTicks = AttackTiming.MsToTicks(specialWindupMs),
+            SpecialActiveTicks = AttackTiming.MsToTicks(specialActiveMs),
+            SpecialRecoveryTicks = specialRecoveryMs <= 0f ? 0 : AttackTiming.MsToTicks(specialRecoveryMs),
+            SpecialRange = specialRange,
+            SpecialArcDeg = specialArcDeg,
+            SpecialStaminaCost = specialStaminaCost,
+            SpecialStunTicks = AttackTiming.MsToTicks(specialStunMs),
+            SpecialDamage = specialDamage,
         };
     }
 }
