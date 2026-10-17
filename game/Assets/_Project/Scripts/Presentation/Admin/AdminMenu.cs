@@ -143,6 +143,24 @@ namespace Shieldbreak.Presentation.Admin
                 GUILayout.Space(4);
             }
 
+            if (SceneManager.sceneCountInBuildSettings > 1)
+            {
+                GUILayout.Label("SZENEN", heading);
+                int active = SceneManager.GetActiveScene().buildIndex;
+                for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+                {
+                    string sceneName = System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i));
+                    GUI.enabled = i != active;
+                    if (GUILayout.Button(i == active ? $"{sceneName} (aktiv)" : sceneName))
+                    {
+                        GamePause.Set(false);
+                        open = false;
+                        SceneManager.LoadScene(i);
+                    }
+                    GUI.enabled = true;
+                }
+            }
+
             GUILayout.Label("EINSTELLUNGEN", heading);
             showHint = Setting(PrefHint, showHint, "Hinweis oben links zeigen, wenn das Menü zu ist");
             showInactive = Setting(PrefInactive, showInactive, "Inaktive Steuerung mit anzeigen");
@@ -163,7 +181,7 @@ namespace Shieldbreak.Presentation.Admin
 
         void Badge(string label, float x, bool alignRight)
         {
-            Vector2 size = hint.CalcSize(new GUIContent(label));
+            Vector2 size = hint.CalcSize(new GUIContent(label)) + new Vector2(2f, 0f);
             GUI.Label(new Rect(alignRight ? x - size.x : x, 10, size.x, size.y), label, hint);
         }
 
@@ -213,7 +231,8 @@ namespace Shieldbreak.Presentation.Admin
             muted = new GUIStyle(text) { normal = { textColor = dim } };
             key = new GUIStyle(text) { fontStyle = FontStyle.Bold };
             paused = new GUIStyle(title) { fontSize = 22, normal = { textColor = accent } };
-            hint = new GUIStyle(GUI.skin.label) { fontSize = 12, padding = new RectOffset(8, 8, 4, 4), normal = { textColor = fg, background = panelTexture } };
+            // No word wrap: with the width measured exactly, rounding would push the last word onto a clipped second line
+            hint = new GUIStyle(GUI.skin.label) { fontSize = 12, wordWrap = false, clipping = TextClipping.Overflow, padding = new RectOffset(8, 8, 4, 4), normal = { textColor = fg, background = panelTexture } };
         }
     }
 }

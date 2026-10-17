@@ -19,8 +19,10 @@ Unity Hub → Add → Ordner `game`. Szenen in `Assets/_Project/Scenes/`: `M0_Sa
 
 ```powershell
 .\tools\run-tests.ps1             # EditMode-Tests (Unity geschlossen)
+.\tools\run-tests.ps1 -Shadow     # dasselbe bei offenem Unity, auf einer Kopie
 .\tools\assetgen\run.ps1          # Assets bauen
 .\tools\assetgen\run.ps1 -Check   # Assets auf Reproduzierbarkeit prüfen
+.\tools\build-windows.ps1 -Shadow  # spielbarer Build nach builds\<datum>
 ```
 
 ## Doku

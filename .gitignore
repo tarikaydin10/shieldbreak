@@ -53,3 +53,6 @@ __pycache__/
 
 # Schatten-Kopie fuer Tests bei offenem Editor (tools/run-tests.ps1 -Shadow)
 .ci/
+
+# Spielbare Builds (tools/build-windows.ps1)
+builds/
