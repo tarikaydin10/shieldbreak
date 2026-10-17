@@ -1,20 +1,27 @@
-# SHIELDBREAK (Arbeitstitel)
+# SHIELDBREAK
 
-Low-Poly Third-Person Tactical Battle Sim. General und Krieger zugleich. 50v50 bis 150v150, deterministische Sim, Lockstep-Multiplayer.
+Low-Poly-Schlachtsimulator, Unity 6 (URP). Stand: M0, laufende Arbeit auf `m0`.
 
-- **CLAUDE.md** — Verfassung des Projekts: Vision, Säulen, Architektur, Meilensteine, Regeln. Zuerst lesen.
-- **DECISIONS.md** — Warum etwas so ist, wie es ist.
-- **IDEAS.md** — Alles, was nicht im aktuellen Meilenstein ist.
-- **docs/** — Research, Posen-Vorgaben, Design-Notizen.
-- **tools/** — Setup-Skripte (Windows).
-- **game/** — Unity-Projekt (6000.5, URP). Wird von Unity Hub erzeugt, siehe CLAUDE.md Abschnitt 10.
+![Nahkampf](docs/screenshots/proto_close.jpg)
+![Kommandoansicht](docs/screenshots/proto_command.jpg)
 
-## Erster Start
+## Setup
 
 ```powershell
-.\tools\setup-windows.ps1
-# Unity Hub: New Project > Universal 3D > Location = dieser Ordner, Name = game
-.\tools\add-packages.ps1
+git lfs install
+git clone https://github.com/tarikaydin10/shieldbreak.git
 ```
 
-Dann `claude` im Repo-Root starten.
+Unity Hub → Add → Ordner `game`. Szene `Assets/_Project/Scenes/Proto_Style.unity`. **F1** zeigt alle Tasten, **Esc** pausiert.
+
+## Befehle
+
+```powershell
+.\tools\run-tests.ps1             # EditMode-Tests (Unity geschlossen)
+.\tools\assetgen\run.ps1          # Assets bauen
+.\tools\assetgen\run.ps1 -Check   # Assets auf Reproduzierbarkeit prüfen
+```
+
+## Doku
+
+[CLAUDE.md](CLAUDE.md) · [DECISIONS.md](DECISIONS.md) · [IDEAS.md](IDEAS.md) · [Style-Bible](art/style/style-bible.md) · [Asset-Pipeline](tools/assetgen/README.md)
