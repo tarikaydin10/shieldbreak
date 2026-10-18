@@ -23,6 +23,7 @@ Dead
    - Block innerhalb 250 ms vor Kontakt gedrückt → **Perfect Block**: kostet nichts, Angreifer wird betäubt.
    - sonst kostet der Block Stamina; leer → **Guard Break**.
 3. **Schaden:** Energie ½·m·v² des schnellsten treffenden Klingenpunkts × Durchdringung (Schneide quer, Spitze längs) minus Rüstungs-Schwelle der Zone × Faktor.
+4. **Rückstoß:** Das Ziel wird aus der Trefferrichtung geschoben (Oben-Hieb ≈ 30 cm), ein Blocker halb so weit, ein Angreifer am Perfect Block prallt zurück.
 
 ## Weitere Verben
 

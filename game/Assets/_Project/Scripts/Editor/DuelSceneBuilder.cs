@@ -2,6 +2,7 @@ using System.IO;
 using Shieldbreak.Data;
 using Shieldbreak.Presentation;
 using Shieldbreak.Presentation.Cameras;
+using Shieldbreak.Presentation.Feedback;
 using Shieldbreak.Presentation.Player;
 using Shieldbreak.Sim.Combat.Grammar;
 using UnityEditor;
@@ -134,6 +135,12 @@ namespace Shieldbreak.EditorTools
             var director = sim.AddComponent<DuelDirector>();
             director.runner = runner;
             director.combatCamera = thirdPerson;
+            var effects = sim.AddComponent<ImpactEffects>();
+            effects.runner = runner;
+            effects.visual = visual;
+            sim.AddComponent<CombatAudio>().runner = runner;
+            sim.AddComponent<StaminaVignette>().runner = runner;
+            camGo.AddComponent<AudioListener>();
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(scene, ScenePath);

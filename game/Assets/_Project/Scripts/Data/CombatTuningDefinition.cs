@@ -80,6 +80,17 @@ namespace Shieldbreak.Data
         [Tooltip("An attack lunge stops this far short of the enemy in front (m).")]
         [Min(0f)] public float lungeStopGap = 0.45f;
 
+        [Header("Knockback (stagger step)")]
+        [Tooltip("Push speed per joule of effective energy on a hit (m/s per J). 500 J -> 3 m/s -> about 30 cm.")]
+        [Min(0f)] public float knockbackPerJoule = 0.006f;
+        [Min(0f)] public float knockbackMax = 4.5f;
+        [Tooltip("Share of the push for a blocker, and for an attacker bounced by a perfect block.")]
+        [Range(0f, 1f)] public float blockKnockbackScale = 0.5f;
+        [Tooltip("Push of the shield bash (m/s). Small enough that the quick follow-up thrust still reaches.")]
+        [Min(0f)] public float bashKnockback = 1.5f;
+        [Tooltip("Knockback kept per tick; 0.85 fades out in about 0.3 s.")]
+        [Range(0f, 0.98f)] public float knockbackDecay = 0.85f;
+
         [Header("Movement in combat")]
         [Range(0f, 1f)] public float attackSpeedScale = 0.5f;
         [Range(0f, 1f)] public float blockSpeedScale = 0.6f;
@@ -125,6 +136,11 @@ namespace Shieldbreak.Data
             SpecialDamage = specialDamage,
             WeaponSwitchTicks = AttackTiming.MsToTicks(weaponSwitchMs),
             LungeStopGap = lungeStopGap,
+            KnockbackPerJoule = knockbackPerJoule,
+            KnockbackMax = knockbackMax,
+            BlockKnockbackScale = blockKnockbackScale,
+            BashKnockback = bashKnockback,
+            KnockbackDecay = knockbackDecay,
         };
     }
 }

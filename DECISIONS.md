@@ -132,6 +132,17 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Waffenwechsel: Loadout mit 4 Slots in `CombatData` (jetzt 144 Bytes), Zustand `Switching` 450 ms, Eingabe wird gepuffert. Schild wandert auf den Rücken, wenn eine andere Waffe gezogen ist | CLAUDE.md: 3–4 Slots, Wechsel kostet eine Recovery; Loadout ist Sim-Zustand und gehasht | Loadout nur in der Darstellung |
 | Papier-Test Bogen/Lanze: Grammatik trägt beide mit zwei allgemeinen Erweiterungen (Halten in einer Phase, Resolver-Art pro Angriff), siehe `docs/combat/papier-test-bogen-lanze.md` | Pflicht aus CLAUDE.md 3.5; Umsetzung mit dem Bogen in M3 | Bogen schon in M1 |
 
+## 2026-10-18 — M1: Kampfgefühl vor dem Fun-Gate
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Rückstoß (Stagger-Schritt) in der Sim: `CombatData.Knockback` verschiebt den Körper direkt und klingt pro Tick ab (0,85). Treffer 0,006 m/s pro J (Oben-Hieb ≈ 30 cm), Block halb so viel, Perfect Block wirft den Angreifer zurück | Game-Feel-Spec „Impuls auf Ziel aus Trefferrichtung"; Position ändert das Gefecht, muss also deterministisch und gehasht sein | Nur optischer Rückstoß (Figur und Sim laufen auseinander), Impuls über Velocity (Steering frisst ihn in ~60 ms) |
+| Schildstoß schiebt nur 1,5 m/s (≈ 17 cm) | Bei 3,5 m/s erreicht der „schnelle Nachstich" (CLAUDE.md Schicht B) das Ziel nicht mehr; Test sichert die Kombination | Größerer Schub |
+| Platzhalter-Sounds werden zur Laufzeit synthetisiert (`ProceduralSfx`): Windup-Ton pro Richtung, Whoosh beim Release, Material-Treffer (Fleisch/Holz/Stahl), Ächzen | Keine Assets vor M4, trotzdem hörbares Feedback für das Fun-Gate; drei Layer pro Treffer wie in der Spec. Echte Aufnahmen in M5 | Stille bis M5, gekaufte Sound-Packs |
+| Kein Kampf-HUD: Lebensbalken standardmäßig aus (F9 Debug), Ausdauer als pulsierende Vignette, Treffer als roter Rand, Leben als Haltung (vorgebeugt) | Game-Feel-Spec „Kein Kampf-HUD" | Balken als Standard |
+| Entscheidende Kills (Held oder letzter Gegner): 0,1 s Sim-Zeit in Zeitlupe 0,25×, über weniger Ticks pro Sekunde | Spec: Slow-Mo bei entscheidenden Kills; `DT` bleibt fest | Unity-`timeScale` |
+| Reaktionszeit als Test: Eingabe bis sichtbare Waffenbewegung 2 Ticks = 33 ms bei Eingabeverzögerung 1 | Spec-Kriterium „≤ 50 ms" ist Teil des Fun-Gates; jetzt automatisch geprüft | nur Frame-Capture von Hand |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

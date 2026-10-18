@@ -222,7 +222,12 @@ namespace Shieldbreak.Sim.Combat
                 for (int i = 0; i < Count; i++)
                 {
                     var c = Combat[i];
-                    if (c.State == CombatState.Dead) continue;
+                    ApplyKnockback(i, ref c);
+                    if (c.State == CombatState.Dead)
+                    {
+                        Combat[i] = c;
+                        continue;
+                    }
 
                     if (c.State == CombatState.Stunned)
                     {
@@ -273,6 +278,27 @@ namespace Shieldbreak.Sim.Combat
                     Combat[i] = c;
                     UpdateMovement(i, c);
                 }
+            }
+
+            /// <summary>Stagger step: the push moves the body directly (steering cannot cancel it) and fades out.</summary>
+            void ApplyKnockback(int i, ref CombatData c)
+            {
+                if (math.lengthsq(c.Knockback) < 1e-4f)
+                {
+                    c.Knockback = float2.zero;
+                    return;
+                }
+                var a = Agents[i];
+                float2 max = Layout.Origin + new float2(Layout.Width, Layout.Height) * SimConstants.CellSize - 1e-3f;
+                a.Position = math.clamp(a.Position + c.Knockback * SimConstants.DT, Layout.Origin, max);
+                Agents[i] = a;
+                c.Knockback *= Tuning.KnockbackDecay;
+            }
+
+            float2 Push(int from, int to, float speed)
+            {
+                float2 d = math.normalizesafe(Agents[to].Position - Agents[from].Position, Agents[from].Facing);
+                return d * math.min(Tuning.KnockbackMax, speed);
             }
 
             void AdvanceAttack(int i, ref CombatData c)
@@ -390,12 +416,14 @@ namespace Shieldbreak.Sim.Combat
                     target.State = CombatState.Stunned;
                     target.StateTick = 0;
                     target.StunTicks = Tuning.GuardBreakStunTicks;
+                    target.Knockback += Push(i, best, Tuning.BashKnockback);
                     Events.Add(new CombatEvent { Type = CombatEventType.GuardBreak, Attacker = i, Target = best, Zone = BodyZone.Torso, Point = point });
                 }
                 else
                 {
                     target.Health -= Tuning.SpecialDamage;
                     target.BlockHeld = 0;
+                    target.Knockback += Push(i, best, Tuning.BashKnockback);
                     Events.Add(new CombatEvent { Type = CombatEventType.Hit, Attacker = i, Target = best, Zone = BodyZone.Torso, Damage = Tuning.SpecialDamage, Point = point });
                     if (target.Health <= 0f) Kill(i, best, ref target, ref targetAgent, BodyZone.Torso, point);
                     else
@@ -536,10 +564,12 @@ namespace Shieldbreak.Sim.Combat
                             attacker.State = CombatState.Stunned;
                             attacker.StateTick = 0;
                             attacker.StunTicks = Tuning.PerfectBlockStunTicks;
+                            attacker.Knockback += Push(j, i, effective * Tuning.KnockbackPerJoule * Tuning.BlockKnockbackScale);
                             return true;
                         }
                         target.Stamina -= effective * Tuning.BlockStaminaPerJoule * weapon.BlockPressure;
                         target.LastStaminaUseTick = Tick;
+                        target.Knockback += Push(i, j, effective * Tuning.KnockbackPerJoule * Tuning.BlockKnockbackScale);
                         if (target.Stamina <= 0f)
                         {
                             target.Stamina = 0f;
@@ -569,6 +599,7 @@ namespace Shieldbreak.Sim.Combat
 
                 if (damage > 0f)
                 {
+                    target.Knockback += Push(i, j, effective * Tuning.KnockbackPerJoule);
                     target.Health -= damage;
                     target.BlockHeld = 0;
                     target.Sprinting = 0;

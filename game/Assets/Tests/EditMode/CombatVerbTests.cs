@@ -145,6 +145,67 @@ namespace Shieldbreak.Tests
             Assert.That(best, Is.GreaterThan(standing * 1.1f), "the charge into the line is rewarded");
         }
 
+        /// <summary>Largest distance B gets pushed from its start by A's overhead (B blocking or not).</summary>
+        float PushOnB(bool block)
+        {
+            Build();
+            float2 start = world.Agents[b].Position;
+            if (block) input.At(5, PlayerB, InputCommandType.CombatBlock, b, 1);
+            input.At(10, PlayerA, InputCommandType.CombatAttack, a, AttackDirection.Overhead);
+            float most = 0f;
+            for (int t = 0; t < 90; t++)
+            {
+                world.Step();
+                if (world.Tick > 6) most = math.max(most, world.Agents[b].Position.y - start.y);
+            }
+            return most;
+        }
+
+        [Test]
+        public void Hit_PushesTheTargetBack_ABlockLess()
+        {
+            float hit = PushOnB(false), blocked = PushOnB(true);
+            TestContext.WriteLine($"stagger push: hit {hit:0.00} m, blocked {blocked:0.00} m");
+            Assert.That(hit, Is.InRange(0.15f, 0.8f), "a hit is a visible stagger step, not a launch");
+            Assert.That(blocked, Is.GreaterThan(0.02f));
+            Assert.That(blocked, Is.LessThan(hit));
+        }
+
+        [Test]
+        public void ShieldBash_ShovesTheTarget()
+        {
+            Build();
+            float2 start = world.Agents[b].Position;
+            input.At(10, PlayerA, InputCommandType.CombatSpecial, a);
+            input.RunUntil(80);
+            Assert.That(world.Agents[b].Position.y - start.y, Is.GreaterThan(0.1f));
+        }
+
+        [Test]
+        public void InputToVisibleWindup_IsWithinFiftyMilliseconds()
+        {
+            // Game feel spec: input -> visible windup start <= 50 ms. The duel's input delay plus one tick of motion must fit.
+            var duel = UnityEditor.AssetDatabase.LoadAssetAtPath<Shieldbreak.Data.DuelScenarioDefinition>("Assets/_Project/Data/Scenarios/Duel_M1.asset");
+            Assert.That(duel, Is.Not.Null);
+            setup = TestCombat.Setup();
+            var config = TestScenarios.Config(1, 32, 2);
+            config.InputDelayTicks = duel.inputDelayTicks;
+            world = new SimWorld(config, setup);
+            a = world.SpawnAgent(0, new float2(10f, 10f), 0.3f, new float2(0f, 1f));
+            world.AssignPlayerAgent(PlayerA, a);
+            for (int t = 0; t < 5; t++) world.Step();
+            world.Submit(PlayerA, InputCommandType.CombatAttack, new int4(a, AttackDirection.Overhead, 0, 0));
+            int ticks = 0;
+            while (!(C(a).State == CombatState.Windup && C(a).StateTick >= 1) && ticks < 10)
+            {
+                world.Step();
+                ticks++;
+            }
+            float ms = ticks * SimConstants.DT * 1000f;
+            TestContext.WriteLine($"input delay {duel.inputDelayTicks} ticks: weapon moves after {ticks} ticks = {ms:0} ms");
+            Assert.That(ms, Is.LessThanOrEqualTo(50f));
+        }
+
         [Test]
         public void Sprint_DrainsStamina_AndStopsWhenEmpty()
         {

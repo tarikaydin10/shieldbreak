@@ -46,11 +46,16 @@ namespace Shieldbreak.Presentation
         [Min(0.05f)] public float fallSeconds = 0.6f;
         [Tooltip("How far the hip drops when a fighter falls (m).")]
         public float deadDrop = 0.75f;
+        [Tooltip("Health shows in the posture (no HUD): forward slouch in degrees at almost no health.")]
+        public float lowHealthSlouch = 12f;
 
         class Figure
         {
             public Transform root, body, helmet, shield, upperR, foreR, upperL, foreL, weapon, weapon2;
             public float shieldT, flinch, deadTime = -1f;
+            /// <summary>Local axis the body falls around (away from the killer) and how sideways that fall is.</summary>
+            public Vector3 fallAxis = Vector3.back;
+            public float fallSideways = 1f;
         }
 
         readonly List<Figure> figures = new List<Figure>();
@@ -114,7 +119,19 @@ namespace Shieldbreak.Presentation
             while (figures.Count < count) figures.Add(Build(Mathf.Clamp(agents[figures.Count].Team, 0, 1)));
 
             foreach (var e in runner.FrameEvents)
+            {
                 if (e.Type == CombatEventType.Hit && e.Damage > 0f && e.Target < figures.Count) figures[e.Target].flinch = 1f;
+                if (e.Type == CombatEventType.Death && e.Target < figures.Count && e.Attacker >= 0 && e.Attacker < agents.Length)
+                {
+                    // Fall away from the killer: direction in the dead soldier's own frame
+                    var target = agents[e.Target];
+                    float2 away = math.normalizesafe(target.Position - agents[e.Attacker].Position, -target.Facing);
+                    var rot = Quaternion.LookRotation(new Vector3(target.Facing.x, 0f, target.Facing.y), Vector3.up);
+                    Vector3 local = Quaternion.Inverse(rot) * new Vector3(away.x, 0f, away.y);
+                    figures[e.Target].fallAxis = Vector3.Cross(Vector3.up, local).normalized;
+                    figures[e.Target].fallSideways = Mathf.Abs(local.x);
+                }
+            }
 
             float dt = Time.unscaledDeltaTime;
             var setup = world.CombatSetup;
@@ -169,6 +186,7 @@ namespace Shieldbreak.Presentation
                 }
 
                 if (c.State == CombatState.Stunned) lean = stunLean;
+                if (hasCombat && c.State != CombatState.Dead) lean += lowHealthSlouch * Mathf.Clamp01(1f - c.Health / setup.Tuning.HealthMax);
                 f.flinch = Mathf.MoveTowards(f.flinch, 0f, dt / flinchSeconds);
                 lean -= flinchDegrees * f.flinch;
 
@@ -205,7 +223,7 @@ namespace Shieldbreak.Presentation
 
                 // Lean pivots at the hip so the feet stay planted
                 var hip = new Vector3(0f, 0.95f, 0f);
-                var bodyRot = Quaternion.AngleAxis(lean, Vector3.right) * Quaternion.AngleAxis(-85f * fall, Vector3.forward);
+                var bodyRot = Quaternion.AngleAxis(85f * fall, f.fallAxis) * Quaternion.AngleAxis(lean, Vector3.right);
                 f.body.localRotation = bodyRot;
                 // A fallen body rolls about the hip, so it also drops to lie on the ground
                 f.body.localPosition = hip - bodyRot * hip + Vector3.down * (deadDrop * fall);
@@ -238,7 +256,7 @@ namespace Shieldbreak.Presentation
                     if (fall > 0f)
                     {
                         // The falling body rolls around its forward axis, which would leave the shield on its edge: tip it flat
-                        shieldRot = Quaternion.AngleAxis(85f * fall, f.root.right) * shieldRot;
+                        shieldRot = Quaternion.AngleAxis(85f * fall * f.fallSideways, f.root.right) * shieldRot;
                         gripWorld.y = Mathf.Lerp(gripWorld.y, pos.y + 0.1f, fall);
                     }
                     f.shield.SetPositionAndRotation(gripWorld, shieldRot);

@@ -59,7 +59,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
 
     /// <summary>
     /// Combat state of one agent, parallel to AgentData (same index). Hashed raw: the ulong comes first and every other
-    /// field is 4 bytes, 144 bytes in total without padding (checked by a test).
+    /// field is 4 bytes, 152 bytes in total without padding (checked by a test).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CombatData
@@ -102,6 +102,8 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public int ActiveSlot;
         /// <summary>Weapon put away by the last switch (presentation draws it during Switching).</summary>
         public int PreviousWeaponId;
+        /// <summary>Stagger push from hits and blocks (m/s); moves the body directly and decays every tick.</summary>
+        public float2 Knockback;
     }
 
     public static class CombatEventType
@@ -194,6 +196,16 @@ namespace Shieldbreak.Sim.Combat.Grammar
         /// <summary>An attack lunge stops this far (m) short of the enemy in front instead of running through it.</summary>
         public float LungeStopGap;
 
+        /// <summary>Stagger push per joule of effective energy on a hit (m/s per J), capped at KnockbackMax.</summary>
+        public float KnockbackPerJoule;
+        public float KnockbackMax;
+        /// <summary>Share of the push a blocker (and a perfect-blocked attacker) gets.</summary>
+        public float BlockKnockbackScale;
+        /// <summary>Push of the shield bash (m/s).</summary>
+        public float BashKnockback;
+        /// <summary>Knockback kept per tick (0..1).</summary>
+        public float KnockbackDecay;
+
         public void Validate()
         {
             if (HealthMax <= 0f || StaminaMax <= 0f) throw new ArgumentException("HealthMax and StaminaMax must be positive.");
@@ -203,6 +215,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
             if (StepTicks < 1 || SpecialWindupTicks < 1 || SpecialActiveTicks < 1 || SpecialRecoveryTicks < 0) throw new ArgumentException("Step and special need positive tick lengths.");
             if (SprintSpeedScale < 1f) throw new ArgumentException("SprintSpeedScale must be >= 1.");
             if (WeaponSwitchTicks < 1) throw new ArgumentException("WeaponSwitchTicks must be >= 1.");
+            if (KnockbackDecay < 0f || KnockbackDecay >= 1f || KnockbackPerJoule < 0f || KnockbackMax < 0f) throw new ArgumentException("Knockback: decay in [0, 1), other values >= 0.");
         }
     }
 

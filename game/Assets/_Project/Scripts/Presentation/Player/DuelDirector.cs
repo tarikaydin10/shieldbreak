@@ -16,7 +16,11 @@ namespace Shieldbreak.Presentation.Player
     {
         public SimRunner runner;
         public ThirdPersonCamera combatCamera;
-        public bool showBars = true;
+        [Tooltip("Health and stamina bars over the heads (debug; the game feel spec has no combat HUD).")]
+        public bool showBars;
+        [Tooltip("Slow motion on decisive kills (the hero or the last enemy): sim seconds and time scale.")]
+        public float killSlowMoSeconds = 0.1f;
+        [Range(0.05f, 1f)] public float killSlowMoScale = 0.25f;
 
         DuelScenarioDefinition scenario;
         InputActionMap map;
@@ -140,6 +144,7 @@ namespace Shieldbreak.Presentation.Player
             int hero = r.PlayerAgent;
             foreach (var e in r.World.LastEvents)
             {
+                if (e.Type == CombatEventType.Death && IsDecisive(r, e.Target)) r.RequestSlowMotion(killSlowMoSeconds, killSlowMoScale);
                 bool impact = e.Type == CombatEventType.Hit || e.Type == CombatEventType.Blocked || e.Type == CombatEventType.PerfectBlock || e.Type == CombatEventType.GuardBreak;
                 if (!impact) continue;
                 bool mine = hero < 0 || e.Attacker == hero || e.Target == hero;
@@ -151,6 +156,17 @@ namespace Shieldbreak.Presentation.Player
                 Vector2 dir = ownHit ? SwingDirection(e.Direction) : new Vector2(0f, -1f);
                 combatCamera.Kick(dir, e.Energy, ownHit && e.Type == CombatEventType.Hit);
             }
+        }
+
+        /// <summary>The hero (agent 0, also in spectator mode) died, or the last of its enemies did.</summary>
+        static bool IsDecisive(SimRunner r, int target)
+        {
+            var agents = r.World.Agents;
+            var combat = r.World.Combat;
+            if (target == 0) return true;
+            for (int i = 0; i < agents.Length; i++)
+                if (agents[i].Team != agents[0].Team && combat[i].State != CombatState.Dead) return false;
+            return true;
         }
 
         static Vector2 SwingDirection(int direction) =>

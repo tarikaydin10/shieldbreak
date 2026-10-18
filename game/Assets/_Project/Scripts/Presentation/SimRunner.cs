@@ -75,6 +75,7 @@ namespace Shieldbreak.Presentation
             Alpha = 1f;
             accumulator = 0f;
             hitstopRemaining = 0f;
+            slowMoRemaining = 0f;
             FrameEvents.Clear();
             WorldRebuilt?.Invoke();
         }
@@ -83,6 +84,18 @@ namespace Shieldbreak.Presentation
         public void RequestHitstop(float seconds) => hitstopRemaining = math.max(hitstopRemaining, seconds);
 
         public bool InHitstop => hitstopRemaining > 0f;
+
+        /// <summary>
+        /// Brief slow motion (singleplayer, e.g. a decisive kill): fewer ticks per real second for
+        /// <paramref name="simSeconds"/> of sim time. DT never changes (CLAUDE.md 3.9).
+        /// </summary>
+        public void RequestSlowMotion(float simSeconds, float scale)
+        {
+            slowMoRemaining = math.max(slowMoRemaining, simSeconds);
+            slowMoScale = math.clamp(scale, 0.05f, 1f);
+        }
+
+        float slowMoRemaining, slowMoScale = 1f;
 
         void OnEnable()
         {
@@ -126,7 +139,13 @@ namespace Shieldbreak.Presentation
                 return;
             }
 
-            accumulator += dt * (SlowMotion ? slowMotionScale : 1f);
+            float scale = SlowMotion ? slowMotionScale : 1f;
+            if (slowMoRemaining > 0f)
+            {
+                scale = math.min(scale, slowMoScale);
+                slowMoRemaining -= dt * scale;
+            }
+            accumulator += dt * scale;
             int ticks = 0;
             while (accumulator >= SimConstants.DT && ticks < maxTicksPerFrame && hitstopRemaining <= 0f)
             {
