@@ -22,13 +22,17 @@ Unity Hub → Add → Ordner `game`. Szene `Assets/_Project/Scenes/MainMenu` sta
 
 ## Befehle
 
+Ein Skript für alles, aus dem Repo-Root in PowerShell:
+
 ```powershell
-.\tools\run-tests.ps1             # EditMode-Tests (Unity geschlossen)
-.\tools\run-tests.ps1 -Shadow     # dasselbe bei offenem Unity, auf einer Kopie
-.\tools\assetgen\run.ps1          # Assets bauen
-.\tools\assetgen\run.ps1 -Check   # Assets auf Reproduzierbarkeit prüfen
-.\tools\build-windows.ps1 -Shadow  # spielbarer Build nach builds\<datum>
+.\sb.ps1 play      # Spiel starten (baut vorher, wenn nötig)
+.\sb.ps1 test      # alle Tests, Unity darf offen bleiben
+.\sb.ps1 build     # Build nach builds\M1-duel\SHIELDBREAK.exe
+.\sb.ps1 assets    # Modelle aus art\specs bauen und prüfen
+.\sb.ps1 setup     # einmalig nach dem Klonen
 ```
+
+`.\sb.ps1` ohne Argument zeigt diese Liste. Die Skripte in `tools/` sind die Innereien.
 
 ## Doku
 

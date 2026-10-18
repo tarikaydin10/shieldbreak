@@ -269,7 +269,8 @@ Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebni
 
 - Alle Unity-Pfade in diesem Dokument sind relativ zu `game/`. Claude Code wird im Repo-Root gestartet.
 - `Sim/` darf **niemals** `using UnityEngine;` enthalten. Bei Verstoß: ablehnen und Alternative über `Unity.Mathematics` vorschlagen.
-- Vor jedem Commit: `game/Assets/Tests/EditMode` ausführen (über Unity MCP `run_tests` oder Unity-Batchmode), Determinismus-Test muss grün sein.
+- Vor jedem Commit: `.\sb.ps1 test` (EditMode-Tests im Batchmode auf einer Kopie), Determinismus-Test muss grün sein.
+- **Ein Einstieg für Tarik:** Alles, was er ausführen soll, läuft über `.\sb.ps1 <befehl>`; jede Abschlussmeldung nennt den konkreten Befehl. Neue Fähigkeiten werden Unterkommandos von `sb.ps1`, nie neue Skripte zum direkten Aufruf. Innereien liegen in `tools/`.
 - Neue Sim-Systeme als Burst-kompatible Jobs über NativeArrays schreiben. Keine Klassen-Allokationen im Tick.
 - Keine neuen Features außerhalb des aktuellen Meilensteins ohne Rückfrage. Ideen nach `IDEAS.md`.
 - Balancing-Werte nie hardcoden; ScriptableObject-Feld anlegen.
@@ -279,7 +280,7 @@ Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebni
 - **Drittanbieter-Assets:** Gameplay-Frameworks (Combat-, Formation-, AI-Systeme) kommen nie ins Repo; sie setzen MonoBehaviour/PhysX/NavMesh voraus und brechen Determinismus und Sim/Presentation-Trennung. Erlaubt sind reine Presentation-Tools (Rendering, VFX, Audio, Editor-Tooling) und Daten (Modelle, Posen). Gekaufte Systeme dürfen als Teardown in einem separaten Projekt studiert werden; Erkenntnisse nach `docs/research/`.
 - **Doku wächst mit:** Jedes wichtige Verzeichnis hat ein kurzes README (was liegt hier, wie hängt es zusammen, welche Regeln gelten). Wer Inhalt oder Struktur eines Verzeichnisses ändert, aktualisiert dessen README im selben Commit. Stil: schlicht, Tabellen und Befehle, Screenshots wo sinnvoll.
 - **Jede Eingabe ist dokumentiert** (Admin-Menü, F1): Jede Taste, Maus- oder Gamepad-Eingabe ist eine Action in `game/Assets/_Project/Resources/Input/Shieldbreak.inputactions` mit einer deutschen Beschreibung in `controls.de.json` daneben, eine Action-Map pro Feature, die das Feature beim Aktivieren einschaltet. Kein direktes Abfragen von Geräten (`Keyboard.current`, `Input.GetKey` usw.); `ControlsDocumentationTests` prüft beides. Neue Features mit sichtbarem Zustand implementieren `IAdminStatus`, damit sie im Menü eine Statuszeile bekommen. Esc = Pause (nur Singleplayer, über `GamePause`; die Sim läuft dann null Ticks).
-- **Assets nur über die Pipeline** (`art/style/style-bible.md`): Finale Modelle entstehen ausschließlich aus einer Spec in `art/specs/` über `tools/assetgen/run.ps1` und landen in `game/Assets/_Project/Art/Generated/`. Nie FBX von Hand ablegen oder nachbearbeiten, nie Farben als Hex in Specs. Passt ein Asset nicht, Generator oder `style.json` ändern, nicht das Asset. Blender MCP und KI-Text-zu-3D nur zum Erkunden bzw. als Rohmaterial für einen Normalize-Generator. Vor jedem Commit mit Änderungen an `art/` oder `tools/assetgen/`: `run.ps1` (Kontaktbogen ansehen) und `run.ps1 -Check`.
+- **Assets nur über die Pipeline** (`art/style/style-bible.md`): Finale Modelle entstehen ausschließlich aus einer Spec in `art/specs/` über `tools/assetgen/run.ps1` und landen in `game/Assets/_Project/Art/Generated/`. Nie FBX von Hand ablegen oder nachbearbeiten, nie Farben als Hex in Specs. Passt ein Asset nicht, Generator oder `style.json` ändern, nicht das Asset. Blender MCP und KI-Text-zu-3D nur zum Erkunden bzw. als Rohmaterial für einen Normalize-Generator. Vor jedem Commit mit Änderungen an `art/` oder `tools/assetgen/`: `.\sb.ps1 assets` (baut, Kontaktbogen ansehen, prüft).
 - **MCP-Regeln (Blender MCP, Unity MCP):** Vor jeder Batch-Operation über MCP ein Git-Commit; in Blender vorher speichern. Keine Lösch- oder Überschreib-Operationen in Blender/Unity ohne explizite Bestätigung. Server bleiben auf localhost; nur eine Client-Instanz pro Server. Unity-MCP-Package auf feste Version gepinnt (`#v10.0.0`), Upgrade nur bewusst mit Eintrag in `DECISIONS.md`. Konfiguration liegt in `.mcp.json` im Repo.
 
 ## 9. Offene Entscheidungen (bis M3 erlaubt)
@@ -291,9 +292,9 @@ Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebni
 
 ## 10. Setup (einmalig, Windows)
 
-1. `tools/setup-windows.ps1` in PowerShell ausführen (installiert uv, Blender-MCP-Addon, registriert Blender-MCP in Claude Code, initialisiert Git + LFS).
+1. `.\sb.ps1 setup` in PowerShell ausführen (installiert uv, Blender-MCP-Addon, registriert Blender-MCP in Claude Code, initialisiert Git + LFS, ergänzt die Unity-Pakete).
 2. Unity Hub → New Project → Universal 3D → Location `C:\Users\tarik\projects\shieldbreak`, Project name `game`, Unity 6000.5.
-3. Nach dem ersten Öffnen: `tools/add-packages.ps1` ausführen (ergänzt Burst, Collections, Mathematics, Input System, Cinemachine, Animation Rigging, Test Framework, Unity MCP in `game/Packages/manifest.json`), Unity lädt nach.
+3. Nach dem ersten Öffnen lädt Unity die Pakete aus `game/Packages/manifest.json` (Burst, Collections, Mathematics, Input System, Cinemachine, Animation Rigging, Test Framework, Unity MCP).
 4. In Unity: Window → MCP for Unity → Configure All Detected Clients.
 5. In Blender: Preferences → Add-ons → „MCP for Blender" aktivieren; im Viewport `N` → MCP-Tab → Connect to Claude.
 6. Im Repo-Root `claude` starten, `/mcp` prüfen: blender und unity müssen verbunden sein.

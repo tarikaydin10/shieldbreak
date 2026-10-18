@@ -1,6 +1,6 @@
 # EditMode-Tests
 
-Vor jedem Commit grün: `.\tools\run-tests.ps1` (oder `-Shadow` bei offenem Unity, oder Test Runner in Unity).
+Vor jedem Commit grün: `.\sb.ps1 test` (Unity darf offen bleiben) oder Test Runner in Unity.
 
 | Testklasse | Prüft |
 |---|---|
