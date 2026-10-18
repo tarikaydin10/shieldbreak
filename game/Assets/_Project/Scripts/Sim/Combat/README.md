@@ -1,6 +1,6 @@
 # Combat
 
-Die Kampf-Grammatik aus CLAUDE.md 3.5. Spieler und Bots benutzen dieselben Regeln (`CombatSystem.TryAttack`, `SetBlock`, `TryFeint`, `TryStep`, `TrySpecial`).
+Die Kampf-Grammatik aus CLAUDE.md 3.5. Spieler und Bots benutzen dieselben Regeln (`CombatSystem.TryAttack`, `SetBlock`, `TryFeint`, `TryStep`, `TrySpecial`, `TrySwitch`).
 
 ## Zustände pro Soldat (`CombatData`)
 
@@ -10,6 +10,8 @@ Idle ──Angriff──► Windup ──► Release ──► Recovery ──�
   └─Block halten    └─► Idle                │ geblockt: springt in Recovery
 Idle ──Schritt──► Stepping (300 ms, 2 m, nicht unterbrechbar) ──► Idle
 Idle ──Special──► Special (Schildstoß: ausholen, stoßen, erholen) ──► Idle
+Idle ──Special mit Zweihänder──► Windup (Sprung-Hieb aus dem Spezial-Slot) …
+Idle ──Waffe wechseln──► Switching (450 ms) ──► Idle
 Stunned (Treffer, Guard Break, Perfect Block, Schildstoß des Gegners) ──► Idle
 Dead
 ```
@@ -31,6 +33,17 @@ Dead
 
 ![L5-Held gegen drei Bots](../../../../../../docs/screenshots/m1_duel_1v3.jpg)
 
+## Archetypen
+
+| Archetyp | Block | Special | Besonderheit |
+|---|---|---|---|
+| Einhand + Schild | Schild, 120° | Schildstoß: bricht jeden Block, sonst Taumeln | schnell, gut geschützt |
+| Zweihand | Waffe, 90° | Sprung-Hieb: Ausfallschritt 1,4 m, Körpertempo geht in die Energie | trifft härter, Block kostet den Gegner 2,5× Stamina, lange Erholung |
+
+Der Held trägt ein Loadout (bis 4 Slots, Tasten 1–4). Ein gezogener Zweihänder hängt den Schild auf den Rücken.
+
+![Held mit Zweihänder gegen Schildträger](../../../../../../docs/screenshots/m1_twohand.jpg)
+
 ## Ordner
 
 | Ordner | Inhalt |
@@ -40,4 +53,4 @@ Dead
 | `Resolvers/` | `WeaponPath` (Waffenbahn aus Keyframes), `SwingTrace` (Geometrie, Durchdringung) |
 | `CombatSystem.cs` | der Kampf-Job, ein Tick in Agenten-Reihenfolge |
 
-Werte (Schaden, Fenster, Stamina, Bot-Stufen) kommen aus ScriptableObjects in `Scripts/Data`. Tests: `CombatTests`, `CombatVerbTests`, `AttackTests`.
+Werte (Schaden, Fenster, Stamina, Bot-Stufen) kommen aus ScriptableObjects in `Scripts/Data`. Tests: `CombatTests`, `CombatVerbTests`, `TwoHandTests`, `AttackTests`. Papier-Test gegen Bogen und Lanze: [docs/combat](../../../../../../docs/combat/papier-test-bogen-lanze.md).

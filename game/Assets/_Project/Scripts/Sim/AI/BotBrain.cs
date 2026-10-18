@@ -54,9 +54,10 @@ namespace Shieldbreak.Sim.AI
             job.SetAgent(i, me);
             c.Sprinting = c.State == CombatState.Idle && c.BlockHeld == 0 && dist > p.EngageRange + 3f ? 1 : 0;
 
-            // Threat: the enemy swings at us (faces us, close enough)
+            // Threat: the enemy swings at us (faces us, close enough; a lunging attack reaches further)
+            var enemyAttack = job.Attack(ec);
             bool threat = (ec.State == CombatState.Windup || ec.State == CombatState.Release) &&
-                          math.dot(enemy.Facing, -dir) > 0.5f && dist < p.EngageRange + 1.2f;
+                          math.dot(enemy.Facing, -dir) > 0.5f && dist < p.EngageRange + 1.2f + enemyAttack.LungeDistance;
             if (threat)
             {
                 int start = tick - ec.StateTick;
@@ -68,7 +69,6 @@ namespace Shieldbreak.Sim.AI
                 if (tick >= c.BotReactAtTick && c.BotDefenseDecidedFor != start && CombatSystem.CanAct(c))
                 {
                     c.BotDefenseDecidedFor = start;
-                    var enemyAttack = job.Attack(ec);
                     int contactTick = start + enemyAttack.Timing.WindupTicks + enemyAttack.Timing.ReleaseTicks / 2;
                     float roll = rng.NextFloat();
                     if (roll < p.PerfectBlockChance) c.BotPlannedBlockTick = math.max(tick, contactTick - rules.PerfectBlockTicks / 2);
@@ -106,11 +106,21 @@ namespace Shieldbreak.Sim.AI
             if (tick >= c.BotNextDecisionTick)
             {
                 c.BotNextDecisionTick = tick + p.DecisionIntervalTicks;
-                if (c.State == CombatState.Idle && !threat && tokenFree && dist <= p.EngageRange + 0.35f)
+                var weapon = job.Weapon(c);
+                // Two-hand leap: from just outside the engage range the lunge closes the gap and adds to the blow
+                bool leapBand = weapon.HasSpecialAttack && dist > p.EngageRange + 0.35f && dist <= p.EngageRange + 1.3f;
+                if (c.State == CombatState.Idle && !threat && tokenFree && leapBand && rng.NextFloat() < p.SpecialChance)
                 {
-                    // A raised enemy block invites the shield bash; otherwise attack, more often into an opening
+                    if (CombatSystem.TrySpecial(ref c, tick, weapon, rules, job.EventList, i)) job.ClaimAttackToken(c.BotTarget);
+                }
+                else if (c.State == CombatState.Idle && !threat && tokenFree && dist <= p.EngageRange + 0.35f)
+                {
+                    // A raised enemy block invites the special (shield bash breaks it, the leap presses it); otherwise
+                    // attack, more often into an opening
                     if (ec.BlockHeld == 1 && dist <= rules.SpecialRange + 0.4f && rng.NextFloat() < p.SpecialChance)
-                        CombatSystem.TrySpecial(ref c, tick, rules, job.EventList, i);
+                    {
+                        if (CombatSystem.TrySpecial(ref c, tick, weapon, rules, job.EventList, i) && c.State == CombatState.Windup) job.ClaimAttackToken(c.BotTarget);
+                    }
                     else
                     {
                         bool opening = ec.State == CombatState.Recovery || ec.State == CombatState.Stunned;

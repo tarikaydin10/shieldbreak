@@ -1,6 +1,6 @@
 {
   "generator_version": 1,
-  "style_sha256": "d3c5f6a97e8f773ccd638383ee9d3c4364a10a71e197aaac33c0326b7c905127",
+  "style_sha256": "8568401096cb70801e557e1071ae2d9a6b14b649a2c1a7d15a3ec8aefbb6f315",
   "palette_png_sha256": "157744b75ed04e44008c3a7f5d8bf0f0182fe4073f6c913b7d1630989f53b520",
   "assets": [
     {
@@ -162,6 +162,16 @@
       "geometry_sha256": "d514a254b5dae0461fd86cc2262f0e85b3fea87e3e10dca760c61616e20f5cbc",
       "fbx": "game/Assets/_Project/Art/Generated/WPN_sword_onehand.fbx",
       "fbx_sha256": "30af113c5cbc17fba47226d48f7da1f049c72be0c228d3dfef80d270f449565b"
+    },
+    {
+      "name": "WPN_sword_twohand",
+      "category": "weapon_twohand",
+      "generator": "sword",
+      "spec": "art/specs/WPN_sword_twohand.json",
+      "tris": 82,
+      "geometry_sha256": "92fa3d80e6c62993647ededc2dd9479e6fed5241b9ea7a7ca94f4a560e77bb07",
+      "fbx": "game/Assets/_Project/Art/Generated/WPN_sword_twohand.fbx",
+      "fbx_sha256": "0950a7548d8d6f8aabd02adaa2ed890b3c347a16d92c0a4a1bafd2fb0a4007e9"
     }
   ]
 }

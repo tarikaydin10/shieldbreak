@@ -16,7 +16,7 @@ namespace Shieldbreak.Data
         public static CombatSetup Build(IReadOnlyList<WeaponDefinition> weapons, CombatTuningDefinition tuning, BotRosterDefinition roster, Allocator allocator)
         {
             var levels = roster != null ? roster.levels : BotRosterDefinition.DefaultLevels();
-            int attackCount = weapons.Count * AttackDirection.Count;
+            int attackCount = 0;
             int keyCount = 0;
             foreach (var w in weapons)
             {
@@ -25,6 +25,13 @@ namespace Shieldbreak.Data
                 {
                     if (a == null) throw new InvalidOperationException($"{w.name}: missing attack.");
                     keyCount += a.keys.Length;
+                }
+                attackCount += AttackDirection.Count;
+                if (w.HasSpecialAttack)
+                {
+                    if (w.specialAttack == null) throw new InvalidOperationException($"{w.name}: the {w.archetype} archetype needs a special attack.");
+                    keyCount += w.specialAttack.keys.Length;
+                    attackCount++;
                 }
             }
 
@@ -35,6 +42,7 @@ namespace Shieldbreak.Data
                 var def = weapons[w];
                 setup.Weapons[w] = new WeaponData
                 {
+                    Archetype = (int)def.archetype,
                     Mass = def.mass,
                     EdgeFactor = def.edgeFactor,
                     PointFactor = def.pointFactor,
@@ -42,7 +50,8 @@ namespace Shieldbreak.Data
                     BlockPressure = def.blockPressure,
                     FirstAttack = attackIndex,
                 };
-                foreach (var a in def.attacks)
+                var table = def.HasSpecialAttack ? new List<AttackDefinition>(def.attacks) { def.specialAttack } : new List<AttackDefinition>(def.attacks);
+                foreach (var a in table)
                 {
                     using (var keys = a.ToKeys(Allocator.Temp))
                         for (int k = 0; k < keys.Length; k++) setup.Keys[keyIndex + k] = keys[k];

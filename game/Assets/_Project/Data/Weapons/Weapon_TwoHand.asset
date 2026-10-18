@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 257911d03888eaccb4b11d544ad53766, type: 3}
+  m_Name: Weapon_TwoHand
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.WeaponDefinition
+  archetype: 1
+  displayName: "Zweih\xE4nder"
+  mass: 2
+  edgeFactor: 1
+  pointFactor: 3
+  blockArcDeg: 90
+  blockPressure: 1.8
+  attacks:
+  - {fileID: 11400000, guid: 7f301eaf5234bcc42ae498c232cbe4bf, type: 2}
+  - {fileID: 11400000, guid: aa580f45ec167b647af0563d6a799d57, type: 2}
+  - {fileID: 11400000, guid: dc053d9d9a5f77943a6ffefce6718be8, type: 2}
+  - {fileID: 11400000, guid: d707b0464960c0247a7ace8538bc9b19, type: 2}
+  specialAttack: {fileID: 11400000, guid: b10aa5076e05e6242bd4e7c9505373a1, type: 2}

@@ -151,6 +151,9 @@ namespace Shieldbreak.Sim.Core
                 RngState = new SimRandom(Config.Seed ^ (0x9E3779B97F4A7C15UL * (ulong)(id + 1))).State,
                 State = CombatState.Idle,
                 WeaponId = weaponId,
+                Loadout = new int4(weaponId, -1, -1, -1),
+                ActiveSlot = 0,
+                PreviousWeaponId = weaponId,
                 BlockPressedTick = -100000,
                 LastStaminaUseTick = -100000,
                 Stamina = combatSetup.Tuning.StaminaMax,
@@ -176,6 +179,26 @@ namespace Shieldbreak.Sim.Core
             a.BaseSpeedScale = baseSpeedScale;
             a.AccelScale = accelScale;
             agents[agentId] = a;
+        }
+
+        /// <summary>
+        /// Weapon slots of an agent (scenario setup), -1 = empty. Slot 0 must hold a weapon; it is drawn at once.
+        /// </summary>
+        public void SetLoadout(int agentId, int4 loadout)
+        {
+            if (agentId < 0 || agentId >= AgentCount) throw new ArgumentOutOfRangeException(nameof(agentId));
+            for (int s = 0; s < 4; s++)
+            {
+                int w = loadout[s];
+                if (w < -1 || w >= combatSetup.Weapons.Length || (s == 0 && w < 0))
+                    throw new ArgumentOutOfRangeException(nameof(loadout), $"Slot {s}: weapon {w} does not exist.");
+            }
+            var c = combat[agentId];
+            c.Loadout = loadout;
+            c.ActiveSlot = 0;
+            c.WeaponId = loadout.x;
+            c.PreviousWeaponId = loadout.x;
+            combat[agentId] = c;
         }
 
         /// <summary>Gives a player control of one agent (scenario setup). Combat commands only act on the own agent.</summary>
@@ -261,6 +284,7 @@ namespace Shieldbreak.Sim.Core
                 case InputCommandType.CombatFeint:
                 case InputCommandType.CombatStep:
                 case InputCommandType.CombatSpecial:
+                case InputCommandType.CombatSwitchWeapon:
                     ApplyCombatInput(command);
                     break;
                 case InputCommandType.PlayerMove:
@@ -317,7 +341,8 @@ namespace Shieldbreak.Sim.Core
             // Only the player's own agent obeys; anything else is ignored (never thrown) to keep lockstep robust
             if (!HasCombat || command.PlayerId >= SimConstants.MaxPlayers || playerAgent[command.PlayerId] != id || id < 0 || id >= AgentCount) return;
             var c = combat[id];
-            var attack = combatSetup.Attacks[combatSetup.Weapons[c.WeaponId].FirstAttack + c.Direction];
+            var weapon = combatSetup.Weapons[c.WeaponId];
+            var attack = combatSetup.Attacks[weapon.AttackIndex(c.Direction)];
             var tuning = combatSetup.Tuning;
             switch (command.Type)
             {
@@ -334,7 +359,10 @@ namespace Shieldbreak.Sim.Core
                     CombatSystem.TryStep(ref c, command.IntArgs.y, Tick, tuning, events, id);
                     break;
                 case InputCommandType.CombatSpecial:
-                    CombatSystem.TrySpecial(ref c, Tick, tuning, events, id);
+                    CombatSystem.TrySpecial(ref c, Tick, weapon, tuning, events, id);
+                    break;
+                case InputCommandType.CombatSwitchWeapon:
+                    CombatSystem.TrySwitch(ref c, command.IntArgs.y, Tick, tuning, events, id);
                     break;
             }
             combat[id] = c;

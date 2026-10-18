@@ -14,8 +14,10 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int Dead = 5;
         /// <summary>Dodge step: a short fixed-speed move (Direction holds the StepDirection).</summary>
         public const int Stepping = 6;
-        /// <summary>Archetype special (one-hand + shield: shield bash).</summary>
+        /// <summary>Non-attack archetype special (one-hand + shield: shield bash). Attack specials use Windup with AttackDirection.Special.</summary>
         public const int Special = 7;
+        /// <summary>Drawing another weapon from the loadout; costs about one recovery.</summary>
+        public const int Switching = 8;
     }
 
     public static class StepDirection
@@ -34,6 +36,8 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int Right = 2;
         public const int Thrust = 3;
         public const int Count = 4;
+        /// <summary>Attack slot of an archetype special that is an attack (two-hander: leaping overhead). Not a player direction.</summary>
+        public const int Special = 4;
     }
 
     public static class BodyZone
@@ -49,11 +53,13 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int None = 0;
         public const int Attack = 1;
         public const int Block = 2;
+        /// <summary>Weapon switch; BufferedDirection holds the loadout slot.</summary>
+        public const int Switch = 3;
     }
 
     /// <summary>
     /// Combat state of one agent, parallel to AgentData (same index). Hashed raw: the ulong comes first and every other
-    /// field is 4 bytes, 120 bytes in total without padding (checked by a test).
+    /// field is 4 bytes, 144 bytes in total without padding (checked by a test).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CombatData
@@ -89,8 +95,13 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public int BotDefenseDecidedFor;
         /// <summary>Where the agent goes when it has no enemy to engage (set by move orders).</summary>
         public float2 OrderTarget;
-        /// <summary>1 while sprinting (players via PlayerMove, bots when closing distance). Also fills the 8-byte tail.</summary>
+        /// <summary>1 while sprinting (players via PlayerMove, bots when closing distance).</summary>
         public int Sprinting;
+        /// <summary>Weapon ids in the loadout slots (CLAUDE.md: 3-4 slots), -1 = empty. WeaponId is the drawn one.</summary>
+        public int4 Loadout;
+        public int ActiveSlot;
+        /// <summary>Weapon put away by the last switch (presentation draws it during Switching).</summary>
+        public int PreviousWeaponId;
     }
 
     public static class CombatEventType
@@ -104,6 +115,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int AttackStart = 6;
         public const int Step = 7;
         public const int SpecialStart = 8;
+        public const int WeaponSwitch = 9;
     }
 
     /// <summary>What happened in a tick, for presentation (hitstop, sounds, effects) and tests. Not part of the hash.</summary>
@@ -177,6 +189,11 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public int SpecialStunTicks;
         public float SpecialDamage;
 
+        /// <summary>Duration of drawing another weapon (about one recovery).</summary>
+        public int WeaponSwitchTicks;
+        /// <summary>An attack lunge stops this far (m) short of the enemy in front instead of running through it.</summary>
+        public float LungeStopGap;
+
         public void Validate()
         {
             if (HealthMax <= 0f || StaminaMax <= 0f) throw new ArgumentException("HealthMax and StaminaMax must be positive.");
@@ -185,6 +202,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
             if (DamagePerJoule < 0f) throw new ArgumentException("DamagePerJoule must be >= 0.");
             if (StepTicks < 1 || SpecialWindupTicks < 1 || SpecialActiveTicks < 1 || SpecialRecoveryTicks < 0) throw new ArgumentException("Step and special need positive tick lengths.");
             if (SprintSpeedScale < 1f) throw new ArgumentException("SprintSpeedScale must be >= 1.");
+            if (WeaponSwitchTicks < 1) throw new ArgumentException("WeaponSwitchTicks must be >= 1.");
         }
     }
 
@@ -213,7 +231,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public int HoldBlock;
         /// <summary>Chance to dodge a seen attack with a back step (checked after perfect block and block).</summary>
         public float StepChance;
-        /// <summary>Chance per decision to shield-bash an enemy that holds its block.</summary>
+        /// <summary>Chance per decision to use the archetype special (shield bash on a raised block, two-hand leap).</summary>
         public float SpecialChance;
     }
 }

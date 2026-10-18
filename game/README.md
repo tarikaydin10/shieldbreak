@@ -6,7 +6,7 @@ Das Unity-Projekt (Unity 6000.5, URP). Im Unity Hub diesen Ordner öffnen.
 
 | Szene | Zweck |
 |---|---|
-| `M1_Duel` | Du gegen 1–3 Bots: WASD, Maus, linke Taste tippen = leicht, halten = schwer, rechte Taste Block, Q Finte, Shift Sprint, Leertaste Ausweichschritt, E Schildstoß, Tab Richtungs-Steuerung; F5–F10 Duell-Optionen |
+| `M1_Duel` | Du gegen 1–3 Bots: WASD, Maus, linke Taste tippen = leicht, halten = schwer, rechte Taste Block, Q Finte, Shift Sprint, Leertaste Ausweichschritt, E Special (Schildstoß / Sprung-Hieb), 1–4 Waffe wechseln (Schwert + Schild, Zweihänder), Tab Richtungs-Steuerung; F5–F11 Duell-Optionen |
 | `M0_Sandbox` | Draufsicht, 20 gegen 20 marschieren lassen (Auswahl, Rechtsklick-Befehl) |
 | `Proto_Animation` | Oben-Hieb mit prozeduralem Arm, Zeitleiste in Ticks |
 | `Proto_Style` | Look-Test: Formationen, Licht, Post-FX, Ansichten 4 m bis 40 m |

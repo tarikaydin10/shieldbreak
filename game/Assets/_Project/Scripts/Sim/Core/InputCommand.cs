@@ -19,8 +19,10 @@ namespace Shieldbreak.Sim.Core
         PlayerMove = 5,
         /// <summary>IntArgs.x = own agent id, IntArgs.y = StepDirection (relative to the facing).</summary>
         CombatStep = 6,
-        /// <summary>IntArgs.x = own agent id. Archetype special (shield bash).</summary>
+        /// <summary>IntArgs.x = own agent id. Archetype special (one-hand: shield bash, two-hand: leaping overhead).</summary>
         CombatSpecial = 7,
+        /// <summary>IntArgs.x = own agent id, IntArgs.y = loadout slot (0..3). Draws that weapon.</summary>
+        CombatSwitchWeapon = 8,
     }
 
     /// <summary>

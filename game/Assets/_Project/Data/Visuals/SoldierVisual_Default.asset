@@ -287,6 +287,33 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 1
+  twoHandWeapon:
+    mesh: {fileID: -2727807535372756277, guid: 6b0270485a76dfe4b93df3a9e11e48fc, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    yaw: 0
+    meshMatrix:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+  twoHandGripSpacing: 0.15
+  twoHandBlockHand: {x: 0.1, y: 1.32, z: 0.42}
+  twoHandBlockBlade: {x: -0.9, y: 0.4, z: 0.15}
+  shieldBackOffset: {x: 0, y: 1.1, z: -0.2}
+  shieldBackEuler: {x: 0, y: 180, z: 0}
+  leapHeight: 0.3
   forearms:
   - mesh: {fileID: -3605468071795502585, guid: 77aa96efb27c86c4093cc7832593f991, type: 3}
     offset: {x: 0, y: 0, z: 0}

@@ -48,7 +48,7 @@ namespace Shieldbreak.Tests
         public void SimStructs_HaveNoPadding()
         {
             Assert.That(UnsafeUtility.SizeOf<AgentData>(), Is.EqualTo(72));
-            Assert.That(UnsafeUtility.SizeOf<CombatData>(), Is.EqualTo(120));
+            Assert.That(UnsafeUtility.SizeOf<CombatData>(), Is.EqualTo(144));
         }
 
         [Test]

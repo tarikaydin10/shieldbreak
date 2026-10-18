@@ -15,8 +15,8 @@ namespace Shieldbreak.Sim.Combat
     /// <summary>
     /// The combat grammar (CLAUDE.md 3.5, Schicht A): Windup → Release → Recovery, feint and morph in the windup,
     /// input buffer, one-button block in a front arc with stamina cost, perfect block with riposte stun, guard break,
-    /// dodge step, sprint, archetype special (shield bash), SwingTrace hits with energy-based damage, 1vX attack
-    /// tokens. Players (via InputQueue commands) and bots (BotBrain) call the same Try* rules. Runs single-threaded
+    /// dodge step, sprint, archetype specials (shield bash, two-hand leaping overhead with a lunge), weapon switching,
+    /// SwingTrace hits with energy-based damage, 1vX attack tokens. Players (via InputQueue commands) and bots (BotBrain) call the same Try* rules. Runs single-threaded
     /// in agent id order, so hits resolve identically on every peer.
     /// </summary>
     public static class CombatSystem
@@ -70,7 +70,7 @@ namespace Shieldbreak.Sim.Combat
                 events.Add(new CombatEvent { Type = CombatEventType.AttackStart, Attacker = self, Target = -1, Direction = direction });
                 return;
             }
-            if (c.State == CombatState.Windup && direction != c.Direction && c.StateTick <= (int)(tuning.MorphWindow * current.Timing.WindupTicks))
+            if (c.State == CombatState.Windup && direction != c.Direction && c.Direction != AttackDirection.Special && c.StateTick <= (int)(tuning.MorphWindow * current.Timing.WindupTicks))
             {
                 c.Direction = direction;
                 return;
@@ -133,19 +133,51 @@ namespace Shieldbreak.Sim.Combat
             return true;
         }
 
-        /// <summary>Archetype special (shield bash): short windup, then a push in a narrow cone that breaks any raised block.</summary>
-        public static bool TrySpecial(ref CombatData c, int tick, in CombatTuning tuning, NativeList<CombatEvent> events, int self)
+        /// <summary>
+        /// Archetype special (CLAUDE.md 3.5, Schicht B). One-hand + shield: shield bash (short windup, then a push in a
+        /// narrow cone that breaks any raised block). Two-hand: leaping overhead, an attack from the special slot whose
+        /// lunge adds the body's speed to the blade.
+        /// </summary>
+        public static bool TrySpecial(ref CombatData c, int tick, in WeaponData weapon, in CombatTuning tuning, NativeList<CombatEvent> events, int self)
         {
             if (IsBusy(c) || c.Stamina <= 0f) return false;
             c.BlockHeld = 0;
             c.Sprinting = 0;
-            c.State = CombatState.Special;
+            c.State = weapon.HasSpecialAttack ? CombatState.Windup : CombatState.Special;
+            if (weapon.HasSpecialAttack) c.Direction = AttackDirection.Special;
             c.StateTick = 0;
             c.HitCount = 0;
             c.HitIds = new int4(-1);
+            c.Buffered = BufferedAction.None;
             c.Stamina -= tuning.SpecialStaminaCost;
             c.LastStaminaUseTick = tick;
-            events.Add(new CombatEvent { Type = CombatEventType.SpecialStart, Attacker = self, Target = -1 });
+            events.Add(new CombatEvent { Type = CombatEventType.SpecialStart, Attacker = self, Target = -1, Direction = c.Direction });
+            return true;
+        }
+
+        /// <summary>Draw the weapon in a loadout slot; only from idle, buffered while busy. Costs WeaponSwitchTicks.</summary>
+        public static bool TrySwitch(ref CombatData c, int slot, int tick, in CombatTuning tuning, NativeList<CombatEvent> events, int self)
+        {
+            if (slot < 0 || slot > 3 || c.State == CombatState.Dead) return false;
+            int weapon = c.Loadout[slot];
+            if (weapon < 0 || weapon == c.WeaponId) return false;
+            if (IsBusy(c))
+            {
+                c.Buffered = BufferedAction.Switch;
+                c.BufferedDirection = slot;
+                c.BufferedTick = tick;
+                return false;
+            }
+            c.BlockHeld = 0;
+            c.Sprinting = 0;
+            c.PreviousWeaponId = c.WeaponId;
+            c.WeaponId = weapon;
+            c.ActiveSlot = slot;
+            c.Direction = 0;
+            c.State = CombatState.Switching;
+            c.StateTick = 0;
+            c.Buffered = BufferedAction.None;
+            events.Add(new CombatEvent { Type = CombatEventType.WeaponSwitch, Attacker = self, Target = -1, Direction = slot });
             return true;
         }
 
@@ -174,7 +206,7 @@ namespace Shieldbreak.Sim.Combat
             /// <summary>Bots currently swinging at each agent (attack tokens).</summary>
             public NativeArray<int> AttackersOn;
 
-            AttackData AttackOf(in CombatData c) => Attacks[Weapons[c.WeaponId].FirstAttack + math.clamp(c.Direction, 0, AttackDirection.Count - 1)];
+            AttackData AttackOf(in CombatData c) => Attacks[Weapons[c.WeaponId].AttackIndex(c.Direction)];
 
             public void Execute()
             {
@@ -209,6 +241,7 @@ namespace Shieldbreak.Sim.Combat
                             int action = c.Buffered;
                             c.Buffered = BufferedAction.None;
                             if (action == BufferedAction.Attack) TryAttack(ref c, c.BufferedDirection, Tick, AttackOf(c), Tuning, Events, i);
+                            else if (action == BufferedAction.Switch) TrySwitch(ref c, c.BufferedDirection, Tick, Tuning, Events, i);
                             else SetBlock(ref c, true, Tick, AttackOf(c), Tuning, Events, i);
                         }
                     }
@@ -219,6 +252,11 @@ namespace Shieldbreak.Sim.Combat
                         AdvanceStep(i, ref c);
                     else if (c.State == CombatState.Special)
                         AdvanceSpecial(i, ref c);
+                    else if (c.State == CombatState.Switching)
+                    {
+                        c.StateTick++;
+                        if (c.StateTick >= Tuning.WeaponSwitchTicks) { c.State = CombatState.Idle; c.StateTick = 0; }
+                    }
 
                     // Sprint drains stamina; stamina regenerates when idle, not blocking, not sprinting
                     var a = Agents[i];
@@ -249,7 +287,61 @@ namespace Shieldbreak.Sim.Combat
                     return;
                 }
                 c.State = phase == AttackPhase.Windup ? CombatState.Windup : phase == AttackPhase.Release ? CombatState.Release : CombatState.Recovery;
-                if (c.State == CombatState.Release) Trace(i, ref c, attack);
+                float3 lunge = attack.LungeDistance > 0f ? Lunge(i, attack, c.StateTick) : float3.zero;
+                if (c.State == CombatState.Release) Trace(i, ref c, attack, lunge);
+            }
+
+            /// <summary>
+            /// Moves the attacker forward by the share of the lunge that falls into this tick's pose span. It stops short
+            /// of an enemy in front instead of running through it. Returns the world displacement (adds to hit energy).
+            /// </summary>
+            float3 Lunge(int i, in AttackData attack, int stateTick)
+            {
+                float p0 = attack.Timing.PoseTime(stateTick - 1), p1 = attack.Timing.PoseTime(stateTick);
+                float share = math.max(0f, math.min(p1, attack.LungeEndPose) - math.max(p0, attack.LungeStartPose)) / (attack.LungeEndPose - attack.LungeStartPose);
+                if (share <= 0f) return float3.zero;
+                var me = Agents[i];
+                float step = share * attack.LungeDistance;
+                int blocker = NearestEnemyInCone(i, 2.5f, 0.5f, out float dist);
+                if (blocker >= 0) step = math.min(step, math.max(0f, dist - me.Radius - Agents[blocker].Radius - Tuning.LungeStopGap));
+                if (step <= 0f) return float3.zero;
+                me.Position += me.Facing * step;
+                float2 max = Layout.Origin + new float2(Layout.Width, Layout.Height) * SimConstants.CellSize - 1e-3f;
+                me.Position = math.clamp(me.Position, Layout.Origin, max);
+                Agents[i] = me;
+                return new float3(me.Facing.x, 0f, me.Facing.y) * step;
+            }
+
+            /// <summary>Nearest living enemy within <paramref name="range"/> whose direction lies within acos(<paramref name="cosArc"/>) of the facing.</summary>
+            int NearestEnemyInCone(int i, float range, float cosArc, out float distance)
+            {
+                var me = Agents[i];
+                int best = -1;
+                float bestSq = range * range;
+                int r = (int)math.ceil(range / SimConstants.CellSize);
+                int2 cell = math.clamp(Layout.WorldToCell(me.Position), int2.zero, new int2(Layout.Width - 1, Layout.Height - 1));
+                for (int dy = -r; dy <= r; dy++)
+                for (int dx = -r; dx <= r; dx++)
+                {
+                    int2 cc = cell + new int2(dx, dy);
+                    if (!Layout.InBounds(cc)) continue;
+                    int index = Layout.CellIndex(cc);
+                    for (int e = CellStart[index]; e < CellStart[index + 1]; e++)
+                    {
+                        int j = Entries[e];
+                        if (j == i || j >= Count) continue;
+                        var other = Agents[j];
+                        if (other.IsDead || other.Team == me.Team) continue;
+                        float2 d = other.Position - me.Position;
+                        float dsq = math.lengthsq(d);
+                        if (dsq > bestSq || dsq < 1e-6f || (dsq == bestSq && j > best)) continue;
+                        if (math.dot(d / math.sqrt(dsq), me.Facing) < cosArc) continue;
+                        bestSq = dsq;
+                        best = j;
+                    }
+                }
+                distance = best >= 0 ? math.sqrt(bestSq) : 0f;
+                return best;
             }
 
             void AdvanceStep(int i, ref CombatData c)
@@ -280,31 +372,7 @@ namespace Shieldbreak.Sim.Combat
             void Bash(int i, ref CombatData c)
             {
                 var me = Agents[i];
-                float cosArc = math.cos(math.radians(Tuning.SpecialArcDeg * 0.5f));
-                float range = Tuning.SpecialRange;
-                int best = -1;
-                float bestSq = (range + 0.3f) * (range + 0.3f);
-                int2 cell = math.clamp(Layout.WorldToCell(me.Position), int2.zero, new int2(Layout.Width - 1, Layout.Height - 1));
-                for (int dy = -2; dy <= 2; dy++)
-                for (int dx = -2; dx <= 2; dx++)
-                {
-                    int2 cc = cell + new int2(dx, dy);
-                    if (!Layout.InBounds(cc)) continue;
-                    int index = Layout.CellIndex(cc);
-                    for (int e = CellStart[index]; e < CellStart[index + 1]; e++)
-                    {
-                        int j = Entries[e];
-                        if (j == i || j >= Count) continue;
-                        var other = Agents[j];
-                        if (other.IsDead || other.Team == me.Team) continue;
-                        float2 d = other.Position - me.Position;
-                        float dsq = math.lengthsq(d);
-                        if (dsq >= bestSq || dsq < 1e-6f) continue;
-                        if (math.dot(d / math.sqrt(dsq), me.Facing) < cosArc) continue;
-                        bestSq = dsq;
-                        best = j;
-                    }
-                }
+                int best = NearestEnemyInCone(i, Tuning.SpecialRange + 0.3f, math.cos(math.radians(Tuning.SpecialArcDeg * 0.5f)), out _);
                 if (best < 0) return;
                 c.HitCount = 1;
                 c.HitIds.x = best;
@@ -351,15 +419,15 @@ namespace Shieldbreak.Sim.Combat
             }
 
             /// <summary>Sweeps every blade socket from the previous to the current tick and resolves contacts.</summary>
-            void Trace(int i, ref CombatData c, in AttackData attack)
+            void Trace(int i, ref CombatData c, in AttackData attack, float3 lunge)
             {
                 var me = Agents[i];
                 var weapon = Weapons[c.WeaponId];
                 WeaponPath.Evaluate(Keys, attack.FirstKey, attack.KeyCount, attack.Timing.PoseTime(c.StateTick - 1), out float3 h0, out float3 b0);
                 WeaponPath.Evaluate(Keys, attack.FirstKey, attack.KeyCount, attack.Timing.PoseTime(c.StateTick), out float3 h1, out float3 b1);
                 float energyKeep = 1f;
-                // The body's own motion adds to the blade: a charge into the line hits harder (game feel spec)
-                float3 bodyStep = new float3(me.Velocity.x, 0f, me.Velocity.y) * SimConstants.DT;
+                // The body's own motion (walk, sprint, attack lunge) adds to the blade: a charge into the line hits harder
+                float3 bodyStep = new float3(me.Velocity.x, 0f, me.Velocity.y) * SimConstants.DT + lunge;
 
                 // Candidates within reach: 5x5 cells around the attacker (blade reach up to ~1.6 m)
                 int2 cell = math.clamp(Layout.WorldToCell(me.Position), int2.zero, new int2(Layout.Width - 1, Layout.Height - 1));
@@ -485,7 +553,7 @@ namespace Shieldbreak.Sim.Combat
                         Events.Add(ev);
                         Combat[j] = target;
                         // A blocked swing bounces into recovery
-                        var attack = Attacks[Weapons[attacker.WeaponId].FirstAttack + attacker.Direction];
+                        var attack = Attacks[Weapons[attacker.WeaponId].AttackIndex(attacker.Direction)];
                         attacker.State = CombatState.Recovery;
                         attacker.StateTick = math.max(attacker.StateTick, attack.Timing.WindupTicks + attack.Timing.ReleaseTicks);
                         return true;
@@ -543,6 +611,7 @@ namespace Shieldbreak.Sim.Combat
             public CombatData CombatOf(int i) => Combat[i];
             public void SetAgent(int i, AgentData a) => Agents[i] = a;
             public AttackData Attack(in CombatData c) => AttackOf(c);
+            public WeaponData Weapon(in CombatData c) => Weapons[c.WeaponId];
             public BotProfile Profile(int p) => Bots[p];
             public int AgentCount => Count;
             public GridLayout Grid => Layout;

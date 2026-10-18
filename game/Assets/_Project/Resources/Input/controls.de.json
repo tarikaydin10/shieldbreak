@@ -225,7 +225,31 @@
     },
     {
       "action": "Combat/Special",
-      "text": "Schildstoß: bricht jeden erhobenen Block, sonst Taumeln und leichter Schaden"
+      "text": "Spezialangriff der Waffe: Schildstoß (bricht jeden Block) oder Sprung-Hieb mit dem Zweihänder"
+    },
+    {
+      "action": "Combat/WeaponSlot1",
+      "text": "Waffe in Slot 1 ziehen (kostet eine Erholungsphase)"
+    },
+    {
+      "action": "Combat/WeaponSlot2",
+      "text": "Waffe in Slot 2 ziehen (kostet eine Erholungsphase)"
+    },
+    {
+      "action": "Combat/WeaponSlot3",
+      "text": "Waffe in Slot 3 ziehen (kostet eine Erholungsphase)"
+    },
+    {
+      "action": "Combat/WeaponSlot4",
+      "text": "Waffe in Slot 4 ziehen (kostet eine Erholungsphase)"
+    },
+    {
+      "action": "Combat/NextWeapon",
+      "text": "Nächste Waffe im Loadout ziehen"
+    },
+    {
+      "action": "Duel/NextBotWeapon",
+      "text": "Gegner-Waffe wechseln (Schwert und Schild / Zweihänder / gemischt), startet neu"
     }
   ]
 }

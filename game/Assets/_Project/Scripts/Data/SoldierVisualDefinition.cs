@@ -47,6 +47,18 @@ namespace Shieldbreak.Data
         [Header("Combat figures")]
         [Tooltip("One-hand weapon drawn in the hand (grip at the origin, blade along +Y).")]
         public Part oneHandWeapon = new Part();
+        [Tooltip("Two-hand weapon drawn in both hands (grip centre at the origin, blade along +Y).")]
+        public Part twoHandWeapon = new Part();
+        [Tooltip("The off hand holds a two-hand grip this far below the main hand (m).")]
+        [Min(0f)] public float twoHandGripSpacing = 0.15f;
+        [Tooltip("Two-hand block: main hand and blade direction in the soldier frame (weapon across the body).")]
+        public Vector3 twoHandBlockHand = new Vector3(0.1f, 1.32f, 0.42f);
+        public Vector3 twoHandBlockBlade = new Vector3(-0.9f, 0.4f, 0.15f);
+        [Tooltip("Shield slung on the back while another weapon is drawn: position and rotation in the soldier frame.")]
+        public Vector3 shieldBackOffset = new Vector3(0f, 1.1f, -0.2f);
+        public Vector3 shieldBackEuler = new Vector3(0f, 180f, 0f);
+        [Tooltip("Leaping overhead: height of the jump arc (m).")]
+        [Min(0f)] public float leapHeight = 0.3f;
         [Tooltip("Limb segment in skin colour for the forearms, per team.")]
         public Part[] forearms = { new Part(), new Part() };
 

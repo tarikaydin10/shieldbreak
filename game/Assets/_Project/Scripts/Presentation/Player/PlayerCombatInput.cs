@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Shieldbreak.Data;
 using Shieldbreak.Presentation.Admin;
 using Shieldbreak.Presentation.Cameras;
 using Shieldbreak.Sim.Combat.Grammar;
@@ -11,7 +12,7 @@ namespace Shieldbreak.Presentation.Player
 {
     /// <summary>
     /// Turns the Combat action map into sim commands for the local hero: PlayerMove (camera-relative walk + look),
-    /// CombatAttack, CombatBlock press/release, CombatFeint. Two control schemes choose the attack direction:
+    /// CombatAttack, CombatBlock press/release, CombatFeint, CombatStep, CombatSpecial, CombatSwitchWeapon. Two control schemes choose the attack direction:
     /// Simple (default): tap = light attack chaining right/left (thrust while walking forward), hold = heavy
     /// overhead, done by morphing the young windup. Directional: direction from the recent mouse movement.
     /// The sim is the same for both; nothing here changes it directly.
@@ -51,7 +52,9 @@ namespace Shieldbreak.Presentation.Player
         public float keepAlive = 0.25f;
 
         InputActionMap map;
-        InputAction move, look, attack, block, feint, toggleScheme, sprint, step, special;
+        InputAction move, look, attack, block, feint, toggleScheme, sprint, step, special, nextWeapon;
+        readonly InputAction[] weaponSlots = new InputAction[4];
+        string weaponName = "";
         int lastSprint;
         readonly Queue<(float time, Vector2 delta)> recent = new Queue<(float, Vector2)>();
         float2 lastMove, lastLook;
@@ -66,6 +69,7 @@ namespace Shieldbreak.Presentation.Player
         public string AdminStatusLabel => "Kampf";
         public string AdminStatus =>
             $"Steuerung {(scheme == Scheme.Simple ? "Einfach" : "Richtungen")} (Tab wechselt)" +
+            (weaponName.Length > 0 ? $" · Waffe: {weaponName} (1–4)" : "") +
             (lastDirection < 0 ? "" : $" · letzter Angriff: {lastKind} {DirectionName(lastDirection)}");
 
         public static string DirectionName(int d) =>
@@ -88,6 +92,8 @@ namespace Shieldbreak.Presentation.Player
             sprint = map.FindAction("Sprint", true);
             step = map.FindAction("Step", true);
             special = map.FindAction("Special", true);
+            nextWeapon = map.FindAction("NextWeapon", true);
+            for (int k = 0; k < weaponSlots.Length; k++) weaponSlots[k] = map.FindAction($"WeaponSlot{k + 1}", true);
             map.Enable();
         }
 
@@ -155,6 +161,24 @@ namespace Shieldbreak.Presentation.Player
             if (block.WasReleasedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatBlock, new int4(agent, 0, 0, 0));
             if (feint.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatFeint, new int4(agent, 0, 0, 0));
             if (special.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatSpecial, new int4(agent, 0, 0, 0));
+            var own = world.Combat[agent];
+            for (int k = 0; k < weaponSlots.Length; k++)
+                if (weaponSlots[k].WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatSwitchWeapon, new int4(agent, k, 0, 0));
+            if (nextWeapon.WasPressedThisFrame())
+            {
+                // Next filled slot after the drawn one
+                for (int n = 1; n < 4; n++)
+                {
+                    int slot = (own.ActiveSlot + n) % 4;
+                    if (own.Loadout[slot] >= 0 && own.Loadout[slot] != own.WeaponId)
+                    {
+                        world.Submit(LocalPlayer, InputCommandType.CombatSwitchWeapon, new int4(agent, slot, 0, 0));
+                        break;
+                    }
+                }
+            }
+            weaponName = runner.scenario is DuelScenarioDefinition duel && own.WeaponId < duel.weapons.Length && duel.weapons[own.WeaponId] != null
+                ? duel.weapons[own.WeaponId].displayName : "";
             if (step.WasPressedThisFrame())
             {
                 // Step along the walk input relative to the view (the hero faces the camera direction); none = back

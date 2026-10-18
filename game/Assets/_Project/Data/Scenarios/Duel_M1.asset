@@ -17,6 +17,7 @@ MonoBehaviour:
   arenaSize: 32
   weapons:
   - {fileID: 11400000, guid: 8a86d0d595f33364c9019681623497d4, type: 2}
+  - {fileID: 11400000, guid: f897d33dd8b3bad4fb9c058e406a1b7b, type: 2}
   presets:
   - {fileID: 11400000, guid: 1481bac9f8fcbc346bcbe61c499850f7, type: 2}
   - {fileID: 11400000, guid: 11d7b1dc0de997d49b4379fe4034cffc, type: 2}
@@ -25,6 +26,8 @@ MonoBehaviour:
   roster: {fileID: 11400000, guid: 50d1c94144ec20f4da5d2d9a64a39b87, type: 2}
   botLevel: 3
   opponents: 1
+  heroLoadout: 0000000001000000
+  botWeapon: 0
   spectator: 0
   spectatorHeroLevel: 5
   fighterSpeedScale: 1.6

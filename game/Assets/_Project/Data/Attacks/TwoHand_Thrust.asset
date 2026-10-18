@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29b813158c410b54915e325453b8be6a, type: 3}
+  m_Name: TwoHand_Thrust
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.AttackDefinition
+  windupMs: 402.5
+  releaseMs: 138
+  recoveryMs: 330
+  releaseStartPose: 0.55
+  recoveryStartPose: 0.75
+  bladeLength: 1.05
+  socketCount: 4
+  maxTargets: 1
+  lungeDistance: 0
+  lungeStartPose: 0.35
+  lungeEndPose: 0.72
+  keys:
+  - time: 0
+    hand: {x: 0.12, y: 1.05, z: 0.35}
+    blade: {x: -0.1, y: 0.8, z: 0.6}
+    easeToNext: 3
+    power: 2.5
+  - time: 0.55
+    hand: {x: 0.15, y: 1.15, z: -0.3}
+    blade: {x: 0, y: 0.05, z: 1}
+    easeToNext: 3
+    power: 2
+  - time: 0.7
+    hand: {x: 0.075, y: 1.35, z: 0.45000002}
+    blade: {x: 0, y: 0.02, z: 1}
+    easeToNext: 2
+    power: 2
+  - time: 0.85
+    hand: {x: 0.075, y: 1.33, z: 0.49999997}
+    blade: {x: 0, y: -0.05, z: 1}
+    easeToNext: 3
+    power: 2
+  - time: 1
+    hand: {x: 0.12, y: 1.05, z: 0.35}
+    blade: {x: -0.1, y: 0.8, z: 0.6}
+    easeToNext: 0
+    power: 1

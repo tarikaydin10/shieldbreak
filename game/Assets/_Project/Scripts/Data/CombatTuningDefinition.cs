@@ -74,6 +74,12 @@ namespace Shieldbreak.Data
         [Min(0f)] public float specialStunMs = 800f;
         [Min(0f)] public float specialDamage = 6f;
 
+        [Header("Weapon switch, lunge")]
+        [Tooltip("Drawing another weapon from the loadout (CLAUDE.md: costs a recovery).")]
+        [Min(17f)] public float weaponSwitchMs = 450f;
+        [Tooltip("An attack lunge stops this far short of the enemy in front (m).")]
+        [Min(0f)] public float lungeStopGap = 0.45f;
+
         [Header("Movement in combat")]
         [Range(0f, 1f)] public float attackSpeedScale = 0.5f;
         [Range(0f, 1f)] public float blockSpeedScale = 0.6f;
@@ -117,6 +123,8 @@ namespace Shieldbreak.Data
             SpecialStaminaCost = specialStaminaCost,
             SpecialStunTicks = AttackTiming.MsToTicks(specialStunMs),
             SpecialDamage = specialDamage,
+            WeaponSwitchTicks = AttackTiming.MsToTicks(weaponSwitchMs),
+            LungeStopGap = lungeStopGap,
         };
     }
 }

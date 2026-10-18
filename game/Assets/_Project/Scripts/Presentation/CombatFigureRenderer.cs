@@ -11,7 +11,9 @@ namespace Shieldbreak.Presentation
     /// <summary>
     /// Draws fighters as low-poly figures (CLAUDE.md: GameObjects only for the ~20 nearest agents): armless body,
     /// helmet, shield on an IK left arm, sword on an IK right arm following the sim's WeaponPath (interpolated between
-    /// ticks), lean in windup/release, flinch on hits, stagger when stunned, falling when dead. Reads sim state only.
+    /// ticks), two-hand weapons with both hands on the grip and the shield slung on the back, drawing on a weapon switch,
+    /// a jump arc for leaping attacks, lean in windup/release, flinch on hits, stagger when stunned, falling when dead.
+    /// Reads sim state only.
     /// </summary>
     public class CombatFigureRenderer : MonoBehaviour
     {
@@ -47,7 +49,7 @@ namespace Shieldbreak.Presentation
 
         class Figure
         {
-            public Transform root, body, helmet, shield, upperR, foreR, upperL, foreL, weapon;
+            public Transform root, body, helmet, shield, upperR, foreR, upperL, foreL, weapon, weapon2;
             public float shieldT, flinch, deadTime = -1f;
         }
 
@@ -98,6 +100,7 @@ namespace Shieldbreak.Presentation
             f.upperL = Part(f.root, "UpperArmL", look.upperArm);
             f.foreL = Part(f.root, "ForearmL", visual.forearms[team]);
             f.weapon = Part(f.root, "Weapon", visual.oneHandWeapon);
+            f.weapon2 = Part(f.root, "TwoHandWeapon", visual.twoHandWeapon);
             return f;
         }
 
@@ -115,6 +118,7 @@ namespace Shieldbreak.Presentation
 
             float dt = Time.unscaledDeltaTime;
             var setup = world.CombatSetup;
+            bool hasCombat = world.HasCombat;
             for (int i = 0; i < count; i++)
             {
                 var a = agents[i];
@@ -122,32 +126,56 @@ namespace Shieldbreak.Presentation
                 var f = figures[i];
                 Vector3 pos = SimRunner.ToWorld(runner.InterpolatedPosition(i));
                 var facing = Quaternion.LookRotation(new Vector3(a.Facing.x, 0f, a.Facing.y), Vector3.up);
-                f.root.SetPositionAndRotation(pos, facing);
+
+                // Which weapon is in the hand: while switching, the old one goes down, then the new one comes up
+                bool switching = hasCombat && c.State == CombatState.Switching;
+                float switchT = switching ? Mathf.Clamp01((c.StateTick - 1 + runner.Alpha) / setup.Tuning.WeaponSwitchTicks) : 1f;
+                int shownWeapon = switching && switchT < 0.5f ? c.PreviousWeaponId : c.WeaponId;
+                bool twoHand = hasCombat && setup.Weapons[shownWeapon].Archetype == WeaponArchetype.TwoHand;
+                bool carriesShield = !hasCombat || LoadoutHasShield(c, setup);
 
                 // Weapon pose from the sim's attack table (guard pose when not attacking)
                 float3 hand, blade;
-                float lean = 0f;
+                float lean = 0f, lift = 0f;
                 bool attacking = c.State == CombatState.Windup || c.State == CombatState.Release || c.State == CombatState.Recovery;
-                if (world.HasCombat)
+                if (hasCombat)
                 {
-                    var attack = setup.Attacks[setup.Weapons[c.WeaponId].FirstAttack + c.Direction];
+                    var weaponData = setup.Weapons[shownWeapon];
+                    var attack = setup.Attacks[weaponData.AttackIndex(attacking ? c.Direction : 0)];
                     float elapsed = attacking ? math.max(0f, c.StateTick - 1 + runner.Alpha) : 0f;
                     float pose = attack.Timing.PoseTime(elapsed);
                     WeaponPath.Evaluate(setup.Keys, attack.FirstKey, attack.KeyCount, pose, out hand, out blade);
-                    if (attacking) lean = LeanAt(pose, attack.Timing);
+                    if (attacking)
+                    {
+                        lean = LeanAt(pose, attack.Timing);
+                        // Leaping attack: the body follows a jump arc over the lunge
+                        if (attack.LungeDistance > 0f)
+                            lift = Mathf.Sin(Mathf.PI * Mathf.Clamp01((pose - attack.LungeStartPose) / (attack.LungeEndPose - attack.LungeStartPose))) * visual.leapHeight;
+                    }
                 }
                 else
                 {
                     hand = new float3(0.25f, 1.1f, 0.35f);
                     blade = math.normalize(new float3(-0.2f, 0.7f, 0.7f));
                 }
+                f.root.SetPositionAndRotation(pos + Vector3.up * lift, facing);
+
+                if (switching)
+                {
+                    // Down to the hip and back up to the guard
+                    float down = switchT < 0.5f ? switchT * 2f : 2f - switchT * 2f;
+                    hand = math.lerp(hand, new float3(0.3f, 0.95f, 0.05f), down);
+                    blade = math.normalize(math.lerp(blade, new float3(0.1f, -0.9f, 0.35f), down));
+                }
 
                 if (c.State == CombatState.Stunned) lean = stunLean;
+                f.flinch = Mathf.MoveTowards(f.flinch, 0f, dt / flinchSeconds);
+                lean -= flinchDegrees * f.flinch;
 
                 // Shield bash: pull back in the windup, punch forward in the active phase, lean into it
                 bool bashing = c.State == CombatState.Special;
                 float bashPush = 0f;
-                if (bashing && world.HasCombat)
+                if (bashing && hasCombat)
                 {
                     var rules = setup.Tuning;
                     float tick = c.StateTick - 1 + runner.Alpha;
@@ -156,8 +184,6 @@ namespace Shieldbreak.Presentation
                         : tick <= windup + active ? 0.35f : Mathf.Lerp(0.35f, 0f, (tick - windup - active) / Mathf.Max(1f, rules.SpecialRecoveryTicks));
                     lean += bashPush * 30f;
                 }
-                f.flinch = Mathf.MoveTowards(f.flinch, 0f, dt / flinchSeconds);
-                lean -= flinchDegrees * f.flinch;
 
                 // Death: fall to the side over fallSeconds
                 if (c.State == CombatState.Dead)
@@ -167,6 +193,15 @@ namespace Shieldbreak.Presentation
                 }
                 else f.deadTime = -1f;
                 float fall = f.deadTime < 0f ? 0f : Mathf.SmoothStep(0f, 1f, f.deadTime / fallSeconds);
+
+                // Guard blend: shield raised (one-hand) or weapon across the body (two-hand)
+                float guardTarget = (c.BlockHeld == 1 && c.State == CombatState.Idle) || bashing ? 1f : 0f;
+                f.shieldT = Mathf.MoveTowards(f.shieldT, guardTarget, dt / shieldBlend);
+                if (twoHand && !attacking)
+                {
+                    hand = math.lerp(hand, (float3)visual.twoHandBlockHand, f.shieldT);
+                    blade = math.normalize(math.lerp(blade, math.normalize((float3)visual.twoHandBlockBlade), f.shieldT));
+                }
 
                 // Lean pivots at the hip so the feet stay planted
                 var hip = new Vector3(0f, 0.95f, 0f);
@@ -182,32 +217,55 @@ namespace Shieldbreak.Presentation
                 Vector3 handWorld = bodyToWorld.MultiplyPoint3x4((Vector3)hand);
                 Vector3 bladeWorld = bodyToWorld.MultiplyVector((Vector3)blade).normalized;
                 Vector3 right = f.root.right;
-                PlaceWeapon(f.weapon, handWorld, bladeWorld, right);
+                f.weapon.gameObject.SetActive(!twoHand);
+                f.weapon2.gameObject.SetActive(twoHand);
+                PlaceWeapon(twoHand ? f.weapon2 : f.weapon, twoHand ? visual.twoHandWeapon : visual.oneHandWeapon, handWorld, bladeWorld, right);
                 Vector3 shoulderR = bodyToWorld.MultiplyPoint3x4(rightShoulder);
                 Vector3 elbowR = SolveElbow(shoulderR, handWorld, upperArmLength, forearmLength, bodyToWorld.MultiplyVector(rightElbowHint));
                 PlaceLimb(f.upperR, shoulderR, elbowR);
                 PlaceLimb(f.foreR, elbowR, handWorld);
 
-                // Shield and left arm: raised while blocking
-                float target = (c.BlockHeld == 1 && c.State == CombatState.Idle) || bashing ? 1f : 0f;
-                f.shieldT = Mathf.MoveTowards(f.shieldT, target, dt / shieldBlend);
-                Vector3 grip = Vector3.Lerp(shieldRest, shieldGuard, f.shieldT);
-                grip += new Vector3(bashing ? 0.05f : 0f, 0f, bashPush);
-                Vector3 gripWorld = bodyToWorld.MultiplyPoint3x4(grip);
+                // Shield: on the arm with a one-hand weapon, slung on the back otherwise, absent without one in the loadout
                 var shieldData = visual.teams[Mathf.Clamp(a.Team, 0, 1)].shield;
-                var shieldRot = f.root.rotation * bodyRot * Quaternion.Euler(0f, Mathf.Lerp(shieldData.yaw, 0f, f.shieldT), 0f) * shieldData.meshMatrix.rotation;
-                if (fall > 0f)
+                f.shield.gameObject.SetActive(carriesShield);
+                Vector3 leftHand;
+                if (!twoHand)
                 {
-                    // The falling body rolls around its forward axis, which would leave the shield on its edge: tip it flat
-                    shieldRot = Quaternion.AngleAxis(85f * fall, f.root.right) * shieldRot;
-                    gripWorld.y = Mathf.Lerp(gripWorld.y, pos.y + 0.1f, fall);
+                    Vector3 grip = Vector3.Lerp(shieldRest, shieldGuard, f.shieldT);
+                    grip += new Vector3(bashing ? 0.05f : 0f, 0f, bashPush);
+                    Vector3 gripWorld = bodyToWorld.MultiplyPoint3x4(grip);
+                    var shieldRot = f.root.rotation * bodyRot * Quaternion.Euler(0f, Mathf.Lerp(shieldData.yaw, 0f, f.shieldT), 0f) * shieldData.meshMatrix.rotation;
+                    if (fall > 0f)
+                    {
+                        // The falling body rolls around its forward axis, which would leave the shield on its edge: tip it flat
+                        shieldRot = Quaternion.AngleAxis(85f * fall, f.root.right) * shieldRot;
+                        gripWorld.y = Mathf.Lerp(gripWorld.y, pos.y + 0.1f, fall);
+                    }
+                    f.shield.SetPositionAndRotation(gripWorld, shieldRot);
+                    leftHand = gripWorld;
                 }
-                f.shield.SetPositionAndRotation(gripWorld, shieldRot);
+                else
+                {
+                    f.shield.SetPositionAndRotation(bodyToWorld.MultiplyPoint3x4(visual.shieldBackOffset),
+                        f.root.rotation * bodyRot * Quaternion.Euler(visual.shieldBackEuler) * shieldData.meshMatrix.rotation);
+                    // Off hand lower on the same grip
+                    leftHand = handWorld - bladeWorld * visual.twoHandGripSpacing;
+                }
                 Vector3 shoulderL = bodyToWorld.MultiplyPoint3x4(leftShoulder);
-                Vector3 elbowL = SolveElbow(shoulderL, gripWorld, upperArmLength, forearmLength, bodyToWorld.MultiplyVector(leftElbowHint));
+                Vector3 elbowL = SolveElbow(shoulderL, leftHand, upperArmLength, forearmLength, bodyToWorld.MultiplyVector(leftElbowHint));
                 PlaceLimb(f.upperL, shoulderL, elbowL);
-                PlaceLimb(f.foreL, elbowL, gripWorld);
+                PlaceLimb(f.foreL, elbowL, leftHand);
             }
+        }
+
+        static bool LoadoutHasShield(in CombatData c, CombatSetup setup)
+        {
+            for (int s = 0; s < 4; s++)
+            {
+                int w = c.Loadout[s];
+                if (w >= 0 && w < setup.Weapons.Length && setup.Weapons[w].Archetype == WeaponArchetype.OneHandShield) return true;
+            }
+            return false;
         }
 
         float LeanAt(float pose, AttackTiming timing)
@@ -219,14 +277,14 @@ namespace Shieldbreak.Presentation
             return Mathf.Lerp(attackLean.y, 0f, Mathf.SmoothStep(0f, 1f, (pose - timing.RecoveryStartPose) / (1f - timing.RecoveryStartPose)));
         }
 
-        void PlaceWeapon(Transform weapon, Vector3 hand, Vector3 blade, Vector3 right)
+        void PlaceWeapon(Transform weapon, SoldierVisualDefinition.Part part, Vector3 hand, Vector3 blade, Vector3 right)
         {
             // Blade along +Y; its wide side across the swing plane so the edge leads
             Vector3 wide = Vector3.Cross(blade, right);
             if (wide.sqrMagnitude < 1e-6f) wide = Vector3.Cross(blade, Vector3.forward);
             Vector3 forward = Vector3.Cross(wide.normalized, blade);
             var rotation = Quaternion.LookRotation(forward, blade);
-            var m = Matrix4x4.TRS(hand, rotation, Vector3.one) * visual.oneHandWeapon.meshMatrix;
+            var m = Matrix4x4.TRS(hand, rotation, Vector3.one) * part.meshMatrix;
             weapon.SetPositionAndRotation(m.GetPosition(), m.rotation);
             weapon.localScale = m.lossyScale;
         }

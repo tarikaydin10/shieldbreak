@@ -11,27 +11,46 @@ using Object = UnityEngine.Object;
 
 namespace Shieldbreak.Tests
 {
-    /// <summary>Builds combat setups from the default ScriptableObject values (one-hand weapon, preset "Mittel").</summary>
+    /// <summary>
+    /// Builds combat setups from the default ScriptableObject values (preset "Mittel"): weapon 0 = one-hand + shield,
+    /// weapon 1 = two-hand (same values the duel scene builder writes into new assets).
+    /// </summary>
     static class TestCombat
     {
+        public const int OneHand = 0, TwoHand = 1;
+
         public static CombatSetup Setup(Action<CombatTuningDefinition> tune = null)
         {
             var created = new List<Object>();
             try
             {
-                var weapon = ScriptableObject.CreateInstance<WeaponDefinition>();
-                created.Add(weapon);
+                var oneHand = ScriptableObject.CreateInstance<WeaponDefinition>();
+                created.Add(oneHand);
                 for (int d = 0; d < AttackDirection.Count; d++)
                 {
                     var attack = ScriptableObject.CreateInstance<AttackDefinition>();
                     attack.ApplyDefaults(d);
-                    weapon.attacks[d] = attack;
+                    oneHand.attacks[d] = attack;
                     created.Add(attack);
                 }
+                var twoHand = ScriptableObject.CreateInstance<WeaponDefinition>();
+                created.Add(twoHand);
+                twoHand.ApplyTwoHandDefaults();
+                for (int d = 0; d < AttackDirection.Count; d++)
+                {
+                    var attack = ScriptableObject.CreateInstance<AttackDefinition>();
+                    attack.ApplyTwoHandDefaults(d);
+                    twoHand.attacks[d] = attack;
+                    created.Add(attack);
+                }
+                twoHand.specialAttack = ScriptableObject.CreateInstance<AttackDefinition>();
+                twoHand.specialAttack.ApplyLeapDefaults();
+                created.Add(twoHand.specialAttack);
+
                 var tuning = ScriptableObject.CreateInstance<CombatTuningDefinition>();
                 created.Add(tuning);
                 tune?.Invoke(tuning);
-                return CombatDatabase.Build(new[] { weapon }, tuning, null, Allocator.Persistent);
+                return CombatDatabase.Build(new[] { oneHand, twoHand }, tuning, null, Allocator.Persistent);
             }
             finally
             {

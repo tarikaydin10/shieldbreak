@@ -20,7 +20,7 @@ namespace Shieldbreak.Presentation.Player
 
         DuelScenarioDefinition scenario;
         InputActionMap map;
-        InputAction restart, nextPreset, nextLevel, nextOpponents, spectator, bars;
+        InputAction restart, nextPreset, nextLevel, nextOpponents, nextBotWeapon, spectator, bars;
         Texture2D pixel;
         GUIStyle banner;
 
@@ -34,7 +34,8 @@ namespace Shieldbreak.Presentation.Player
                 string who = scenario.spectator ? $"Zuschauer: L{scenario.spectatorHeroLevel} gegen L{scenario.botLevel}" : $"Gegner L{scenario.botLevel} ×{scenario.opponents}";
                 var combat = runner.World.Combat;
                 string hero = combat.Length > 0 ? $"Held {combat[0].Health:0} HP / {combat[0].Stamina:0} Ausdauer" : "";
-                return $"Preset {preset} · {who} · {hero}";
+                string weapon = scenario.botWeapon < 0 ? "gemischt" : scenario.weapons.Length > scenario.botWeapon && scenario.weapons[scenario.botWeapon] != null ? scenario.weapons[scenario.botWeapon].displayName : "?";
+                return $"Preset {preset} · {who} ({weapon}) · {hero}";
             }
         }
 
@@ -45,15 +46,29 @@ namespace Shieldbreak.Presentation.Player
                 scenario = Instantiate(source);
                 scenario.name = source.name;
                 runner.scenario = scenario;
-                // Build smoke test: SHIELDBREAK.exe -duelSpectator [-duelOpponents 3] watches bots fight
+                // Build smoke test: SHIELDBREAK.exe -duelSpectator [-duelOpponents 3] [-duelBotWeapon 1] [-duelHeroWeapon 1] watches bots fight
                 var args = System.Environment.GetCommandLineArgs();
-                bool watch = System.Array.IndexOf(args, "-duelSpectator") >= 0;
-                int at = System.Array.IndexOf(args, "-duelOpponents");
-                bool many = at >= 0 && at + 1 < args.Length && int.TryParse(args[at + 1], out int n) && n >= 1;
-                if (many) scenario.opponents = Mathf.Clamp(int.Parse(args[at + 1]), 1, 6);
-                if (watch) scenario.spectator = true;
-                if (watch || many) runner.Restart();
+                bool changed = System.Array.IndexOf(args, "-duelSpectator") >= 0;
+                if (changed) scenario.spectator = true;
+                if (IntArg(args, "-duelOpponents", out int opponents)) { scenario.opponents = Mathf.Clamp(opponents, 1, 6); changed = true; }
+                if (IntArg(args, "-duelBotWeapon", out int botWeapon)) { scenario.botWeapon = Mathf.Clamp(botWeapon, -1, scenario.weapons.Length - 1); changed = true; }
+                if (IntArg(args, "-duelHeroWeapon", out int heroWeapon))
+                {
+                    // Draw this weapon first, keep the others in the loadout
+                    var slots = new System.Collections.Generic.List<int> { heroWeapon };
+                    foreach (int w in scenario.heroLoadout) if (w != heroWeapon) slots.Add(w);
+                    scenario.heroLoadout = slots.ToArray();
+                    changed = true;
+                }
+                if (changed) runner.Restart();
             }
+        }
+
+        static bool IntArg(string[] args, string name, out int value)
+        {
+            value = 0;
+            int at = System.Array.IndexOf(args, name);
+            return at >= 0 && at + 1 < args.Length && int.TryParse(args[at + 1], out value);
         }
 
         void OnEnable()
@@ -63,6 +78,7 @@ namespace Shieldbreak.Presentation.Player
             nextPreset = map.FindAction("NextPreset", true);
             nextLevel = map.FindAction("NextBotLevel", true);
             nextOpponents = map.FindAction("NextOpponentCount", true);
+            nextBotWeapon = map.FindAction("NextBotWeapon", true);
             spectator = map.FindAction("ToggleSpectator", true);
             bars = map.FindAction("ToggleBars", true);
             map.Enable();
@@ -99,6 +115,12 @@ namespace Shieldbreak.Presentation.Player
             if (nextOpponents.WasPressedThisFrame())
             {
                 scenario.opponents = scenario.opponents % 3 + 1;
+                rebuild = true;
+            }
+            if (nextBotWeapon.WasPressedThisFrame())
+            {
+                // Each weapon in turn, then mixed (-1)
+                scenario.botWeapon = scenario.botWeapon + 1 >= scenario.weapons.Length ? -1 : scenario.botWeapon + 1;
                 rebuild = true;
             }
             if (spectator.WasPressedThisFrame())
@@ -176,7 +198,7 @@ namespace Shieldbreak.Presentation.Player
                 GUI.color = heroDead ? new Color(1f, 0.45f, 0.4f) : new Color(1f, 0.9f, 0.5f);
                 GUI.Label(new Rect(0, Screen.height * 0.3f, Screen.width, 60), text, banner);
                 GUI.color = Color.white;
-                GUI.Label(new Rect(0, Screen.height * 0.3f + 50, Screen.width, 30), "F5 neu · F6 Kampfgefühl · F7 Gegner-Stufe · F10 Gegnerzahl · F8 Zuschauen", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter });
+                GUI.Label(new Rect(0, Screen.height * 0.3f + 50, Screen.width, 30), "F5 neu · F6 Kampfgefühl · F7 Gegner-Stufe · F10 Gegnerzahl · F11 Gegner-Waffe · F8 Zuschauen", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter });
             }
         }
 

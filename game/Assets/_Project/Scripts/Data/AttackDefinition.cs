@@ -43,6 +43,12 @@ namespace Shieldbreak.Data
         [Tooltip("Targets one swing can hit: overhead and thrust 1, side cuts several in a row.")]
         [Range(1, 4)] public int maxTargets = 1;
 
+        [Header("Lunge (root motion only for attack lunges)")]
+        [Tooltip("Forward distance the attacker travels during the attack (m); its speed adds to the hit energy.")]
+        [Min(0f)] public float lungeDistance;
+        [Range(0f, 1f)] public float lungeStartPose = 0.35f;
+        [Range(0f, 1f)] public float lungeEndPose = 0.72f;
+
         [Header("Weapon path")]
         public Key[] keys =
         {
@@ -123,6 +129,47 @@ namespace Shieldbreak.Data
             }
         }
 
+        static readonly Vector3 TwoHandGuardHand = new Vector3(0.12f, 1.05f, 0.35f);
+        static readonly Vector3 TwoHandGuardBlade = new Vector3(-0.1f, 0.8f, 0.6f);
+
+        /// <summary>
+        /// Two-hand weapon: the one-hand paths with the grip pulled to the body centre (both hands on the hilt), a
+        /// longer blade, slower phases and a long recovery. Overhead and thrust pull the hands 15 cm back so the longer
+        /// blade still crosses the target at full speed; the wide side cuts get a slower release. Values from a sweep
+        /// against a standing target at 1.25 m (DECISIONS.md), preset "Mittel".
+        /// </summary>
+        public void ApplyTwoHandDefaults(int direction)
+        {
+            ApplyDefaults(direction);
+            bool side = direction == AttackDirection.Left || direction == AttackDirection.Right;
+            windupMs *= 1.15f;
+            releaseMs *= side ? 1.3f : 1.15f;
+            recoveryMs *= 1.5f;
+            bladeLength = 1.05f;
+            foreach (var k in keys) k.hand.x *= 0.5f;
+            if (!side)
+                for (int i = 1; i < keys.Length - 1; i++) keys[i].hand.z -= 0.15f;
+            keys[0].hand = keys[keys.Length - 1].hand = TwoHandGuardHand;
+            keys[0].blade = keys[keys.Length - 1].blade = TwoHandGuardBlade;
+            lungeDistance = 0f;
+        }
+
+        /// <summary>
+        /// Two-hand special: leaping overhead. Weapon far back over the head, then a lunge from late windup into the
+        /// release; the body's speed adds to the blade (energy bonus from geometry, not a flag).
+        /// </summary>
+        public void ApplyLeapDefaults()
+        {
+            ApplyTwoHandDefaults(AttackDirection.Overhead);
+            windupMs = 520f; releaseMs = 170f; recoveryMs = 650f; maxTargets = 1;
+            keys[1].hand = new Vector3(0.05f, 2.05f, -0.35f);
+            keys[1].blade = new Vector3(0f, 0.85f, -0.53f);
+            // Most of the lunge happens in the windup; the part in the release adds the energy bonus
+            lungeDistance = 1.4f;
+            lungeStartPose = 0.25f;
+            lungeEndPose = 0.62f;
+        }
+
         public AttackData ToAttackData(int firstKey) => new AttackData
         {
             Timing = ToTiming(),
@@ -131,6 +178,9 @@ namespace Shieldbreak.Data
             BladeLength = bladeLength,
             SocketCount = socketCount,
             MaxTargets = maxTargets,
+            LungeDistance = lungeDistance,
+            LungeStartPose = lungeStartPose,
+            LungeEndPose = lungeEndPose,
         };
 
         public AttackTiming ToTiming()

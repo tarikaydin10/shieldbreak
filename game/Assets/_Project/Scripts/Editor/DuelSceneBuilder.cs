@@ -13,7 +13,7 @@ using UnityEngine.Rendering.Universal;
 namespace Shieldbreak.EditorTools
 {
     /// <summary>
-    /// Builds Scenes/M1_Duel.unity and its data: one-hand weapon with four attacks, three feel presets
+    /// Builds Scenes/M1_Duel.unity and its data: one-hand and two-hand weapon with their attacks, three feel presets
     /// (Schwer / Mittel / Tödlich), bot roster and the duel scenario. Existing assets keep their tuned values.
     /// </summary>
     public static class DuelSceneBuilder
@@ -38,6 +38,13 @@ namespace Shieldbreak.EditorTools
                 for (int d = 0; d < AttackDirection.Count; d++)
                     w.attacks[d] = SandboxSceneBuilder.LoadOrCreate<AttackDefinition>($"{Root}Attacks/OneHand_{DirectionNames[d]}.asset", a => a.ApplyDefaults(d));
             });
+            var twoHand = SandboxSceneBuilder.LoadOrCreate<WeaponDefinition>(Root + "Weapons/Weapon_TwoHand.asset", w =>
+            {
+                w.ApplyTwoHandDefaults();
+                for (int d = 0; d < AttackDirection.Count; d++)
+                    w.attacks[d] = SandboxSceneBuilder.LoadOrCreate<AttackDefinition>($"{Root}Attacks/TwoHand_{DirectionNames[d]}.asset", a => a.ApplyTwoHandDefaults(d));
+                w.specialAttack = SandboxSceneBuilder.LoadOrCreate<AttackDefinition>(Root + "Attacks/TwoHand_Leap.asset", a => a.ApplyLeapDefaults());
+            });
             var presets = new[]
             {
                 SandboxSceneBuilder.LoadOrCreate<CombatTuningDefinition>(Root + "Combat/CombatTuning_Schwer.asset", FillHeavy),
@@ -47,11 +54,18 @@ namespace Shieldbreak.EditorTools
             var roster = SandboxSceneBuilder.LoadOrCreate<BotRosterDefinition>(Root + "Combat/BotRoster_Default.asset", _ => { });
             var duel = SandboxSceneBuilder.LoadOrCreate<DuelScenarioDefinition>(Root + "Scenarios/Duel_M1.asset", s =>
             {
-                s.weapons = new[] { weapon };
+                s.weapons = new[] { weapon, twoHand };
                 s.presets = presets;
                 s.activePreset = 1;
                 s.roster = roster;
             });
+
+            // Older duel assets know only the one-hand weapon: the weapon list is structure, not tuning
+            if (duel.weapons.Length < 2 || duel.weapons[1] != twoHand)
+            {
+                duel.weapons = new[] { weapon, twoHand };
+                EditorUtility.SetDirty(duel);
+            }
 
             var visual = AssetDatabase.LoadAssetAtPath<SoldierVisualDefinition>(SandboxSceneBuilder.VisualPath);
             if (visual == null) throw new FileNotFoundException("Build the M0 sandbox first (creates SoldierVisual_Default).");
@@ -62,6 +76,7 @@ namespace Shieldbreak.EditorTools
             SandboxSceneBuilder.SetMesh(visual.forearms[0], "PRP_limb_skin_mid");
             SandboxSceneBuilder.SetMesh(visual.forearms[1], "PRP_limb_skin_light");
             SandboxSceneBuilder.SetMesh(visual.oneHandWeapon, "WPN_sword_onehand");
+            SandboxSceneBuilder.SetMesh(visual.twoHandWeapon, "WPN_sword_twohand");
             EditorUtility.SetDirty(visual);
             AssetDatabase.SaveAssets();
 

@@ -122,6 +122,16 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Angriffs-Tokens: höchstens 2 Bots holen gleichzeitig gegen dasselbe Ziel aus (Tuning-Wert), der Rest wartet 1,2 m außerhalb der Reichweite | CLAUDE.md 3.5 D (1vX); Spieler soll sich gegen Überzahl mächtig, aber bedroht fühlen. Reines Bot-Verhalten, kein Sonderpfad | Alle Bots greifen an (Spieler chancenlos), Bots greifen einzeln an (langweilig) |
 | Duell bekommt F10 für 1–3 Gegner | Fun-Gate-Test der Macht-Fantasie und der Tokens | Eigene Szene |
 
+## 2026-10-18 — M1: Zweihänder und Waffenwechsel
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Archetyp ist ein Feld der Waffe (`WeaponData.Archetype`) und bestimmt das Special: Einhand + Schild → Schildstoß, Zweihand → Sprung-Hieb | CLAUDE.md 3.5 Schicht B: ein Special pro Archetyp. Spieler und Bots rufen dasselbe `TrySpecial` | Special als eigene Taste pro Waffe |
+| Sprung-Hieb ist ein normaler Angriff aus einem fünften Tabellen-Slot (`AttackDirection.Special`) mit Ausfallschritt (Lunge, 1,4 m). Der Ausfallschritt bremst vor dem Gegner und geht über die Körperbewegung in die Energie ein | Energie-Bonus aus Geometrie statt Flag; Phasen, Block, Perfect Block, Finte gelten unverändert. Root-Motion nur für Angriffs-Lunges (Game-Feel-Spec) | Sprung als eigener Zustand mit Schadens-Multiplikator |
+| Zweihand-Werte per Sweep gegen ein stehendes Ziel: Griff zur Körpermitte, Klinge 1,05 m, Oben-Hieb und Stich 15 cm zurück, Seitenhiebe 30 % langsamer. Ergebnis Mittel: Oben 69 (Einhand 63), Seite 47 (33), Stich 39 (22), Sprung aus 2,6 m 92; Block kostet den Gegner 2,5× Stamina | Ohne Anpassung trifft die längere Klinge zu früh im Schwung (Oben-Hieb schwächer als Einhand) oder zu hart (Seite 80). Sprung tötet nicht mit einem Treffer | Mehr Masse statt Bahn-Korrektur |
+| Waffenwechsel: Loadout mit 4 Slots in `CombatData` (jetzt 144 Bytes), Zustand `Switching` 450 ms, Eingabe wird gepuffert. Schild wandert auf den Rücken, wenn eine andere Waffe gezogen ist | CLAUDE.md: 3–4 Slots, Wechsel kostet eine Recovery; Loadout ist Sim-Zustand und gehasht | Loadout nur in der Darstellung |
+| Papier-Test Bogen/Lanze: Grammatik trägt beide mit zwei allgemeinen Erweiterungen (Halten in einer Phase, Resolver-Art pro Angriff), siehe `docs/combat/papier-test-bogen-lanze.md` | Pflicht aus CLAUDE.md 3.5; Umsetzung mit dem Bogen in M3 | Bogen schon in M1 |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)
