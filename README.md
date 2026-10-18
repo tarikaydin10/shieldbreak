@@ -2,6 +2,8 @@
 
 Low-Poly-Schlachtsimulator, Unity 6 (URP). Stand: M1 (Kampf), alles auf `main`.
 
+**Was es gibt, wie man es spielt und testet: [docs/STATUS.md](docs/STATUS.md)** (immer aktuell).
+
 ![Duell](docs/screenshots/m1_duel.jpg)
 ![Zweihänder gegen Schild](docs/screenshots/m1_twohand.jpg)
 ![Nahkampf](docs/screenshots/proto_close.jpg)

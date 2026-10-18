@@ -257,6 +257,7 @@ Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebni
 
 ## 7. Arbeitsregeln
 
+- **Jede Iteration endet auf `main`:** Tests grün, [`docs/STATUS.md`](docs/STATUS.md) aktuell (was existiert, wie man es spielt und testet, was offen ist), betroffene READMEs aktuell, Commit, Push. Zu keinem Zeitpunkt liegt ein Stand nur lokal oder ist undokumentiert.
 - **Jeden Freitag ein spielbarer Build.** Egal wie hässlich. Eine Woche ohne spielbaren Stand = falsch priorisiert.
 - **Keine Assets vor M4.** Kapseln, Pfeile, Gizmos. Wer früh an Optik dreht, poliert ein Spiel, das es noch nicht gibt.
 - **Debug-Tools sind Features** mit eigener Zeit im Plan. Ohne Visualisierung debuggt niemand Formationen oder Moral.
