@@ -160,6 +160,13 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Sprung (C / X) als eigener Zustand: 450 ms in der Luft, 120 ms Landung, kostet Ausdauer; in der Luft nichts möglich, laufen geht weiter, tiefe Hiebe treffen die Beine nicht | Letztes Verb des Vokabulars (CLAUDE.md 3.5); konkreter Nutzen: Ausweichen über tiefe Seitenhiebe, später Gelände (M4). Sprung-Hieb bleibt beim Zweihänder | Sprung mit Angriff in der Luft (zu viel Vokabular), Sprung nur als Darstellung |
 | Damit ist der Bau-Umfang von M1 vollständig; offen ist nur das Fun-Gate | – | – |
 
+## 2026-10-18 — Nach dem Kampf: Ergebnisbildschirm statt F-Tasten; Leben als roter Rand
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Nach jedem Duell ein Ergebnisbildschirm: Sieg/Besiegt, die laufenden Einstellungen, Statistik (Dauer, Treffer, Schaden, Blocks, Perfect Blocks, Specials, Finten), dann drei Buttons: Nochmal, Anders einstellen (dieselbe Setup-Seite wie im Hauptmenü), Hauptmenü. Beim Start 4 s lang eine Zeile, was läuft | Tarik: „ich muss genau wissen, was wie abgeht"; die alte Zeile „F5 neu · F6 …" erklärte nichts. F-Tasten bleiben als Abkürzung, stehen in F1 | Automatischer Neustart, Tastenkürzel-Zeile |
+| Leben als roter Bildrand, der ab 70 % Leben wächst und bei 0 fast den Rand füllt (CoD-Stil), plus kurzes Aufflackern bei Treffern; Ausdauer bleibt der dunkle Puls; Haltung zeigt Leben zusätzlich | Ohne HUD muss Leben trotzdem spürbar sein; roter Rand ist in Shootern gelernt und lenkt nicht ab | Lebensbalken als Standard |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

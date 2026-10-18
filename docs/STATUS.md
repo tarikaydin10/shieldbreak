@@ -10,6 +10,7 @@
 | Unity | `game/` im Unity Hub öffnen, Szene `Assets/_Project/Scenes/MainMenu` (oder direkt `M1_Duel`) öffnen, Play |
 
 **Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Sandbox, Prototypen, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
+**Im Duell:** Beim Start steht 4 s lang, was läuft (Preset · Gegner-Stufe · Anzahl · Waffe). Nach dem Kampf kommt ein Ergebnisbildschirm mit Statistik und drei Buttons: Nochmal, Anders einstellen, Hauptmenü. Leben = roter Bildrand (wächst mit dem Schaden), Ausdauer = dunkler Puls am Rand; Lebensbalken nur per F9.
 **Im Spiel:** **Esc** Pausemenü (Fortsetzen, Neu starten, Steuerung, Optionen, Hauptmenü), **F1** Status und Admin (alle Tasten, Szenenwechsel, FPS).
 
 ## Steuerung im Duell (`M1_Duel`)
@@ -32,6 +33,7 @@
 | F12 (Tutorial) | Schritt überspringen |
 
 ![Tutorial: geführtes Duell](screenshots/tutorial.jpg)
+![Nach dem Kampf: Ergebnis, Statistik, Auswahl](screenshots/duel_result.jpg)
 
 ## Was existiert
 
@@ -42,9 +44,9 @@
 | Kampf-Grammatik | Ausholen → Treffen → Erholen, Finte, Morph, Eingabepuffer, ein Block im Frontbogen, Perfect Block, Guard Break, Ausweichschritt, Sprung, Sprint, Waffenwechsel, Rückstoß, Energie-Schaden über Klingenbahn (SwingTrace) | [Sim/Combat](../game/Assets/_Project/Scripts/Sim/Combat/README.md) |
 | Waffen | **Schwert + Schild** (Schild 120°, Schildstoß) und **Zweihänder** (90° Block, Sprung-Hieb, trifft härter, drückt Blocker stark) | `Data/Weapons`, `Data/Attacks` |
 | Bots | Stufen L1–L5 spielen dieselben Regeln, nur Reaktionszeit, Fehlerquote und Techniken unterscheiden sich; höchstens 2 greifen gleichzeitig an | `Scripts/Sim/AI` |
-| Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Ausdauer-Vignette statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
+| Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Leben als roter Rand und Ausdauer als dunkler Puls statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
 | Feel-Presets | Schwer, Mittel, Tödlich (alle Zahlen in ScriptableObjects) | `Data/Combat` |
-| Rahmen | Hauptmenü, Pausemenü, Steuerung mit Tastenänderung, Optionen, Tutorial | `Scripts/Presentation/Menu`, `Player/TutorialDirector` |
+| Rahmen | Hauptmenü, Pausemenü, Steuerung mit Tastenänderung, Optionen, Tutorial, Ergebnisbildschirm mit Statistik | `Scripts/Presentation/Menu`, `Player/TutorialDirector` |
 | Weitere Szenen | `M0_Sandbox` (20 gegen 20 aus der Draufsicht), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
 | Asset-Pipeline | Low-Poly-Modelle aus JSON-Specs per Headless-Blender, Palette, Validator, Kontaktbogen | [art](../art/README.md), [tools/assetgen](../tools/assetgen/README.md) |
 
@@ -63,6 +65,8 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 **Von Hand prüfen (Fun-Gate M1):** 10 Duelle pro Preset (F6) gegen L3, dann die Frage, welches Preset man zum elften Mal spielen will. Dabei achten auf: Treffer fühlen sich wuchtig an, Ausholen ist lesbar, Perfect Block ist erreichbar, Zweihänder gegen Schild fühlt sich anders an, 1 gegen 3 (F10) fühlt sich mächtig, aber bedroht an, die Sounds sind erträglich.
 
 ## Offen
+
+- Feinschliff an Sprint-Angriff und Sprung (Tarik, nach erstem Anspielen)
 
 - **Fun-Gate M1** (Tarik) und Bewertung des prozeduralen Hiebs aus M0 (`Proto_Animation`)
 - Sounds sind Platzhalter (M5), Figuren sind Gliederpuppen aus der Pipeline (Synty-Vergleich offen, `DECISIONS.md`)

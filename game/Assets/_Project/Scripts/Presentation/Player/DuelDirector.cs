@@ -1,6 +1,7 @@
 using Shieldbreak.Data;
 using Shieldbreak.Presentation.Admin;
 using Shieldbreak.Presentation.Cameras;
+using Shieldbreak.Presentation.Menu;
 using Shieldbreak.Sim.Combat.Grammar;
 using System;
 using UnityEngine;
@@ -28,6 +29,12 @@ namespace Shieldbreak.Presentation.Player
         InputAction restart, nextPreset, nextLevel, nextOpponents, nextBotWeapon, spectator, bars;
         Texture2D pixel;
         GUIStyle banner;
+        enum ResultPage { None, Result, Setup }
+        ResultPage resultPage;
+        /// <summary>True while the result screen is up (gameplay input and cursor lock pause).</summary>
+        public static bool ResultOpen { get; private set; }
+        int resultTicks, hitsLanded, hitsTaken, blocks, perfectBlocks, specials, feints;
+        float damageDealt, damageTaken, startBannerUntil;
 
         public string AdminStatusLabel => "Duell";
         public string AdminStatus
@@ -92,12 +99,14 @@ namespace Shieldbreak.Presentation.Player
             bars = map.FindAction("ToggleBars", true);
             map.Enable();
             runner.HitstopHook += OnTick;
+            runner.WorldRebuilt += ResetStats;
+            ResetStats();
         }
 
         void OnDisable()
         {
             map?.Disable();
-            if (runner != null) runner.HitstopHook -= OnTick;
+            if (runner != null) { runner.HitstopHook -= OnTick; runner.WorldRebuilt -= ResetStats; }
         }
 
         void OnDestroy()
@@ -146,6 +155,7 @@ namespace Shieldbreak.Presentation.Player
         {
             var preset = scenario != null ? scenario.ActivePreset : null;
             if (preset == null) return;
+            TrackStats(r);
             int hero = r.PlayerAgent;
             foreach (var e in r.World.LastEvents)
             {
@@ -190,6 +200,7 @@ namespace Shieldbreak.Presentation.Player
                 pixel.Apply();
                 banner = new GUIStyle(GUI.skin.label) { fontSize = 34, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
             }
+            DrawStartBanner();
             var cam = combatCamera != null ? combatCamera.GetComponent<Camera>() : Camera.main;
             var agents = world.Agents;
             var combat = world.Combat;
@@ -213,13 +224,92 @@ namespace Shieldbreak.Presentation.Player
             bool enemiesDead = true;
             for (int i = 0; i < agents.Length; i++)
                 if (agents[i].Team != heroTeam && combat[i].State != CombatState.Dead) enemiesDead = false;
-            string text = heroDead ? (scenario.spectator ? "Rot fällt" : "Besiegt") : enemiesDead ? (scenario.spectator ? "Rot gewinnt" : "Sieg") : null;
-            if (text != null)
+            bool over = heroDead || enemiesDead;
+            var tutorial = GetComponent<TutorialDirector>();
+            if (tutorial != null && tutorial.Active) over = false;
+            ResultOpen = over;
+            if (!over) { resultPage = ResultPage.None; return; }
+            if (resultPage == ResultPage.None)
             {
-                GUI.color = heroDead ? new Color(1f, 0.45f, 0.4f) : new Color(1f, 0.9f, 0.5f);
-                GUI.Label(new Rect(0, Screen.height * 0.3f, Screen.width, 60), text, banner);
-                GUI.color = Color.white;
-                GUI.Label(new Rect(0, Screen.height * 0.3f + 50, Screen.width, 30), "F5 neu · F6 Kampfgefühl · F7 Gegner-Stufe · F10 Gegnerzahl · F11 Gegner-Waffe · F8 Zuschauen", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter });
+                resultPage = ResultPage.Result;
+                resultTicks = world.Tick;
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            if (PauseMenu.IsOpen || AdminMenu.IsOpen) return;
+
+            // Result screen: what happened, then clear choices (no key combos to remember)
+            var screen = MenuStyle.BeginScaled();
+            var rect = MenuStyle.CentredPanel(screen, 560, resultPage == ResultPage.Setup ? 620 : 470);
+            GUILayout.BeginArea(rect, MenuStyle.Panel);
+            string title = heroDead ? (scenario.spectator ? "Rot fällt" : "Besiegt") : scenario.spectator ? "Rot gewinnt" : "Sieg";
+            var prev = GUI.color;
+            GUI.color = heroDead ? new Color(1f, 0.55f, 0.5f) : new Color(1f, 0.9f, 0.5f);
+            GUILayout.Label(title, MenuStyle.Title);
+            GUI.color = prev;
+            GUILayout.Label(DuelSetupPage.Describe(scenario), MenuStyle.Subtitle);
+            GUILayout.Space(8);
+            if (resultPage == ResultPage.Result)
+            {
+                GUILayout.Label("STATISTIK", MenuStyle.Heading);
+                MenuStyle.Row("Dauer", $"{resultTicks * Sim.Core.SimConstants.DT:0.0} s");
+                MenuStyle.Row("Treffer gelandet", $"{hitsLanded} ({damageDealt:0} Schaden)");
+                MenuStyle.Row("Treffer kassiert", $"{hitsTaken} ({damageTaken:0} Schaden)");
+                MenuStyle.Row("Blocks", $"{blocks}, davon {perfectBlocks} Perfect");
+                MenuStyle.Row("Specials, Finten", $"{specials}, {feints}");
+                GUILayout.Space(12);
+                if (MenuStyle.Big("Nochmal · gleiche Einstellungen (F5)")) runner.Restart();
+                if (MenuStyle.Big("Anders einstellen · Gegner, Stufe, Waffen")) resultPage = ResultPage.Setup;
+                if (MenuStyle.Big("Hauptmenü")) UnityEngine.SceneManagement.SceneManager.LoadScene(MainMenu.SceneName);
+            }
+            else
+            {
+                GUILayout.Label("NEUES DUELL", MenuStyle.Heading);
+                if (DuelSetupPage.Draw(scenario, "Kampf starten"))
+                {
+                    DuelLaunch.Spectator = scenario.spectator;
+                    DuelLaunch.Tutorial = false;
+                    DuelLaunch.Pending = true;
+                    DuelLaunch.Apply(scenario);
+                    runner.Restart();
+                }
+                if (MenuStyle.Small("Zurück", 120)) resultPage = ResultPage.Result;
+            }
+            GUILayout.EndArea();
+        }
+
+        /// <summary>Setup line for the first seconds of a duel, so the player knows what is running.</summary>
+        void DrawStartBanner()
+        {
+            if (Time.unscaledTime > startBannerUntil || PauseMenu.IsOpen || AdminMenu.IsOpen) return;
+            var screen = MenuStyle.BeginScaled();
+            string text = DuelSetupPage.Describe(scenario);
+            var content = new GUIContent(text);
+            float w = MenuStyle.Hint.CalcSize(content).x + 8f;
+            GUI.Label(new Rect((screen.x - w) * 0.5f, screen.y - 90f, w, 44f), content, MenuStyle.Hint);
+            GUI.matrix = Matrix4x4.identity;
+        }
+
+        void ResetStats()
+        {
+            hitsLanded = hitsTaken = blocks = perfectBlocks = specials = feints = 0;
+            damageDealt = damageTaken = 0f;
+            resultPage = ResultPage.None;
+            ResultOpen = false;
+            startBannerUntil = Time.unscaledTime + 4f;
+        }
+
+        void TrackStats(SimRunner r)
+        {
+            int hero = 0;
+            foreach (var e in r.World.LastEvents)
+            {
+                if (e.Type == CombatEventType.Hit && e.Attacker == hero) { hitsLanded++; damageDealt += e.Damage; }
+                if (e.Type == CombatEventType.Hit && e.Target == hero) { hitsTaken++; damageTaken += e.Damage; }
+                if ((e.Type == CombatEventType.Blocked || e.Type == CombatEventType.PerfectBlock) && e.Target == hero) blocks++;
+                if (e.Type == CombatEventType.PerfectBlock && e.Target == hero) perfectBlocks++;
+                if (e.Type == CombatEventType.SpecialStart && e.Attacker == hero) specials++;
+                if (e.Type == CombatEventType.Feint && e.Attacker == hero) feints++;
             }
         }
 

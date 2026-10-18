@@ -21,8 +21,6 @@ namespace Shieldbreak.Presentation.Menu
         Page page;
         readonly ControlsPage controls = new ControlsPage();
         readonly OptionsPage options = new OptionsPage();
-        static readonly string[] LevelNames = { "L1 · hält nur den Block", "L2 · blockt langsam", "L3 · blockt, feintet selten", "L4 · nutzt Techniken", "L5 · Perfect Blocks, Specials" };
-        static readonly string[] OpponentNames = { "1 Gegner", "2 Gegner", "3 Gegner" };
 
         public static bool IsActive => SceneManager.GetActiveScene().name == SceneName;
 
@@ -78,40 +76,9 @@ namespace Shieldbreak.Presentation.Menu
         void DrawDuel()
         {
             GUILayout.Label("DUELL", MenuStyle.Heading);
-            string[] presets = PresetNames();
-            DuelLaunch.Preset = MenuStyle.Chooser("Kampfgefühl", DuelLaunch.Preset, presets);
-            DuelLaunch.BotLevel = MenuStyle.Chooser("Gegner-Stufe", DuelLaunch.BotLevel - 1, LevelNames) + 1;
-            DuelLaunch.Opponents = MenuStyle.Chooser("Gegner", DuelLaunch.Opponents - 1, OpponentNames) + 1;
-            string[] weapons = WeaponNames();
-            string[] botWeapons = new string[weapons.Length + 1];
-            weapons.CopyTo(botWeapons, 0);
-            botWeapons[weapons.Length] = "gemischt";
-            int bw = DuelLaunch.BotWeapon < 0 ? weapons.Length : DuelLaunch.BotWeapon;
-            bw = MenuStyle.Chooser("Gegner-Waffe", bw, botWeapons);
-            DuelLaunch.BotWeapon = bw >= weapons.Length ? -1 : bw;
-            DuelLaunch.HeroWeapon = MenuStyle.Chooser("Deine Waffe zuerst", DuelLaunch.HeroWeapon, weapons);
-            GUILayout.Space(6);
-            GUILayout.Label("Die anderen Waffen sind im Loadout (Tasten 1–4). Höchstens zwei Gegner greifen gleichzeitig an.", MenuStyle.Muted);
-            GUILayout.Space(12);
-            if (MenuStyle.Big("Kampf starten")) Launch();
+            if (DuelSetupPage.Draw(duel)) Launch();
             GUILayout.Space(8);
             if (MenuStyle.Small("Zurück", 120)) page = Page.Home;
-        }
-
-        string[] PresetNames()
-        {
-            if (duel == null || duel.presets.Length == 0) return new[] { "Mittel" };
-            var names = new string[duel.presets.Length];
-            for (int i = 0; i < names.Length; i++) names[i] = duel.presets[i] != null ? duel.presets[i].name.Replace("CombatTuning_", "") : $"Preset {i}";
-            return names;
-        }
-
-        string[] WeaponNames()
-        {
-            if (duel == null || duel.weapons.Length == 0) return new[] { "Schwert und Schild" };
-            var names = new string[duel.weapons.Length];
-            for (int i = 0; i < names.Length; i++) names[i] = duel.weapons[i] != null ? duel.weapons[i].displayName : $"Waffe {i}";
-            return names;
         }
 
         void Launch(bool tutorial = false, bool spectator = false)

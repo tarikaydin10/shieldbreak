@@ -109,7 +109,7 @@ namespace Shieldbreak.Presentation.Player
         void Update()
         {
             var world = runner != null ? runner.World : null;
-            bool active = world != null && runner.PlayerAgent >= 0 && !AdminMenu.IsOpen && !Menu.PauseMenu.IsOpen && !GamePause.IsPaused;
+            bool active = world != null && runner.PlayerAgent >= 0 && !AdminMenu.IsOpen && !Menu.PauseMenu.IsOpen && !DuelDirector.ResultOpen && !GamePause.IsPaused;
             Cursor.lockState = active ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !active;
             if (toggleScheme.WasPressedThisFrame())

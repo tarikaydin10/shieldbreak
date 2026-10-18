@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Shieldbreak.Presentation.Feedback
 {
     /// <summary>
-    /// No combat HUD (game feel spec): low stamina darkens the screen edges with a pulse that quickens as the tank
-    /// empties; taking damage flashes the edges red. Only for the local hero.
+    /// No combat HUD (game feel spec): health is a red edge that grows as health drops (CoD-style) and flashes on
+    /// damage; low stamina darkens the edges with a pulse that quickens as the tank empties. Only for the local hero.
     /// </summary>
     public class StaminaVignette : MonoBehaviour, Admin.IAdminStatus
     {
@@ -18,12 +18,15 @@ namespace Shieldbreak.Presentation.Feedback
         public Color exhausted = new Color(0.04f, 0.02f, 0.02f);
         public Color hurt = new Color(0.55f, 0.02f, 0.02f);
         [Min(0.05f)] public float hurtSeconds = 0.35f;
+        [Tooltip("Below this share of max health the red edge starts; at zero health it reaches maxHealthAlpha.")]
+        [Range(0f, 1f)] public float healthThreshold = 0.7f;
+        [Range(0f, 1f)] public float maxHealthAlpha = 0.85f;
 
         Texture2D ring;
-        float hurtFlash, phase, lastStamina = 1f;
+        float hurtFlash, phase, lastStamina = 1f, lastHealth = 1f;
 
         public string AdminStatusLabel => "Vignette";
-        public string AdminStatus => runner == null || runner.PlayerAgent < 0 ? "aus (kein Held)" : $"Ausdauer {lastStamina:P0}";
+        public string AdminStatus => runner == null || runner.PlayerAgent < 0 ? "aus (kein Held)" : $"Leben {lastHealth:P0} (roter Rand), Ausdauer {lastStamina:P0} (dunkler Puls)";
 
         void OnDestroy()
         {
@@ -55,6 +58,7 @@ namespace Shieldbreak.Presentation.Feedback
             hurtFlash = Mathf.MoveTowards(hurtFlash, 0f, Time.unscaledDeltaTime / hurtSeconds);
             var c = world.Combat[hero];
             lastStamina = Mathf.Clamp01(c.Stamina / world.CombatSetup.Tuning.StaminaMax);
+            lastHealth = Mathf.Clamp01(c.Health / world.CombatSetup.Tuning.HealthMax);
             float low = c.State == CombatState.Dead ? 0f : Mathf.Clamp01(1f - lastStamina / Mathf.Max(0.01f, threshold));
             phase += Time.unscaledDeltaTime * Mathf.Lerp(pulseHz.x, pulseHz.y, low) * 2f * Mathf.PI;
         }
@@ -72,9 +76,12 @@ namespace Shieldbreak.Presentation.Feedback
                 GUI.color = new Color(exhausted.r, exhausted.g, exhausted.b, exhaustedAlpha);
                 GUI.DrawTexture(rect, ring);
             }
-            if (hurtFlash > 0.01f)
+            // Missing health: a persistent red edge that grows towards the centre, plus the flash on damage
+            float wounded = Mathf.Clamp01(1f - lastHealth / Mathf.Max(0.01f, healthThreshold));
+            float healthAlpha = maxHealthAlpha * wounded * wounded + hurtFlash * 0.6f;
+            if (healthAlpha > 0.01f)
             {
-                GUI.color = new Color(hurt.r, hurt.g, hurt.b, hurtFlash * 0.6f);
+                GUI.color = new Color(hurt.r, hurt.g, hurt.b, Mathf.Clamp01(healthAlpha));
                 GUI.DrawTexture(rect, ring);
             }
             GUI.color = Color.white;
