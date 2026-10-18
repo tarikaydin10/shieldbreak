@@ -67,6 +67,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 ## Offen
 
 - Feinschliff an Sprint-Angriff und Sprung (Tarik, nach erstem Anspielen)
+- **Finte zu stark:** Mit Finten gewinnt man auch gegen L5 (Tarik, 2026-10-18). Vermutung: Bots blocken auf jedes Ausholen, die Finte kostet zu wenig, die Erholung nach der Finte ist zu kurz. Fix gehört vor das Fun-Gate (Finten-Kosten, Bot-Gedächtnis gegen wiederholte Finten, kurze Sperre nach einer Finte)
 
 - **Fun-Gate M1** (Tarik) und Bewertung des prozeduralen Hiebs aus M0 (`Proto_Animation`)
 - Sounds sind Platzhalter (M5), Figuren sind Gliederpuppen aus der Pipeline (Synty-Vergleich offen, `DECISIONS.md`)
