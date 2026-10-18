@@ -134,6 +134,9 @@ namespace Shieldbreak.Presentation.Feedback
                     case CombatEventType.Step:
                         Play(step, At(e.Attacker), 0.6f, 1f);
                         break;
+                    case CombatEventType.Jump:
+                        Play(step, At(e.Attacker), 0.5f, 1.3f);
+                        break;
                     case CombatEventType.WeaponSwitch:
                         Play(draw, At(e.Attacker) + Vector3.up * 1.1f, 0.6f, 1f);
                         break;

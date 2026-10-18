@@ -18,6 +18,8 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int Special = 7;
         /// <summary>Drawing another weapon from the loadout; costs about one recovery.</summary>
         public const int Switching = 8;
+        /// <summary>Airborne: keeps running, cannot block or attack, legs cannot be hit; lands into a short recovery.</summary>
+        public const int Jumping = 9;
     }
 
     public static class StepDirection
@@ -118,6 +120,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int Step = 7;
         public const int SpecialStart = 8;
         public const int WeaponSwitch = 9;
+        public const int Jump = 10;
     }
 
     /// <summary>What happened in a tick, for presentation (hitstop, sounds, effects) and tests. Not part of the hash.</summary>
@@ -206,6 +209,12 @@ namespace Shieldbreak.Sim.Combat.Grammar
         /// <summary>Knockback kept per tick (0..1).</summary>
         public float KnockbackDecay;
 
+        /// <summary>Jump: airborne ticks, landing recovery ticks, stamina cost, apex height (presentation).</summary>
+        public int JumpTicks;
+        public int JumpLandTicks;
+        public float JumpStaminaCost;
+        public float JumpHeight;
+
         public void Validate()
         {
             if (HealthMax <= 0f || StaminaMax <= 0f) throw new ArgumentException("HealthMax and StaminaMax must be positive.");
@@ -215,6 +224,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
             if (StepTicks < 1 || SpecialWindupTicks < 1 || SpecialActiveTicks < 1 || SpecialRecoveryTicks < 0) throw new ArgumentException("Step and special need positive tick lengths.");
             if (SprintSpeedScale < 1f) throw new ArgumentException("SprintSpeedScale must be >= 1.");
             if (WeaponSwitchTicks < 1) throw new ArgumentException("WeaponSwitchTicks must be >= 1.");
+            if (JumpTicks < 1 || JumpLandTicks < 0) throw new ArgumentException("Jump needs positive airborne ticks.");
             if (KnockbackDecay < 0f || KnockbackDecay >= 1f || KnockbackPerJoule < 0f || KnockbackMax < 0f) throw new ArgumentException("Knockback: decay in [0, 1), other values >= 0.");
         }
     }

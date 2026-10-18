@@ -285,6 +285,7 @@ namespace Shieldbreak.Sim.Core
                 case InputCommandType.CombatStep:
                 case InputCommandType.CombatSpecial:
                 case InputCommandType.CombatSwitchWeapon:
+                case InputCommandType.CombatJump:
                     ApplyCombatInput(command);
                     break;
                 case InputCommandType.PlayerMove:
@@ -363,6 +364,9 @@ namespace Shieldbreak.Sim.Core
                     break;
                 case InputCommandType.CombatSwitchWeapon:
                     CombatSystem.TrySwitch(ref c, command.IntArgs.y, Tick, tuning, events, id);
+                    break;
+                case InputCommandType.CombatJump:
+                    CombatSystem.TryJump(ref c, Tick, tuning, events, id);
                     break;
             }
             combat[id] = c;

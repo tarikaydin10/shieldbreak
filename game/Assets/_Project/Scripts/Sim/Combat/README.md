@@ -9,6 +9,7 @@ Idle ──Angriff──► Windup ──► Release ──► Recovery ──�
   │                 │ Finte (frühe 60 %)    ▲
   └─Block halten    └─► Idle                │ geblockt: springt in Recovery
 Idle ──Schritt──► Stepping (300 ms, 2 m, nicht unterbrechbar) ──► Idle
+Idle ──Sprung──► Jumping (450 ms Luft, Beine unverwundbar, 120 ms Landung) ──► Idle
 Idle ──Special──► Special (Schildstoß: ausholen, stoßen, erholen) ──► Idle
 Idle ──Special mit Zweihänder──► Windup (Sprung-Hieb aus dem Spezial-Slot) …
 Idle ──Waffe wechseln──► Switching (450 ms) ──► Idle
@@ -29,6 +30,7 @@ Dead
 
 - **Sprint:** schneller, kostet Ausdauer pro Sekunde. Die Körpergeschwindigkeit geht in die Trefferenergie ein: ein Stich aus dem Sprint trägt etwa doppelt so viel Energie wie im Stand.
 - **Schritt:** Ausweichen um 2 m relativ zur Blickrichtung, kostet Ausdauer.
+- **Sprung:** 450 ms in der Luft, laufen geht weiter, nichts anderes; tiefe Hiebe treffen die Beine nicht. Landung 120 ms.
 - **Schildstoß (Special Einhand+Schild):** trifft den nächsten Gegner im schmalen Kegel vorn. Erhobener Block → Guard Break. Sonst leichter Schaden und 800 ms Taumeln; ein sofortiger Stich trifft, bevor der Gegner den Schild wieder hoch hat.
 - **Angriffs-Tokens:** höchstens zwei Bots holen gleichzeitig gegen dasselbe Ziel aus, die übrigen warten knapp außer Reichweite (CLAUDE.md 3.5 D, 1vX).
 

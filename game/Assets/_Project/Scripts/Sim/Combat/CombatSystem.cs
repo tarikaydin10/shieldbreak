@@ -181,6 +181,22 @@ namespace Shieldbreak.Sim.Combat
             return true;
         }
 
+        /// <summary>Jump: only from idle; the block drops, running continues, attacks and blocks are buffered until landing.</summary>
+        public static bool TryJump(ref CombatData c, int tick, in CombatTuning tuning, NativeList<CombatEvent> events, int self)
+        {
+            if (IsBusy(c) || c.Stamina <= 0f) return false;
+            c.BlockHeld = 0;
+            c.State = CombatState.Jumping;
+            c.StateTick = 0;
+            c.Stamina -= tuning.JumpStaminaCost;
+            c.LastStaminaUseTick = tick;
+            events.Add(new CombatEvent { Type = CombatEventType.Jump, Attacker = self, Target = -1 });
+            return true;
+        }
+
+        /// <summary>Airborne until the landing recovery starts: legs cannot be hit, nothing can be done.</summary>
+        public static bool IsAirborne(in CombatData c, in CombatTuning tuning) => c.State == CombatState.Jumping && c.StateTick < tuning.JumpTicks;
+
         /// <summary>Local unit vector of a step direction (x = right, y = forward).</summary>
         public static float2 StepVector(int stepDirection) =>
             stepDirection == StepDirection.Back ? new float2(0f, -1f) :
@@ -257,6 +273,11 @@ namespace Shieldbreak.Sim.Combat
                         AdvanceStep(i, ref c);
                     else if (c.State == CombatState.Special)
                         AdvanceSpecial(i, ref c);
+                    else if (c.State == CombatState.Jumping)
+                    {
+                        c.StateTick++;
+                        if (c.StateTick >= Tuning.JumpTicks + Tuning.JumpLandTicks) { c.State = CombatState.Idle; c.StateTick = 0; }
+                    }
                     else if (c.State == CombatState.Switching)
                     {
                         c.StateTick++;
@@ -266,7 +287,7 @@ namespace Shieldbreak.Sim.Combat
                     // Sprint drains stamina; stamina regenerates when idle, not blocking, not sprinting
                     var a = Agents[i];
                     bool moving = math.lengthsq(a.Velocity) > 0.25f;
-                    if (c.Sprinting == 1 && c.State == CombatState.Idle && moving)
+                    if (c.Sprinting == 1 && (c.State == CombatState.Idle || c.State == CombatState.Jumping) && moving)
                     {
                         c.Stamina -= Tuning.SprintStaminaPerSecond * SimConstants.DT;
                         c.LastStaminaUseTick = Tick;
@@ -475,12 +496,13 @@ namespace Shieldbreak.Sim.Combat
                             if (j == i || j >= Count || AlreadyHit(c, j)) continue;
                             var other = Agents[j];
                             if (other.IsDead || other.Team == me.Team) continue;
+                            bool airborne = IsAirborne(Combat[j], Tuning);
                             for (int k = 1; k <= attack.SocketCount; k++)
                             {
                                 float along = attack.BladeLength * k / attack.SocketCount;
                                 float3 from = SwingTrace.ToWorld(me.Position, me.Facing, h0 + b0 * along);
                                 float3 to = SwingTrace.ToWorld(me.Position, me.Facing, h1 + b1 * along);
-                                if (SwingTrace.SweepAgent(from, to, other.Position, out float t, out int zone) &&
+                                if (SwingTrace.SweepAgent(from, to, other.Position, out float t, out int zone) && !(airborne && zone == BodyZone.Legs) &&
                                     (t < bestT || (t == bestT && j < bestTarget)))
                                 {
                                     bestT = t;
@@ -626,6 +648,7 @@ namespace Shieldbreak.Sim.Combat
                     a.Flags |= AgentFlags.Dead;
                 }
                 else if (c.State == CombatState.Stepping) a.SpeedScale = 0f;
+                else if (c.State == CombatState.Jumping) a.SpeedScale = c.StateTick < Tuning.JumpTicks ? (c.Sprinting == 1 ? Tuning.SprintSpeedScale : 1f) : Tuning.StunSpeedScale;
                 else if (c.State == CombatState.Stunned) a.SpeedScale = Tuning.StunSpeedScale;
                 else if (c.State != CombatState.Idle) a.SpeedScale = Tuning.AttackSpeedScale;
                 else if (c.BlockHeld == 1) a.SpeedScale = Tuning.BlockSpeedScale;

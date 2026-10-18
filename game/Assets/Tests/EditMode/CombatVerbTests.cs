@@ -207,6 +207,62 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void Jump_LastsItsTicks_CostsStamina_BuffersInputs_AndKeepsRunning()
+        {
+            Build(40f, 128);
+            var rules = setup.Tuning;
+            world.SetAgentMotion(a, 1.6f, 4f);
+            world.Enqueue(new InputCommand { Tick = 5, PlayerId = PlayerA, Sequence = 100, Type = InputCommandType.PlayerMove, IntArgs = new int4(a, 0, 0, 0), FloatArgs = new float4(0f, 1f, 0f, 1f) });
+            input.RunUntil(40);
+            float2 before = world.Agents[a].Position;
+            input.At(40, PlayerA, InputCommandType.CombatJump, a);
+            input.At(41 + rules.JumpTicks + rules.JumpLandTicks - 4, PlayerA, InputCommandType.CombatAttack, a, AttackDirection.Overhead);
+            input.RunUntil(44, log);
+            Assert.That(C(a).State, Is.EqualTo(CombatState.Jumping));
+            Assert.That(log.Count(e => e.Type == CombatEventType.Jump), Is.EqualTo(1));
+            Assert.That(C(a).Stamina, Is.LessThanOrEqualTo(rules.StaminaMax - rules.JumpStaminaCost + 0.01f));
+            input.RunUntil(41 + rules.JumpTicks + rules.JumpLandTicks + 2);
+            Assert.That(world.Agents[a].Position.y - before.y, Is.GreaterThan(0.5f), "keeps running while airborne");
+            Assert.That(C(a).State, Is.EqualTo(CombatState.Windup), "the attack pressed in the air starts after landing");
+        }
+
+        [Test]
+        public void Jump_LegsCannotBeHitWhileAirborne()
+        {
+            // A low side cut at the legs: the ground-level path of the right cut, lowered to shin height
+            setup = TestCombat.Setup();
+            var low = setup.Attacks[setup.Weapons[0].FirstAttack + AttackDirection.Right];
+            var keys = setup.Keys;
+            for (int k = low.FirstKey; k < low.FirstKey + low.KeyCount; k++)
+            {
+                var key = keys[k];
+                key.Hand.y = 0.45f;
+                key.Blade.y = 0f;
+                keys[k] = key;
+            }
+            world = TestCombat.World(setup, 4);
+            a = world.SpawnAgent(0, new float2(10f, 10f), 0.3f, new float2(0f, 1f));
+            b = world.SpawnAgent(1, new float2(10f, 11.25f), 0.3f, new float2(0f, -1f));
+            world.AssignPlayerAgent(PlayerA, a);
+            world.AssignPlayerAgent(PlayerB, b);
+            input = new InputDriver(world);
+
+            int windup = low.Timing.WindupTicks;
+            input.At(10, PlayerA, InputCommandType.CombatAttack, a, AttackDirection.Right);
+            input.RunUntil(80, log);
+            var standing = log.Where(e => e.Type == CombatEventType.Hit && e.Target == b).ToList();
+            Assert.That(standing, Is.Not.Empty, "the low cut connects with a standing target");
+            Assert.That(standing[0].Zone, Is.EqualTo(BodyZone.Legs), "and hits the legs");
+
+            log.Clear();
+            input.At(100, PlayerA, InputCommandType.CombatAttack, a, AttackDirection.Right);
+            input.At(100 + windup - 4, PlayerB, InputCommandType.CombatJump, b);
+            input.RunUntil(180, log);
+            Assert.That(log.Any(e => e.Type == CombatEventType.Jump && e.Attacker == b));
+            Assert.That(log.Any(e => e.Type == CombatEventType.Hit && e.Target == b), Is.False, $"the jumper is not hit; events {string.Join(",", log.Select(e => e.Type))}");
+        }
+
+        [Test]
         public void Sprint_DrainsStamina_AndStopsWhenEmpty()
         {
             Build(40f, 128);

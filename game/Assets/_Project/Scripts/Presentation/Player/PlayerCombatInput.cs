@@ -52,7 +52,7 @@ namespace Shieldbreak.Presentation.Player
         public float keepAlive = 0.25f;
 
         InputActionMap map;
-        InputAction move, look, attack, block, feint, toggleScheme, sprint, step, special, nextWeapon;
+        InputAction move, look, attack, block, feint, toggleScheme, sprint, step, special, nextWeapon, jump;
         readonly InputAction[] weaponSlots = new InputAction[4];
         string weaponName = "";
         int lastSprint;
@@ -94,6 +94,7 @@ namespace Shieldbreak.Presentation.Player
             step = map.FindAction("Step", true);
             special = map.FindAction("Special", true);
             nextWeapon = map.FindAction("NextWeapon", true);
+            jump = map.FindAction("Jump", true);
             for (int k = 0; k < weaponSlots.Length; k++) weaponSlots[k] = map.FindAction($"WeaponSlot{k + 1}", true);
             map.Enable();
         }
@@ -162,6 +163,7 @@ namespace Shieldbreak.Presentation.Player
             if (block.WasReleasedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatBlock, new int4(agent, 0, 0, 0));
             if (feint.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatFeint, new int4(agent, 0, 0, 0));
             if (special.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatSpecial, new int4(agent, 0, 0, 0));
+            if (jump.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatJump, new int4(agent, 0, 0, 0));
             var own = world.Combat[agent];
             for (int k = 0; k < weaponSlots.Length; k++)
                 if (weaponSlots[k].WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatSwitchWeapon, new int4(agent, k, 0, 0));

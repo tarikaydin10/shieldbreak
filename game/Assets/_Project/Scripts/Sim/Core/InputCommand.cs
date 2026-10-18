@@ -23,6 +23,8 @@ namespace Shieldbreak.Sim.Core
         CombatSpecial = 7,
         /// <summary>IntArgs.x = own agent id, IntArgs.y = loadout slot (0..3). Draws that weapon.</summary>
         CombatSwitchWeapon = 8,
+        /// <summary>IntArgs.x = own agent id. Jump (legs cannot be hit while airborne).</summary>
+        CombatJump = 9,
     }
 
     /// <summary>

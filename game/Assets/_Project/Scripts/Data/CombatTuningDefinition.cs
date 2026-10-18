@@ -74,6 +74,15 @@ namespace Shieldbreak.Data
         [Min(0f)] public float specialStunMs = 800f;
         [Min(0f)] public float specialDamage = 6f;
 
+        [Header("Jump")]
+        [Tooltip("Airborne time (ms); legs cannot be hit while airborne, nothing else can be done.")]
+        [Min(17f)] public float jumpMs = 450f;
+        [Tooltip("Landing recovery (ms).")]
+        [Min(0f)] public float jumpLandMs = 120f;
+        [Min(0f)] public float jumpStaminaCost = 10f;
+        [Tooltip("Apex height (m), presentation only.")]
+        [Min(0f)] public float jumpHeight = 0.6f;
+
         [Header("Weapon switch, lunge")]
         [Tooltip("Drawing another weapon from the loadout (CLAUDE.md: costs a recovery).")]
         [Min(17f)] public float weaponSwitchMs = 450f;
@@ -136,6 +145,10 @@ namespace Shieldbreak.Data
             SpecialDamage = specialDamage,
             WeaponSwitchTicks = AttackTiming.MsToTicks(weaponSwitchMs),
             LungeStopGap = lungeStopGap,
+            JumpTicks = AttackTiming.MsToTicks(jumpMs),
+            JumpLandTicks = jumpLandMs <= 0f ? 0 : AttackTiming.MsToTicks(jumpLandMs),
+            JumpStaminaCost = jumpStaminaCost,
+            JumpHeight = jumpHeight,
             KnockbackPerJoule = knockbackPerJoule,
             KnockbackMax = knockbackMax,
             BlockKnockbackScale = blockKnockbackScale,

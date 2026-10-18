@@ -10,7 +10,7 @@ Vor jedem Commit grün: `.\sb.ps1 test` (Unity darf offen bleiben) oder Test Run
 | `GridTests` | Grid-Koordinaten, Spatial Hash, Nachbarsuche |
 | `AgentTests` | Ankommen, Tempo- und Beschleunigungsgrenzen, Trennung, ungültige Befehle |
 | `CombatTests` | jede Kampfregel tick-genau, Bot-Duelle, Bot-Stufen gegeneinander |
-| `CombatVerbTests` | Sprint, Ausweichschritt, Schildstoß mit Nachstich, Angriffs-Tokens (1vX) |
+| `CombatVerbTests` | Sprint, Ausweichschritt, Sprung (Beine in der Luft unverwundbar), Schildstoß mit Nachstich, Rückstoß, Reaktionszeit ≤ 50 ms, Angriffs-Tokens (1vX) |
 | `TwoHandTests` | Zweihänder gegen Einhand, Blockbogen, Sprung-Hieb, Waffenwechsel, Zweihand-Bots |
 | `AttackTests` | Phasen-Timing, Waffenbahn, schnellster Moment vor dem Kontakt |
 | `PerformanceTests` | 500 Agenten und 500 kämpfende Bots unter 2 ms pro Tick |

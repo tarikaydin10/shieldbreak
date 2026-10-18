@@ -153,6 +153,13 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Tutorial = geführtes Duell gegen L2: 13 Schritte, jeder schließt über ein Sim-Ereignis ab (Block-, Finte-, Schritt-Events usw.), stirbt der Held, startet das Duell beim selben Schritt neu | Lernen durch Tun gegen echten Gegner; keine Sonderlogik in der Sim, nur Beobachtung | Textseite mit Tastenliste |
 | Duell-Setup (Preset, Stufe, Gegnerzahl, Waffen) im Menü, übergeben per `DuelLaunch` an die Szene; F6–F11 im Duell bleiben | Ein Ort für Start-Einstellungen, der Direktstart der Szene im Editor funktioniert weiter | Einstellungen nur in F-Tasten |
 
+## 2026-10-18 — Sprung
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Sprung (C / X) als eigener Zustand: 450 ms in der Luft, 120 ms Landung, kostet Ausdauer; in der Luft nichts möglich, laufen geht weiter, tiefe Hiebe treffen die Beine nicht | Letztes Verb des Vokabulars (CLAUDE.md 3.5); konkreter Nutzen: Ausweichen über tiefe Seitenhiebe, später Gelände (M4). Sprung-Hieb bleibt beim Zweihänder | Sprung mit Angriff in der Luft (zu viel Vokabular), Sprung nur als Darstellung |
+| Damit ist der Bau-Umfang von M1 vollständig; offen ist nur das Fun-Gate | – | – |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

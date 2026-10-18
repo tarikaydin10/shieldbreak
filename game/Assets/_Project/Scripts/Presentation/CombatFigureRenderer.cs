@@ -175,6 +175,8 @@ namespace Shieldbreak.Presentation
                     hand = new float3(0.25f, 1.1f, 0.35f);
                     blade = math.normalize(new float3(-0.2f, 0.7f, 0.7f));
                 }
+                if (hasCombat && c.State == CombatState.Jumping && setup.Tuning.JumpTicks > 0)
+                    lift += Mathf.Sin(Mathf.PI * Mathf.Clamp01((c.StateTick - 1 + runner.Alpha) / setup.Tuning.JumpTicks)) * setup.Tuning.JumpHeight;
                 f.root.SetPositionAndRotation(pos + Vector3.up * lift, facing);
 
                 if (switching)

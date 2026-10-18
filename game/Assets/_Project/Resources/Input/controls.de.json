@@ -258,6 +258,10 @@
     {
       "action": "Tutorial/Skip",
       "text": "Tutorial: aktuellen Schritt überspringen"
+    },
+    {
+      "action": "Combat/Jump",
+      "text": "Sprung: in der Luft nichts möglich, tiefe Hiebe verfehlen die Beine; kostet Ausdauer"
     }
   ]
 }
