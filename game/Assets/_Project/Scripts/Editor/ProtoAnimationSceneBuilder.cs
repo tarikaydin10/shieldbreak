@@ -104,8 +104,8 @@ namespace Shieldbreak.EditorTools
         public static void CaptureShots()
         {
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-            var preview = Object.FindFirstObjectByType<AttackPreview>();
-            var rig = Object.FindFirstObjectByType<StyleCameraRig>();
+            var preview = Object.FindAnyObjectByType<AttackPreview>();
+            var rig = Object.FindAnyObjectByType<StyleCameraRig>();
             var cam = rig.GetComponent<Camera>();
             const int w = 640, h = 640;
             // Each view is rendered at the screen height it is judged at, then the centre is cropped: the 15 m row

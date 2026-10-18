@@ -140,6 +140,7 @@ namespace Shieldbreak.EditorTools
             effects.visual = visual;
             sim.AddComponent<CombatAudio>().runner = runner;
             sim.AddComponent<StaminaVignette>().runner = runner;
+            sim.AddComponent<TutorialDirector>().runner = runner;
             camGo.AddComponent<AudioListener>();
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));

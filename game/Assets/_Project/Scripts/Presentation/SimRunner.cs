@@ -99,6 +99,7 @@ namespace Shieldbreak.Presentation
 
         void OnEnable()
         {
+            slowMotionScale = Menu.GameSettings.SlowMotionScale;
             map = GameInput.Map("Sim");
             slowMotionAction = map.FindAction("SlowMotion", throwIfNotFound: true);
             stepOnceAction = map.FindAction("StepOnce", throwIfNotFound: true);

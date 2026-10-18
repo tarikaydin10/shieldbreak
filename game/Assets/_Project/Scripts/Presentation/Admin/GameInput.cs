@@ -49,6 +49,7 @@ namespace Shieldbreak.Presentation.Admin
                 {
                     asset = Resources.Load<InputActionAsset>(AssetResource);
                     if (asset == null) throw new InvalidOperationException($"Resources/{AssetResource}.inputactions missing.");
+                    Menu.GameSettings.LoadBindingOverrides();
                 }
                 return asset;
             }

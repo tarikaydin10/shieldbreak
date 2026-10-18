@@ -143,6 +143,16 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Entscheidende Kills (Held oder letzter Gegner): 0,1 s Sim-Zeit in Zeitlupe 0,25×, über weniger Ticks pro Sekunde | Spec: Slow-Mo bei entscheidenden Kills; `DT` bleibt fest | Unity-`timeScale` |
 | Reaktionszeit als Test: Eingabe bis sichtbare Waffenbewegung 2 Ticks = 33 ms bei Eingabeverzögerung 1 | Spec-Kriterium „≤ 50 ms" ist Teil des Fun-Gates; jetzt automatisch geprüft | nur Frame-Capture von Hand |
 
+## 2026-10-18 — Spielrahmen: Hauptmenü, Pausemenü, Steuerung, Tutorial
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Hauptmenü als erste Szene (`MainMenu`), Esc im Spiel ist das Pausemenü (Fortsetzen, Neu starten, Steuerung, Optionen, Hauptmenü), F1 bleibt Status und Admin | Tarik: „es ist überhaupt nicht wie ein Game aufgebaut"; ein Spiel braucht einen Rahmen, in dem Modi, Steuerung und Optionen auffindbar sind. Admin-tauglich statt Endkunden-Polish reicht bis M5 | Alles weiter im F1-Overlay |
+| Menüs in IMGUI mit gemeinsamem Stil (`MenuStyle`), keine UI-Toolkit-/Canvas-Assets | Keine Assets vor M4, wenige Dateien, zur Laufzeit skaliert; das echte Front-End kommt in M5 (Polish) | uGUI/UI Toolkit jetzt |
+| Tasten im Menü änderbar (Input-System-Rebinding), Überschreibungen in PlayerPrefs; Maus-Achsen (Umschauen, Zoom) nicht änderbar | Jede Eingabe ist eine Action, also kann sie auch umgelegt werden; controls.de.json beschreibt weiterhin jede Action | Feste Belegung |
+| Tutorial = geführtes Duell gegen L2: 13 Schritte, jeder schließt über ein Sim-Ereignis ab (Block-, Finte-, Schritt-Events usw.), stirbt der Held, startet das Duell beim selben Schritt neu | Lernen durch Tun gegen echten Gegner; keine Sonderlogik in der Sim, nur Beobachtung | Textseite mit Tastenliste |
+| Duell-Setup (Preset, Stufe, Gegnerzahl, Waffen) im Menü, übergeben per `DuelLaunch` an die Szene; F6–F11 im Duell bleiben | Ein Ort für Start-Einstellungen, der Direktstart der Szene im Editor funktioniert weiter | Einstellungen nur in F-Tasten |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

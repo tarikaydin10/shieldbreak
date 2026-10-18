@@ -22,7 +22,7 @@ namespace Shieldbreak.Presentation.Player
         public enum Scheme { Simple, Directional }
 
         const ushort LocalPlayer = 0;
-        const string SchemePref = "combat.scheme";
+        public const string SchemePref = "combat.scheme";
 
         public SimRunner runner;
         public ThirdPersonCamera combatCamera;
@@ -78,6 +78,7 @@ namespace Shieldbreak.Presentation.Player
         void Awake()
         {
             scheme = (Scheme)PlayerPrefs.GetInt(SchemePref, (int)scheme);
+            mouseSensitivity = Menu.GameSettings.MouseSensitivity;
         }
 
         void OnEnable()
@@ -107,7 +108,7 @@ namespace Shieldbreak.Presentation.Player
         void Update()
         {
             var world = runner != null ? runner.World : null;
-            bool active = world != null && runner.PlayerAgent >= 0 && !AdminMenu.IsOpen && !GamePause.IsPaused;
+            bool active = world != null && runner.PlayerAgent >= 0 && !AdminMenu.IsOpen && !Menu.PauseMenu.IsOpen && !GamePause.IsPaused;
             Cursor.lockState = active ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !active;
             if (toggleScheme.WasPressedThisFrame())

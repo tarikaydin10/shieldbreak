@@ -195,7 +195,7 @@ namespace Shieldbreak.EditorTools
         public static void CaptureShots()
         {
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-            var rig = Object.FindFirstObjectByType<StyleCameraRig>();
+            var rig = Object.FindAnyObjectByType<StyleCameraRig>();
             var camera = rig.GetComponent<Camera>();
             const int w = 1920, h = 1080;
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);

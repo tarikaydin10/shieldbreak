@@ -36,6 +36,10 @@
     {
       "map": "ProtoAttack",
       "title": "Hieb-Prototyp (Proto_Animation)"
+    },
+    {
+      "map": "Tutorial",
+      "title": "Tutorial"
     }
   ],
   "entries": [
@@ -45,7 +49,7 @@
     },
     {
       "action": "Global/Pause",
-      "text": "Pause (Freeze) mit Menü; Kamera bleibt bedienbar"
+      "text": "Pause-Menü: Fortsetzen, Neu starten, Steuerung, Optionen, Hauptmenü (Sim steht still)"
     },
     {
       "action": "Sim/SlowMotion",
@@ -250,6 +254,10 @@
     {
       "action": "Duel/NextBotWeapon",
       "text": "Gegner-Waffe wechseln (Schwert und Schild / Zweihänder / gemischt), startet neu"
+    },
+    {
+      "action": "Tutorial/Skip",
+      "text": "Tutorial: aktuellen Schritt überspringen"
     }
   ]
 }

@@ -30,6 +30,7 @@ namespace Shieldbreak.Presentation.Feedback
 
         void Awake()
         {
+            volume = Menu.GameSettings.Volume;
             whoosh = ProceduralSfx.Whoosh(0.24f, 1000f);
             whooshHeavy = ProceduralSfx.Whoosh(0.32f, 650f);
             flesh = ProceduralSfx.Flesh();

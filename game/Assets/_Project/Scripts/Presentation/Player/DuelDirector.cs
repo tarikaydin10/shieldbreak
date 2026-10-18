@@ -2,6 +2,7 @@ using Shieldbreak.Data;
 using Shieldbreak.Presentation.Admin;
 using Shieldbreak.Presentation.Cameras;
 using Shieldbreak.Sim.Combat.Grammar;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -50,6 +51,9 @@ namespace Shieldbreak.Presentation.Player
                 scenario = Instantiate(source);
                 scenario.name = source.name;
                 runner.scenario = scenario;
+                // Main menu choice (preset, level, opponents, weapons, tutorial)
+                bool fromMenu = Menu.DuelLaunch.Pending;
+                Menu.DuelLaunch.Apply(scenario);
                 // Build smoke test: SHIELDBREAK.exe -duelSpectator [-duelOpponents 3] [-duelBotWeapon 1] [-duelHeroWeapon 1] watches bots fight
                 var args = System.Environment.GetCommandLineArgs();
                 bool changed = System.Array.IndexOf(args, "-duelSpectator") >= 0;
@@ -64,7 +68,8 @@ namespace Shieldbreak.Presentation.Player
                     scenario.heroLoadout = slots.ToArray();
                     changed = true;
                 }
-                if (changed) runner.Restart();
+                if (Array.IndexOf(args, "-duelTutorial") >= 0) { Menu.DuelLaunch.Tutorial = true; Menu.DuelLaunch.Pending = true; Menu.DuelLaunch.Apply(scenario); changed = true; }
+                if (changed || fromMenu) runner.Restart();
             }
         }
 

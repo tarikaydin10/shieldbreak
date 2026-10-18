@@ -8,8 +8,7 @@ using UnityEngine;
 namespace Shieldbreak.EditorTools
 {
     /// <summary>
-    /// Weekly playable build (CLAUDE.md 7): Windows player with the sandbox first and the prototypes after it;
-    /// the F1 menu switches between them. Batch entry: -executeMethod Shieldbreak.EditorTools.BuildTools.BuildWindowsBatch
+    /// Weekly playable build (CLAUDE.md 7): Windows player starting in the main menu, then duel, sandbox and prototypes. Batch entry: -executeMethod Shieldbreak.EditorTools.BuildTools.BuildWindowsBatch
     /// -buildOutput &lt;folder&gt;.
     /// </summary>
     public static class BuildTools
@@ -18,6 +17,7 @@ namespace Shieldbreak.EditorTools
 
         static readonly string[] Scenes =
         {
+            MainMenuSceneBuilder.ScenePath,
             DuelSceneBuilder.ScenePath,
             SandboxSceneBuilder.ScenePath,
             ProtoAnimationSceneBuilder.ScenePath,

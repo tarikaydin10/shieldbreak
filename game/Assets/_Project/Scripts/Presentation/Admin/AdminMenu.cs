@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 namespace Shieldbreak.Presentation.Admin
 {
     /// <summary>
-    /// Overlay present in every scene (bootstrapped automatically). F1 toggles it, Esc pauses and opens it.
+    /// Overlay present in every scene (bootstrapped automatically). F1 toggles it (Esc belongs to the PauseMenu).
     /// Lists every input of the currently enabled action maps with its binding and description, the status
     /// lines of all IAdminStatus components, and a few viewer settings. Debug tooling, IMGUI on purpose.
     /// </summary>
@@ -22,21 +22,20 @@ namespace Shieldbreak.Presentation.Admin
         public static bool IsOpen { get; private set; }
         // Screen-space rect (GUI coordinates, y down) of the open panel; empty while closed
         static Rect panelScreenRect;
-        bool openBeforePause;
         bool showHint, showInactive, showFps;
         Vector2 scroll;
         float fps;
         float nextStatusRefresh;
         readonly List<IAdminStatus> statusProviders = new List<IAdminStatus>();
 
-        InputAction toggleAction, pauseAction;
+        InputAction toggleAction;
         GUIStyle panel, title, heading, text, muted, key, paused, hint;
         Texture2D panelTexture;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Bootstrap()
         {
-            if (FindFirstObjectByType<AdminMenu>() != null) return;
+            if (FindAnyObjectByType<AdminMenu>() != null) return;
             var go = new GameObject("AdminMenu");
             DontDestroyOnLoad(go);
             go.AddComponent<AdminMenu>();
@@ -52,16 +51,13 @@ namespace Shieldbreak.Presentation.Admin
         void OnEnable()
         {
             toggleAction = GameInput.Action("Global", "ToggleAdminMenu");
-            pauseAction = GameInput.Action("Global", "Pause");
             toggleAction.performed += OnToggle;
-            pauseAction.performed += OnPause;
             GameInput.Map("Global").Enable();
         }
 
         void OnDisable()
         {
             toggleAction.performed -= OnToggle;
-            pauseAction.performed -= OnPause;
         }
 
         void OnDestroy()
@@ -70,13 +66,6 @@ namespace Shieldbreak.Presentation.Admin
         }
 
         void OnToggle(InputAction.CallbackContext _) => open = !open;
-
-        void OnPause(InputAction.CallbackContext _)
-        {
-            if (!GamePause.IsPaused) openBeforePause = open;
-            GamePause.Toggle();
-            open = GamePause.IsPaused || openBeforePause;
-        }
 
         void Update()
         {
@@ -87,7 +76,7 @@ namespace Shieldbreak.Presentation.Admin
             {
                 nextStatusRefresh = Time.unscaledTime + StatusRefreshSeconds;
                 statusProviders.Clear();
-                foreach (var b in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
+                foreach (var b in FindObjectsByType<MonoBehaviour>())
                     if (b is IAdminStatus s && b.isActiveAndEnabled) statusProviders.Add(s);
                 statusProviders.Sort((a, b) => string.CompareOrdinal(a.AdminStatusLabel, b.AdminStatusLabel));
             }
@@ -107,7 +96,7 @@ namespace Shieldbreak.Presentation.Admin
                 panelScreenRect = Rect.zero;
                 if (showHint)
                 {
-                    string label = GamePause.IsPaused ? "PAUSIERT · Esc fortsetzen" : $"{Binding(toggleAction)}  Steuerung & Admin";
+                    string label = GamePause.IsPaused ? "PAUSIERT" : $"{Binding(toggleAction)}  Status & Admin · Esc Menü";
                     Badge(label, 12, alignRight: false);
                 }
                 return;
@@ -123,11 +112,7 @@ namespace Shieldbreak.Presentation.Admin
             GUILayout.Label(SceneManager.GetActiveScene().name, muted);
             GUILayout.EndHorizontal();
 
-            if (GamePause.IsPaused)
-            {
-                GUILayout.Label("PAUSIERT", paused);
-                if (GUILayout.Button($"Fortsetzen ({Binding(pauseAction)})")) OnPause(default);
-            }
+            if (GamePause.IsPaused) GUILayout.Label("PAUSIERT", paused);
 
             if (statusProviders.Count > 0)
             {
@@ -191,6 +176,7 @@ namespace Shieldbreak.Presentation.Admin
         /// <summary>True if a pointer at <paramref name="screenPosition"/> (input space, y up) is over the open menu.</summary>
         public static bool BlocksPointer(Vector2 screenPosition)
         {
+            if (Menu.PauseMenu.BlocksPointer(screenPosition)) return true;
             if (panelScreenRect.width <= 0f) return false;
             return panelScreenRect.Contains(new Vector2(screenPosition.x, Screen.height - screenPosition.y));
         }

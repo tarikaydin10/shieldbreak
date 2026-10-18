@@ -4,6 +4,7 @@ Low-Poly-Schlachtsimulator, Unity 6 (URP). Stand: M1 (Kampf), alles auf `main`.
 
 **Was es gibt, wie man es spielt und testet: [docs/STATUS.md](docs/STATUS.md)** (immer aktuell).
 
+![Hauptmenü](docs/screenshots/main_menu.jpg)
 ![Duell](docs/screenshots/m1_duel.jpg)
 ![Zweihänder gegen Schild](docs/screenshots/m1_twohand.jpg)
 ![Nahkampf](docs/screenshots/proto_close.jpg)
@@ -17,7 +18,7 @@ git lfs install
 git clone https://github.com/tarikaydin10/shieldbreak.git
 ```
 
-Unity Hub → Add → Ordner `game`. Szenen in `Assets/_Project/Scenes/`: `M1_Duel` (du gegen 1–3 Bots, Schwert + Schild oder Zweihänder), `M0_Sandbox` (20 gegen 20), `Proto_Animation` (Hieb), `Proto_Style` (Look). **F1** zeigt alle Tasten, **Esc** pausiert.
+Unity Hub → Add → Ordner `game`. Szene `Assets/_Project/Scenes/MainMenu` starten: von dort Duell, Tutorial, Sandbox und Prototypen. **Esc** Pausemenü mit Steuerung und Optionen, **F1** Status und Admin.
 
 ## Befehle
 
