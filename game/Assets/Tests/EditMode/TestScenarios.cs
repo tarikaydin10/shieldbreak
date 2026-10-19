@@ -19,6 +19,7 @@ namespace Shieldbreak.Tests
             SeparationRadius = 0.8f,
             SeparationWeight = 1.5f,
             MaxTurnRateDeg = 540f,
+            WallWeight = 2f,
         };
 
         /// <summary>Mirrors the FormationDefinition defaults.</summary>
@@ -35,6 +36,11 @@ namespace Shieldbreak.Tests
             MinMarchFactor = 0.2f,
             FaceSlotDistance = 1.0f,
             LossReformIntervalTicks = 60,
+            PathMaxClearance = 6,
+            PathClearancePenalty = 4,
+            FaceMarchMinDistance = 8f,
+            WheelFlankSpeed = 1f,
+            ReformTurnCos = 0.5f,
         };
 
         public static SimConfig Config(ulong seed, int size, int maxAgents) => new SimConfig

@@ -12,7 +12,8 @@ namespace Shieldbreak.DebugTools
 {
     /// <summary>
     /// GL line overlay drawn after the camera renders: grid cells around the view centre and the map border, velocity
-    /// arrows, the targets of selected agents, and formations (slots, anchor, facing, destination, type label).
+    /// arrows, the targets of selected agents, terrain (blocked and rough cells) and formations (slots, anchor,
+    /// facing, planned path, destination, type label).
     /// Toggles via the DebugOverlay action map.
     /// </summary>
     public class SimDebugOverlay : MonoBehaviour, IAdminStatus
@@ -33,6 +34,9 @@ namespace Shieldbreak.DebugTools
         public Color targetColor = new Color(1f, 0.85f, 0.4f, 0.6f);
         [Tooltip("Formation lines per team (A, B).")]
         public Color[] teamColors = { new Color(1f, 0.55f, 0.45f, 0.85f), new Color(0.55f, 0.75f, 1f, 0.85f) };
+        public Color wallColor = new Color(0.95f, 0.35f, 0.25f, 0.8f);
+        public Color roughColor = new Color(0.75f, 0.65f, 0.3f, 0.55f);
+        public Color pathColor = new Color(1f, 1f, 1f, 0.7f);
         [Tooltip("Size of a slot marker (m).")]
         [Min(0.05f)] public float slotMarkerSize = 0.18f;
 
@@ -93,6 +97,8 @@ namespace Shieldbreak.DebugTools
                 for (int z = z0; z <= z1; z++) Line(origin + new Vector3(x0, 0, z), origin + new Vector3(x1, 0, z));
             }
 
+            DrawTerrain(world, origin);
+
             GL.Color(borderColor);
             Line(origin, origin + new Vector3(w, 0, 0));
             Line(origin + new Vector3(w, 0, 0), origin + new Vector3(w, 0, h));
@@ -123,6 +129,38 @@ namespace Shieldbreak.DebugTools
             DebugLines.End();
         }
 
+        /// <summary>Blocked cells as boxed crosses, rough (expensive) cells hatched. There are no obstacle meshes before M4.</summary>
+        void DrawTerrain(SimWorld world, Vector3 origin)
+        {
+            var layout = world.Grid.Layout;
+            var cost = world.Grid.NavCost;
+            for (int y = 0; y < layout.Height; y++)
+            for (int x = 0; x < layout.Width; x++)
+            {
+                byte c = cost[y * layout.Width + x];
+                if (c == WorldGridDefault) continue;
+                Vector3 p = origin + new Vector3(x, 0f, y);
+                if (c == Sim.Grid.WorldGrid.Impassable)
+                {
+                    GL.Color(wallColor);
+                    Line(p, p + new Vector3(1f, 0f, 0f));
+                    Line(p + new Vector3(1f, 0f, 0f), p + new Vector3(1f, 0f, 1f));
+                    Line(p + new Vector3(1f, 0f, 1f), p + new Vector3(0f, 0f, 1f));
+                    Line(p + new Vector3(0f, 0f, 1f), p);
+                    Line(p, p + new Vector3(1f, 0f, 1f));
+                    Line(p + new Vector3(1f, 0f, 0f), p + new Vector3(0f, 0f, 1f));
+                }
+                else
+                {
+                    GL.Color(roughColor);
+                    Line(p + new Vector3(0f, 0f, 0.5f), p + new Vector3(0.5f, 0f, 1f));
+                    Line(p + new Vector3(0.5f, 0f, 0f), p + new Vector3(1f, 0f, 0.5f));
+                }
+            }
+        }
+
+        const byte WorldGridDefault = Sim.Grid.WorldGrid.DefaultCost;
+
         /// <summary>
         /// Per formation: a marker on every slot (brighter when selected), the anchor with its facing, and while it
         /// marches a line to the destination with the front it will form there.
@@ -151,12 +189,24 @@ namespace Shieldbreak.DebugTools
                 if (math.distancesq(f.Destination, f.Position) > 0.09f)
                 {
                     Vector3 dest = SimRunner.ToWorld(f.Destination, lift);
-                    DebugLines.Line(anchor, dest);
+                    // The planned path (around obstacles), then the front the formation will form at its end
+                    GL.Color(pathColor);
+                    Vector3 from = anchor;
+                    var path = world.FormationPath(id);
+                    for (int k = 0; k < path.Length; k++)
+                    {
+                        Vector3 to = SimRunner.ToWorld(path[k], lift);
+                        DebugLines.Line(from, to);
+                        DebugLines.Cross(to, 0.25f);
+                        from = to;
+                    }
+                    GL.Color(FormationColor(f, true));
                     float half = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f;
-                    Vector3 along = new Vector3(f.Facing.y, 0f, -f.Facing.x) * half;
-                    Vector3 front = f.Type == FormationType.Circle ? dest + facing * half : dest;
+                    Vector3 final = new Vector3(f.TargetFacing.x, 0f, f.TargetFacing.y);
+                    Vector3 along = new Vector3(f.TargetFacing.y, 0f, -f.TargetFacing.x) * half;
+                    Vector3 front = f.Type == FormationType.Circle ? dest + final * half : dest;
                     DebugLines.Line(front - along, front + along);
-                    DebugLines.Arrow(front, facing * 1.5f, 0.4f);
+                    DebugLines.Arrow(front, final * 1.5f, 0.4f);
                 }
             }
         }

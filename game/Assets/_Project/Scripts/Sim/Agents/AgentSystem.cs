@@ -8,8 +8,9 @@ using Shieldbreak.Sim.Grid;
 namespace Shieldbreak.Sim.Agents
 {
     /// <summary>
-    /// Per-tick agent movement: rebuild the spatial hash, steer (seek + arrive + separation, turn-rate limited facing),
-    /// integrate. Every job writes only its own index from read-only inputs, so parallel scheduling cannot change
+    /// Per-tick agent movement: rebuild the spatial hash, steer (seek + arrive + separation from neighbours and blocked
+    /// cells, turn-rate limited facing), integrate without entering blocked cells (CLAUDE.md 3.6: agents steer locally,
+    /// paths are planned per formation). Every job writes only its own index from read-only inputs, so parallel scheduling cannot change
     /// results. FloatMode.Deterministic keeps Burst from emitting CPU-dependent float code (e.g. FMA only on AVX2
     /// machines), which would desync lockstep peers.
     /// </summary>
@@ -19,7 +20,7 @@ namespace Shieldbreak.Sim.Agents
 
         public static void Step(NativeArray<AgentData> agents, int count, ref SpatialHash spatial,
             NativeArray<float2> positionScratch, NativeArray<float2> velocityScratch, NativeArray<float2> facingScratch,
-            in AgentMoveSettings settings)
+            in AgentMoveSettings settings, NativeArray<byte> navCost)
         {
             if (count == 0) return;
 
@@ -33,11 +34,12 @@ namespace Shieldbreak.Sim.Agents
                 Entries = spatial.Entries,
                 Layout = spatial.Layout,
                 Settings = settings,
+                NavCost = navCost,
                 NewVelocity = velocityScratch,
                 NewFacing = facingScratch,
             }.Schedule(count, BatchSize).Complete();
 
-            new IntegrateJob { Agents = agents, NewVelocity = velocityScratch, NewFacing = facingScratch, Layout = spatial.Layout }
+            new IntegrateJob { Agents = agents, NewVelocity = velocityScratch, NewFacing = facingScratch, Layout = spatial.Layout, NavCost = navCost }
                 .Schedule(count, BatchSize).Complete();
         }
 
@@ -67,6 +69,7 @@ namespace Shieldbreak.Sim.Agents
             [ReadOnly] public NativeArray<int> Entries;
             public GridLayout Layout;
             public AgentMoveSettings Settings;
+            [ReadOnly] public NativeArray<byte> NavCost;
             [WriteOnly] public NativeArray<float2> NewVelocity;
             [WriteOnly] public NativeArray<float2> NewFacing;
 
@@ -117,8 +120,33 @@ namespace Shieldbreak.Sim.Agents
                         }
                     }
                 }
+                // Blocked cells push like neighbours, measured from the nearest point of the cell
+                float2 wallPush = float2.zero;
+                if (Settings.WallWeight > 0f)
+                {
+                    for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        int2 c = cell + new int2(dx, dy);
+                        if (!Layout.InBounds(c) || NavCost[Layout.CellIndex(c)] != WorldGrid.Impassable) continue;
+                        float2 min = Layout.Origin + (float2)c * SimConstants.CellSize;
+                        float2 d = a.Position - math.clamp(a.Position, min, min + SimConstants.CellSize);
+                        float dsq = math.lengthsq(d);
+                        if (dsq >= sep * sep) continue;
+                        if (dsq > 1e-8f)
+                        {
+                            float len = math.sqrt(dsq);
+                            wallPush += d / len * (1f - len / sep);
+                        }
+                        else
+                        {
+                            wallPush += math.normalizesafe(a.Position - (min + 0.5f * SimConstants.CellSize), new float2(1f, 0f));
+                        }
+                    }
+                }
+
                 // Separation keeps its full strength even when the agent itself is slowed (no overlap while attacking)
-                desired += push * (Settings.SeparationWeight * Settings.MaxSpeed);
+                desired += push * (Settings.SeparationWeight * Settings.MaxSpeed) + wallPush * (Settings.WallWeight * Settings.MaxSpeed);
 
                 // Limited acceleration towards the desired velocity, then cap the speed
                 float2 steer = desired - a.Velocity;
@@ -126,7 +154,7 @@ namespace Shieldbreak.Sim.Agents
                 float steerSq = math.lengthsq(steer);
                 if (steerSq > maxDelta * maxDelta) steer *= maxDelta / math.sqrt(steerSq);
                 float2 v = a.Velocity + steer;
-                float cap = math.max(maxSpeed, math.length(push) * Settings.SeparationWeight * Settings.MaxSpeed);
+                float cap = math.max(maxSpeed, math.length(push * Settings.SeparationWeight + wallPush * Settings.WallWeight) * Settings.MaxSpeed);
                 float speedSq = math.lengthsq(v);
                 if (speedSq > cap * cap) v *= cap / math.sqrt(speedSq);
                 NewVelocity[i] = v;
@@ -151,12 +179,39 @@ namespace Shieldbreak.Sim.Agents
             [ReadOnly] public NativeArray<float2> NewVelocity;
             [ReadOnly] public NativeArray<float2> NewFacing;
             public GridLayout Layout;
+            [ReadOnly] public NativeArray<byte> NavCost;
+
+            bool Blocked(float2 p) => NavCost[Layout.ClampedCellIndex(p)] == WorldGrid.Impassable;
 
             public void Execute(int i)
             {
                 AgentData a = Agents[i];
                 a.Velocity = NewVelocity[i];
-                a.Position += a.Velocity * SimConstants.DT;
+                float2 next = a.Position + a.Velocity * SimConstants.DT;
+
+                // Never step into a blocked cell: slide along the wall on the free axis, else stop. An agent already
+                // inside one (spawned there) may walk out.
+                if (Blocked(next) && !Blocked(a.Position))
+                {
+                    var alongX = new float2(next.x, a.Position.y);
+                    var alongY = new float2(a.Position.x, next.y);
+                    if (!Blocked(alongX))
+                    {
+                        next = alongX;
+                        a.Velocity.y = 0f;
+                    }
+                    else if (!Blocked(alongY))
+                    {
+                        next = alongY;
+                        a.Velocity.x = 0f;
+                    }
+                    else
+                    {
+                        next = a.Position;
+                        a.Velocity = float2.zero;
+                    }
+                }
+                a.Position = next;
 
                 // Stay on the map; a tiny inset keeps the position inside the last cell
                 float2 max = Layout.Origin + new float2(Layout.Width, Layout.Height) * SimConstants.CellSize - 1e-3f;

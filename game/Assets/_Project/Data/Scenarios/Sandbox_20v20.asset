@@ -57,3 +57,20 @@ MonoBehaviour:
     asFormation: 1
     formationType: 0
     owner: 0
+  obstacles:
+  - name: Mauer links
+    min: {x: 26, y: 64}
+    max: {x: 45, y: 66}
+    cost: 255
+  - name: Mauer rechts
+    min: {x: 51, y: 64}
+    max: {x: 70, y: 66}
+    cost: 255
+  - name: Fels
+    min: {x: 42, y: 24}
+    max: {x: 54, y: 32}
+    cost: 255
+  - name: Gestrüpp
+    min: {x: 70, y: 36}
+    max: {x: 78, y: 60}
+    cost: 4

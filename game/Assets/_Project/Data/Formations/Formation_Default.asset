@@ -23,3 +23,8 @@ MonoBehaviour:
   minMarchFactor: 0.2
   faceSlotDistance: 1
   lossReformIntervalMs: 1000
+  pathMaxClearance: 6
+  pathClearancePenalty: 4
+  faceMarchMinDistance: 8
+  wheelFlankSpeed: 1
+  reformTurnDeg: 60

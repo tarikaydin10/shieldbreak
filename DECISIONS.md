@@ -190,6 +190,17 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | `FormationLinePlanner` liegt in `Sim/Orders`, nicht in Presentation | Pur und deterministisch; Kommandoansicht und Commander-AI planen später dieselben Linien. Ohne Unity testbar | Planung im MonoBehaviour |
 | Die Sandbox spawnt Gruppen als Formationen (Typ pro Gruppe); der Stresstest 250 gegen 250 bleibt lose | Umformen von 250 Soldaten kostet einen Tick lang geschätzt ~60 ms (O(n³), 150 Soldaten gemessen 14 ms ohne Burst); der Stresstest misst Steering und Kampf | Stresstest als Formationen |
 
+## 2026-10-19 — M2: Wege für Formationen
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| A* pro Formation auf dem `WorldGrid` (8 Nachbarn, keine Eckenschnitte), ganzzahlige Kosten (gerade 10, diagonal 14, mal Zellkosten), Gleichstände nach h und Zellindex; danach zu wenigen Wegpunkten geglättet (Sichtlinie, nie durch teurere Zellen als der Rasterweg) | Deterministisch ohne Float-Vergleiche in der Suche; wenige Wegpunkte = ruhiger Marsch. Läuft nur bei Befehl, Kartenänderung oder langem Weg (max. 32 Wegpunkte, dann Rest neu planen) | Flowfields (lohnen erst bei vielen Gruppen mit gleichem Ziel, M4), NavMesh (nicht deterministisch, nicht zerstörbar) |
+| Breite Fronten meiden enge Lücken weich: Abstandsfeld zu Wänden und Kartenrand, Aufschlag 4 pro fehlender Zelle bis halbe Frontbreite (max. 6) | Eine 20 m breite Linie soll den Umweg durchs breite Tor nehmen, kann sich aber notfalls durch eine Lücke quetschen (die Soldaten weichen lokal aus) | Harte Sperre (Formation bleibt stehen), Formation automatisch schmaler machen (eigenes Behavior, später) |
+| Ab 8 m Weg blickt die Formation in Marschrichtung und dreht am Ziel in die befohlene Richtung; kürzere Wege behalten die befohlene Richtung. Schwenken: Flügel höchstens 1 m/s; über 60° wird umgeformt statt geschwenkt (vor dem Marsch um die Soldaten herum, am Ziel um den Anker) | Test zeigte: Eine Linie, die seitlich um ein Mauerende marschiert, schiebt ihre hinteren Glieder hinter die Mauer, sie bleiben hängen. In Marschrichtung folgt der Körper dem Anker. Ersetzt „dreht sofort auf der Stelle, dann Marsch“ vom selben Tag | Immer befohlene Richtung (hängt an Ecken), Formation als Kolonne marschieren lassen (eigener Typ, später) |
+| Drehung im verwalteten Sim-Code ohne Trigonometrie: Schwelle als Kosinus (`ReformTurnCos`, im ScriptableObject in Grad), Schritt per Taylor-Reihe | `sin`/`acos` sind in Mono, IL2CPP und Burst nicht garantiert bit-gleich; der Formations-Tick läuft außerhalb von Burst | Formations-Tick komplett als Burst-Job (größerer Umbau, später bei Bedarf) |
+| Soldaten: Wände drücken wie Nachbarn (`WallWeight` 2), gesperrte Zellen werden nie betreten (an der Wand entlanggleiten) | CLAUDE.md 3.6: Agenten nur lokales Steering; ohne harte Grenze drücken Massen Soldaten durch Mauern | Pfad pro Agent (zu teuer, widerspricht 3.6) |
+| Hindernisse in der Sandbox nur im Overlay sichtbar | Keine Assets vor M4 | Kisten-Meshes jetzt |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

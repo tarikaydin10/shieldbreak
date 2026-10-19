@@ -8,8 +8,9 @@ Vor jedem Commit grün: `.\sb.ps1 test` (Unity darf offen bleiben) oder Test Run
 | `SimCoreTests` | `SimRandom`, `InputQueue`, `SimHash`, Befehls-Stempel |
 | `SimPurityTests` | keine verbotenen APIs in `Sim/` |
 | `GridTests` | Grid-Koordinaten, Spatial Hash, Nachbarsuche |
-| `AgentTests` | Ankommen, Tempo- und Beschleunigungsgrenzen, Trennung, ungültige Befehle |
-| `FormationTests` | Slot-Layouts aller Typen, Zuordnung optimal (gegen Brute Force), Marsch, Umdrehen, Umformen, Befehls-Rechte, Determinismus mit Befehlen, Frontlinien-Planer |
+| `AgentTests` | Ankommen, Tempo- und Beschleunigungsgrenzen, Trennung, Wände (nie hinein, entlanggleiten), ungültige Befehle |
+| `FormationTests` | Slot-Layouts aller Typen, Zuordnung optimal (gegen Brute Force), Marsch, Umdrehen, Umformen, Befehls-Rechte, Determinismus mit Befehlen und Wänden, Frontlinien-Planer, Wege um Mauern, Neuplanung bei Kartenänderung, Ziel in der Wand |
+| `NavTests` | A*: freies Feld, Mauer mit Lücke, keine Eckenschnitte, unerreichbares Ziel, breite Front nimmt die breite Lücke, Abstandsfeld, gleiche Planung zweimal gleich |
 | `CombatTests` | jede Kampfregel tick-genau, Bot-Duelle, Bot-Stufen gegeneinander |
 | `CombatVerbTests` | Sprint, Ausweichschritt, Sprung (Beine in der Luft unverwundbar), Schildstoß mit Nachstich, Rückstoß, Reaktionszeit ≤ 50 ms, Angriffs-Tokens (1vX) |
 | `TwoHandTests` | Zweihänder gegen Einhand, Blockbogen, Sprung-Hieb, Waffenwechsel, Zweihand-Bots |

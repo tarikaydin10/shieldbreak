@@ -92,7 +92,7 @@ namespace Shieldbreak.Sim.Core
             attackerScratch = new NativeArray<int>(config.MaxAgents, Allocator.Persistent);
 
             this.combatSetup = Copy(combatSetup);
-            formations = new FormationSystem(config.MaxFormations, config.MaxAgents, config.Formations, config.Movement);
+            formations = new FormationSystem(config.MaxFormations, config.MaxAgents, config.Formations, config.Movement, Grid);
         }
 
         static CombatSetup Copy(CombatSetup source)
@@ -130,6 +130,15 @@ namespace Shieldbreak.Sim.Core
         public NativeArray<FormationMember>.ReadOnly FormationMembers => formations.Members(AgentCount);
 
         public FormationSettings FormationSettings => formations.Settings;
+
+        /// <summary>Remaining waypoints of a formation's path (debug overlay, command view). Valid until the next Step.</summary>
+        public NativeArray<float2>.ReadOnly FormationPath(int formationId) => formations.RemainingPath(formationId);
+
+        /// <summary>
+        /// Blocks or weights the cells of a map rectangle (inclusive, cell coordinates). Scenario setup before tick 0:
+        /// every peer must make the same calls. Marching formations replan on the next tick.
+        /// </summary>
+        public void SetNavCost(int2 minCell, int2 maxCell, byte cost) => Grid.SetCost(minCell, maxCell, cost);
 
         /// <summary>Spatial hash from the last Step, for debug overlays.</summary>
         public SpatialHash Spatial => spatial;
@@ -309,7 +318,7 @@ namespace Shieldbreak.Sim.Core
 
             formations.Step(Tick, agents, combat, AgentCount, HasCombat);
             ApplyMoveIntents();
-            AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement);
+            AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement, Grid.NavCost);
             CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch);
 
             Tick++;

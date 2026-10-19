@@ -63,6 +63,8 @@ namespace Shieldbreak.Sim.Agents
         public float SeparationWeight;
         /// <summary>Maximum turning speed in degrees per second.</summary>
         public float MaxTurnRateDeg;
+        /// <summary>Push away from blocked cells within SeparationRadius, relative to MaxSpeed (like SeparationWeight).</summary>
+        public float WallWeight;
 
         public void Validate()
         {
@@ -72,6 +74,7 @@ namespace Shieldbreak.Sim.Agents
                 throw new ArgumentException("SeparationRadius must be in (0, CellSize] for the 3x3 neighbour query.");
             if (SeparationWeight < 0f) throw new ArgumentException("SeparationWeight must be >= 0.");
             if (MaxTurnRateDeg <= 0f) throw new ArgumentException("MaxTurnRateDeg must be positive.");
+            if (WallWeight < 0f) throw new ArgumentException("WallWeight must be >= 0.");
         }
     }
 }

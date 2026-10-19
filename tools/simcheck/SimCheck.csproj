@@ -27,5 +27,6 @@
     <Compile Include="$(Game)Tests/EditMode/GridTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/AgentTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/FormationTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/NavTests.cs" />
   </ItemGroup>
 </Project>

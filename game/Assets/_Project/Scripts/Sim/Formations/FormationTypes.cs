@@ -19,6 +19,8 @@ namespace Shieldbreak.Sim.Formations
         public const int TypeCount = 5;
         /// <summary>Upper bound per formation; slot assignment is O(n³) and runs only on reforms.</summary>
         public const int MaxMembers = 256;
+        /// <summary>Waypoints stored per formation; a longer path is replanned when the anchor reaches the last one.</summary>
+        public const int MaxPathPoints = 32;
         public const int MaxFiles = MaxMembers;
     }
 
@@ -48,6 +50,19 @@ namespace Shieldbreak.Sim.Formations
         public float2 Destination;
         /// <summary>Anchor velocity of the last tick (m/s).</summary>
         public float2 Velocity;
+        /// <summary>Waypoints of the current path (in the system's path buffer) and the one marched to next.</summary>
+        public int PathCount;
+        public int PathIndex;
+        /// <summary>1 = plan a path to Destination on the next tick (new order, map change, path longer than the buffer).</summary>
+        public int NeedsPath;
+        /// <summary>1 = the path was cut at MaxPathPoints; reaching its end plans the rest.</summary>
+        public int PathTruncated;
+        /// <summary>WorldGrid.Version the path was planned on; a cost change replans marching formations.</summary>
+        public int PathGridVersion;
+        /// <summary>Facing ordered for the destination; while marching a long way the formation faces its path instead.</summary>
+        public float2 TargetFacing;
+        /// <summary>1 = this march is long enough to face the way it walks (decided when the path is planned).</summary>
+        public int FaceMarch;
 
         public const int ReformNone = 0, ReformKeepAnchor = 1, ReformAroundMembers = 2;
 
@@ -104,6 +119,19 @@ namespace Shieldbreak.Sim.Formations
         public float FaceSlotDistance;
         /// <summary>Ticks between reforms after losses (closing gaps), so a melee does not reassign every tick.</summary>
         public int LossReformIntervalTicks;
+        /// <summary>The anchor's path keeps up to this many cells to obstacles (half the front, capped), so wide formations avoid narrow gaps.</summary>
+        public int PathMaxClearance;
+        /// <summary>Extra path cost per cell and missing cell of clearance (a straight step costs 10 per cell cost unit); 0 = ignore width.</summary>
+        public int PathClearancePenalty;
+        /// <summary>Marches at least this long (m) face the way they walk, so the body follows the anchor round corners; shorter ones keep the ordered facing.</summary>
+        public float FaceMarchMinDistance;
+        /// <summary>Wheeling speed limit: the outermost slot never moves faster than this sideways (m/s).</summary>
+        public float WheelFlankSpeed;
+        /// <summary>
+        /// Cosine of the largest turn that wheels; larger turns re-form facing the new way (rear rank becomes the front).
+        /// A cosine, not degrees, so the sim needs no trigonometry for it.
+        /// </summary>
+        public float ReformTurnCos;
 
         public FormationSpacing Spacing(FormationType type) => type switch
         {
@@ -126,6 +154,11 @@ namespace Shieldbreak.Sim.Formations
             if (MinMarchFactor <= 0f || MinMarchFactor > 1f) throw new ArgumentException("MinMarchFactor must be in (0, 1].");
             if (FaceSlotDistance < 0f) throw new ArgumentException("FaceSlotDistance must be >= 0.");
             if (LossReformIntervalTicks < 0) throw new ArgumentException("LossReformIntervalTicks must be >= 0.");
+            if (FaceMarchMinDistance < 0f) throw new ArgumentException("FaceMarchMinDistance must be >= 0.");
+            if (WheelFlankSpeed <= 0f) throw new ArgumentException("WheelFlankSpeed must be positive.");
+            if (ReformTurnCos < -1f || ReformTurnCos >= 1f) throw new ArgumentException("ReformTurnCos must be in [-1, 1).");
+            if (PathMaxClearance < 0 || PathMaxClearance > 32) throw new ArgumentException("PathMaxClearance must be in [0, 32] cells.");
+            if (PathClearancePenalty < 0 || PathClearancePenalty > 100) throw new ArgumentException("PathClearancePenalty must be in [0, 100] (integer path costs must not overflow).");
         }
     }
 }

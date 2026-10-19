@@ -21,6 +21,8 @@ namespace Shieldbreak.Data
         [Min(0f)] public float separationWeight = 1.5f;
         [Tooltip("Maximum turning speed (degrees per second). Limits how fast a soldier can face a new threat.")]
         [Min(1f)] public float maxTurnRateDeg = 540f;
+        [Tooltip("Push away from walls and blocked cells within Separation Radius, relative to top speed.")]
+        [Min(0f)] public float wallWeight = 2f;
 
         public AgentMoveSettings ToSettings() => new AgentMoveSettings
         {
@@ -31,6 +33,7 @@ namespace Shieldbreak.Data
             SeparationRadius = separationRadius,
             SeparationWeight = separationWeight,
             MaxTurnRateDeg = maxTurnRateDeg,
+            WallWeight = wallWeight,
         };
     }
 }

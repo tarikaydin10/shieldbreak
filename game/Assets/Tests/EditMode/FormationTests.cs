@@ -324,6 +324,89 @@ namespace Shieldbreak.Tests
             Assert.That(Play(new float2(45f, 41f)), Is.Not.EqualTo(h1));
         }
 
+        // ---- Paths around obstacles ----
+
+        static void AssertNobodyInsideWalls(SimWorld world, int tick)
+        {
+            for (int i = 0; i < world.AgentCount; i++)
+                Assert.That(world.Grid.IsPassable(world.Grid.Layout.WorldToCell(world.Agents[i].Position)),
+                    $"tick {tick}: agent {i} inside a blocked cell at {world.Agents[i].Position}");
+        }
+
+        [Test]
+        public void Formation_MarchesAroundAWall_ThroughTheGap()
+        {
+            using var world = World(20, 80);
+            world.SetNavCost(new int2(40, 0), new int2(41, 49), byte.MaxValue);   // wall, gap at y >= 50
+            int f = world.SpawnFormation(0, 0, FormationType.Line, 5, 20, new float2(20f, 20f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            var dest = new float2(60f, 20f);
+            world.SubmitFormationOrder(0, FormationOrder.MoveTo(f, dest));
+
+            float maxAnchorY = 0f;
+            for (int t = 0; t < 9000; t++)
+            {
+                world.Step();
+                if (t % 10 == 0) AssertNobodyInsideWalls(world, t);
+                maxAnchorY = math.max(maxAnchorY, world.Formations[f].Position.y);
+                Assert.That(world.Grid.IsPassable(world.Grid.Layout.WorldToCell(world.Formations[f].Position)), $"tick {t}: anchor in the wall");
+            }
+            Assert.That(math.distance(world.Formations[f].Position, dest), Is.LessThan(1e-3f), "arrived");
+            Assert.That(maxAnchorY, Is.GreaterThan(49f), "went through the gap");
+            Assert.That(MaxSlotError(world, f), Is.LessThan(0.3f), "everyone found their slot behind the wall");
+        }
+
+        [Test]
+        public void MapChange_WhileMarching_Replans()
+        {
+            using var world = World(20, 80);
+            int f = world.SpawnFormation(0, 0, FormationType.Line, 5, 10, new float2(10f, 40f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            var dest = new float2(70f, 40f);
+            world.SubmitFormationOrder(0, FormationOrder.MoveTo(f, dest));
+            for (int t = 0; t < 300; t++) world.Step();
+            Assert.That(world.FormationPath(f).Length, Is.EqualTo(1), "open field: straight");
+
+            world.SetNavCost(new int2(40, 20), new int2(41, 60), byte.MaxValue);
+            world.Step();
+            Assert.That(world.FormationPath(f).Length, Is.GreaterThan(1), "replanned around the new wall");
+            for (int t = 0; t < 8000; t++)
+            {
+                world.Step();
+                if (t % 10 == 0) AssertNobodyInsideWalls(world, t);
+            }
+            Assert.That(math.distance(world.Formations[f].Position, dest), Is.LessThan(1e-3f));
+        }
+
+        [Test]
+        public void Destination_InsideAWall_StopsInFrontOfIt()
+        {
+            using var world = World(10, 60);
+            world.SetNavCost(new int2(30, 10), new int2(40, 50), byte.MaxValue);
+            int f = world.SpawnFormation(0, 0, FormationType.Line, 5, 10, new float2(10f, 30f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            world.SubmitFormationOrder(0, FormationOrder.MoveTo(f, new float2(35f, 30f)));
+            Run(world, 3000);
+            var formation = world.Formations[f];
+            Assert.That(formation.Position.x, Is.LessThan(30f));
+            Assert.That(math.distance(formation.Position, formation.Destination), Is.LessThan(1e-3f), "destination moved to the reachable point");
+        }
+
+        [Test]
+        public void SameOrders_WithWalls_SameHash()
+        {
+            ulong Play()
+            {
+                using var world = World(40, 80, 9);
+                world.SetNavCost(new int2(38, 10), new int2(41, 45), byte.MaxValue);
+                world.SetNavCost(new int2(20, 55), new int2(60, 57), 6);
+                int a = world.SpawnFormation(0, 0, FormationType.ShieldWall, 10, 20, new float2(20f, 30f), new float2(1f, 0f), TestScenarios.AgentRadius);
+                int b = world.SpawnFormation(1, 1, FormationType.Line, 10, 20, new float2(60f, 30f), new float2(-1f, 0f), TestScenarios.AgentRadius);
+                world.SubmitFormationOrder(0, FormationOrder.MoveTo(a, new float2(60f, 50f)));
+                world.SubmitFormationOrder(1, FormationOrder.MoveTo(b, new float2(15f, 60f), new float2(0f, 1f)));
+                Run(world, 3000);
+                return world.ComputeHash();
+            }
+            Assert.That(Play(), Is.EqualTo(Play()));
+        }
+
         // ---- Line planner (shared by debug view, command view, AI) ----
 
         static FormationOrder[] Plan(SimWorld world, int[] ids, System.Action<NativeArray<int>, NativeArray<FormationOrder>> plan)

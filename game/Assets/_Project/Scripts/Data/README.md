@@ -4,9 +4,9 @@ ScriptableObject-Klassen. Jede wandelt ihre Werte in einen Sim-Struct um, damit 
 
 | Klasse | Wird zu | Inhalt |
 |---|---|---|
-| `AgentMovementDefinition` | `AgentMoveSettings` | Tempo, Beschleunigung, Abstand, Drehrate |
-| `FormationDefinition` | `FormationSettings` | Abstände pro Formationstyp, Marschtempo, Zusammenhalt, Umform-Intervall nach Verlusten |
-| `SandboxScenarioDefinition` | `SimConfig` + Spawns | Karte, Seed, Spawn-Gruppen (als Formation mit Typ oder lose), Formations-Tuning |
+| `AgentMovementDefinition` | `AgentMoveSettings` | Tempo, Beschleunigung, Abstand, Wand-Ausweichen, Drehrate |
+| `FormationDefinition` | `FormationSettings` | Abstände pro Formationstyp, Marschtempo, Zusammenhalt, Umform-Intervall nach Verlusten, Weg-Abstand zu Wänden, Schwenken und Umformen beim Drehen |
+| `SandboxScenarioDefinition` | `SimConfig` + Spawns | Karte, Seed, Spawn-Gruppen (als Formation mit Typ oder lose), Hindernisse (gesperrt oder teuer), Formations-Tuning |
 | `AttackDefinition` | `AttackData` + Keys | Phasen in ms, Waffenbahn-Keyframes, Klinge, Ziele pro Hieb, Ausfallschritt; Startwerte Einhand, Zweihand, Sprung-Hieb |
 | `WeaponDefinition` | `WeaponData` | Archetyp, Masse, Schneide/Spitze, Blockbogen, 4 Angriffe + Spezial-Angriff |
 | `CombatTuningDefinition` | `CombatTuning` | Lebenspunkte, Stamina, Zeitfenster, Tödlichkeit (Feel-Preset) |

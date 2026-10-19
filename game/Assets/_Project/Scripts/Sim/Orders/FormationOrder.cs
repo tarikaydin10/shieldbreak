@@ -9,7 +9,7 @@ namespace Shieldbreak.Sim.Orders
     public enum FormationOrderFlags
     {
         None = 0,
-        /// <summary>March the anchor to Destination; a non-zero Facing turns the formation at once (on the spot).</summary>
+        /// <summary>March the anchor to Destination (on a planned path) and face Facing there; zero Facing keeps the current one.</summary>
         Move = 1 << 0,
         /// <summary>Change the formation type.</summary>
         Shape = 1 << 1,
@@ -30,7 +30,7 @@ namespace Shieldbreak.Sim.Orders
         public int Files;
         /// <summary>New anchor: centre of the front rank (centre for Circle).</summary>
         public float2 Destination;
-        /// <summary>New facing; zero keeps the current one.</summary>
+        /// <summary>Facing at the destination; zero keeps the current one. Long marches face the way they walk until then.</summary>
         public float2 Facing;
 
         public static FormationOrder MoveTo(int formation, float2 destination, float2 facing = default) => new FormationOrder

@@ -246,7 +246,7 @@ M0 und M1 sind abgeschlossen (Fun-Gates bestanden, M1 am 2026-10-19). Reihenfolg
 
 1. **Sim/Formations + Sim/Orders** ✅ — `FormationData`, `SlotGenerator` (Linie, Schildwall, Keil, Kreis, lockere Ordnung), `SlotAssignment` (exakt, Distanz²), `FormationSystem` (Marsch des Ankers mit Kohäsion, Lücken schließen nach Verlusten, Slot als Steering-Ziel), `FormationOrder` (Bewegen/Ausrichten, Form, Breite) über die `InputQueue`; AI nutzt dieselbe Order direkt. `FormationDefinition` (ScriptableObject). Tests: `FormationTests`.
 2. **Sichtbar machen** ✅ — Sandbox-Szenario mit Formationen statt Spawn-Blöcken, Debug-Overlay (Slots, Anker, Ziel, Formationstyp), Befehle aus der Debug-Draufsicht (Klick/Drag = `FormationOrder`, `FormationLinePlanner`).
-3. **Formations-Pfad** — `Nav/GridAStar` auf dem `WorldGrid` für den Anker (Formationsebene), Agenten bleiben beim lokalen Steering.
+3. **Formations-Pfad** ✅ — `Nav/GridAStar` auf dem `WorldGrid` für den Anker (Formationsebene), Agenten bleiben beim lokalen Steering.
 4. **Formation-Behaviors v1 + Kampf in Formation** — Halten, Vorrücken, Angriff, Folgen, Rückzug als `FormationOrder`-Erweiterung; `Combat/Context/FormationCombatRules` (Slot halten, frontal angreifen, Schildwall blockt bevorzugt), 20 gegen 20.
 5. **Moral** — Panik-Feld im `WorldGrid` mit Diffusion (`P += D·ΔP − k·P + Quellen − Senken`), Moral pro Agent, Rout und Flucht; Werte im ScriptableObject; im Overlay sichtbar.
 6. **Radialmenü** — einhändig aus dem Kampf heraus (Halten, Angriff, Folgen, Rückzug, Form), eigene Action-Map, sendet `FormationOrder`.

@@ -6,19 +6,22 @@ using Unity.Mathematics;
 using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
+using Shieldbreak.Sim.Grid;
+using Shieldbreak.Sim.Nav;
 using Shieldbreak.Sim.Orders;
 
 namespace Shieldbreak.Sim.Formations
 {
     /// <summary>
     /// Formation layer (CLAUDE.md 3.1, 3.6): owns formations and per-agent membership, applies FormationOrders,
-    /// marches the anchor, closes gaps after losses and hands every member its slot as the steering target. Agents
-    /// always steer to their own slot, never to the formation's destination.
+    /// plans the anchor's path on the WorldGrid (A*), marches it, closes gaps after losses and hands every member its
+    /// slot as the steering target. Agents always steer to their own slot, never to the formation's destination.
     /// </summary>
     public sealed class FormationSystem : IDisposable
     {
         readonly FormationSettings settings;
         readonly AgentMoveSettings movement;
+        readonly WorldGrid grid;
         NativeArray<FormationData> formations;
         NativeArray<FormationMember> members;
         int formationCount;
@@ -34,12 +37,19 @@ namespace Shieldbreak.Sim.Formations
         NativeArray<float> errorSum;
         NativeArray<float2> anchorOut;
 
-        public FormationSystem(int maxFormations, int maxAgents, in FormationSettings settings, in AgentMoveSettings movement)
+        // Paths: MaxPathPoints waypoints per formation
+        NativeArray<float2> paths;
+        GridAStar astar;
+        NativeArray<int> pathResult;
+        int clearanceVersion = -1;
+
+        public FormationSystem(int maxFormations, int maxAgents, in FormationSettings settings, in AgentMoveSettings movement, WorldGrid grid)
         {
             if (maxFormations < 0) throw new ArgumentOutOfRangeException(nameof(maxFormations));
             if (maxFormations > 0) settings.Validate(movement.MaxSpeed);
             this.settings = settings;
             this.movement = movement;
+            this.grid = grid;
             formations = new NativeArray<FormationData>(maxFormations, Allocator.Persistent);
             members = new NativeArray<FormationMember>(maxAgents, Allocator.Persistent);
             for (int i = 0; i < maxAgents; i++) members[i] = FormationMember.None;
@@ -53,6 +63,17 @@ namespace Shieldbreak.Sim.Formations
             assignment = new SlotAssignment(n, Allocator.Persistent);
             errorSum = new NativeArray<float>(maxFormations, Allocator.Persistent);
             anchorOut = new NativeArray<float2>(1, Allocator.Persistent);
+            paths = new NativeArray<float2>(maxFormations * FormationLimits.MaxPathPoints, Allocator.Persistent);
+            pathResult = new NativeArray<int>(3, Allocator.Persistent);
+            if (maxFormations > 0) astar = new GridAStar(grid.Layout, Allocator.Persistent);
+        }
+
+        /// <summary>Waypoints of a formation's current path, the next one first (empty when it stands).</summary>
+        public NativeArray<float2>.ReadOnly RemainingPath(int formation)
+        {
+            var f = formations[formation];
+            int start = formation * FormationLimits.MaxPathPoints;
+            return paths.GetSubArray(start + f.PathIndex, math.max(0, f.PathCount - f.PathIndex)).AsReadOnly();
         }
 
         public int Count => formationCount;
@@ -75,6 +96,7 @@ namespace Shieldbreak.Sim.Formations
                 Files = math.clamp(files, 1, FormationLimits.MaxFiles),
                 Position = position,
                 Facing = math.normalizesafe(facing, new float2(0f, 1f)),
+                TargetFacing = math.normalizesafe(facing, new float2(0f, 1f)),
                 Destination = position,
             };
             return id;
@@ -108,16 +130,10 @@ namespace Shieldbreak.Sim.Formations
             bool changed = false;
             if ((order.Flags & FormationOrderFlags.Move) != 0 && math.all(math.isfinite(order.Destination)) && math.all(math.isfinite(order.Facing)))
             {
-                f.Destination = order.Destination;
-                if (math.lengthsq(order.Facing) > 1e-8f)
-                {
-                    float2 facing = math.normalize(order.Facing);
-                    if (math.dot(facing, f.Facing) < 0.9999f)
-                    {
-                        f.Facing = facing;
-                        f.Reform = FormationData.ReformAroundMembers;
-                    }
-                }
+                f.Destination = ClampToMap(order.Destination);
+                f.NeedsPath = 1;
+                // The formation turns in Step: towards its path on a long march, to this facing on arrival
+                f.TargetFacing = math.lengthsq(order.Facing) > 1e-8f ? math.normalize(order.Facing) : f.Facing;
                 changed = true;
             }
             if ((order.Flags & FormationOrderFlags.Shape) != 0 && (uint)order.Type < FormationLimits.TypeCount && order.Type != f.Type)
@@ -168,10 +184,12 @@ namespace Shieldbreak.Sim.Formations
             {
                 var f = formations[id];
                 if (f.Reform != FormationData.ReformNone && tick >= f.NextReformTick && f.MemberCount > 0)
-                {
                     Reform(ref f, agents, agentCount);
-                    formations[id] = f;
-                }
+                // Plan after the reform, which may have moved the anchor; a changed map replans whoever marches
+                bool marching = math.distancesq(f.Destination, f.Position) > 1e-8f;
+                if (f.MemberCount > 0 && (f.NeedsPath == 1 || (marching && f.PathGridVersion != grid.Version)))
+                    PlanPath(ref f);
+                formations[id] = f;
                 errorSum[id] = 0f;
             }
 
@@ -188,19 +206,38 @@ namespace Shieldbreak.Sim.Formations
             {
                 var f = formations[id];
                 f.Velocity = float2.zero;
-                if (f.MemberCount > 0)
+                if (f.MemberCount > 0 && f.PathIndex < f.PathCount)
                 {
-                    float2 toDestination = f.Destination - f.Position;
-                    float distance = math.length(toDestination);
-                    if (distance > 1e-4f)
+                    float averageError = errorSum[id] / f.MemberCount;
+                    float factor = math.clamp(1f - (averageError - settings.CohesionSlack) / settings.CohesionRange, settings.MinMarchFactor, 1f);
+                    float step = settings.MarchSpeed * factor * SimConstants.DT;
+                    float2 start = f.Position;
+                    // Walk the waypoints; a step that reaches one carries on towards the next
+                    while (step > 0f && f.PathIndex < f.PathCount)
                     {
-                        float averageError = errorSum[id] / f.MemberCount;
-                        float factor = math.clamp(1f - (averageError - settings.CohesionSlack) / settings.CohesionRange, settings.MinMarchFactor, 1f);
-                        float step = math.min(distance, settings.MarchSpeed * factor * SimConstants.DT);
-                        f.Velocity = toDestination / distance * (step / SimConstants.DT);
-                        f.Position += toDestination / distance * step;
+                        float2 waypoint = paths[id * FormationLimits.MaxPathPoints + f.PathIndex];
+                        float2 to = waypoint - f.Position;
+                        float distance = math.length(to);
+                        if (distance <= step)
+                        {
+                            f.Position = waypoint;
+                            step -= distance;
+                            f.PathIndex++;
+                        }
+                        else
+                        {
+                            f.Position += to / distance * step;
+                            step = 0f;
+                        }
+                    }
+                    f.Velocity = (f.Position - start) / SimConstants.DT;
+                    if (f.PathIndex == f.PathCount)
+                    {
+                        if (f.PathTruncated == 1) f.NeedsPath = 1;
+                        else f.Destination = f.Position;
                     }
                 }
+                if (f.MemberCount > 0) Turn(ref f, tick);
                 formations[id] = f;
             }
 
@@ -276,6 +313,7 @@ namespace Shieldbreak.Sim.Formations
             if (f.Reform == FormationData.ReformAroundMembers)
             {
                 if (math.distancesq(f.Destination, f.Position) < 1e-8f) f.Destination = anchor;
+                else f.NeedsPath = 1;
                 f.Position = anchor;
             }
             for (int r = 0; r < n; r++)
@@ -284,6 +322,124 @@ namespace Shieldbreak.Sim.Formations
                 members[rows[r]] = new FormationMember { Formation = f.Id, Slot = s, Local = slotLocal[s], LocalFacing = slotFacing[s] };
             }
             f.Reform = FormationData.ReformNone;
+        }
+
+        /// <summary>
+        /// Turns towards the path while marching a long way, else towards the ordered facing. Small turns wheel around
+        /// the anchor, limited so the flank never outruns a soldier; large ones re-form at once (the rear rank becomes
+        /// the front): around the soldiers before a march, on the spot at the destination.
+        /// </summary>
+        void Turn(ref FormationData f, int tick)
+        {
+            bool marching = f.PathIndex < f.PathCount;
+            float2 wanted = f.TargetFacing;
+            if (marching && f.FaceMarch == 1)
+            {
+                float2 toWaypoint = paths[f.Id * FormationLimits.MaxPathPoints + f.PathIndex] - f.Position;
+                if (math.lengthsq(toWaypoint) > 1e-6f) wanted = math.normalize(toWaypoint);
+            }
+            float cos = math.dot(f.Facing, wanted);
+            if (cos > 0.99999f) return;
+            if (cos < settings.ReformTurnCos)
+            {
+                f.Facing = wanted;
+                if (f.Reform != FormationData.ReformAroundMembers)
+                    f.Reform = marching ? FormationData.ReformAroundMembers : FormationData.ReformKeepAnchor;
+                f.NextReformTick = tick + 1;
+                return;
+            }
+            float halfFront = math.max(FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f, 1f);
+            float maxStep = settings.WheelFlankSpeed / halfFront * SimConstants.DT;
+            f.Facing = RotateTowards(f.Facing, wanted, maxStep);
+        }
+
+        /// <summary>
+        /// Rotates unit vector <paramref name="from"/> towards <paramref name="to"/> by at most <paramref name="maxRadians"/>
+        /// (small, below 0.3). Taylor series instead of sin/cos: this runs in managed code, where trigonometry is not
+        /// guaranteed bit-identical between runtimes.
+        /// </summary>
+        static float2 RotateTowards(float2 from, float2 to, float maxRadians)
+        {
+            float t = math.min(maxRadians, 0.3f), t2 = t * t;
+            float c = 1f - t2 * 0.5f + t2 * t2 * (1f / 24f);
+            float s = t * (1f - t2 * (1f / 6f) + t2 * t2 * (1f / 120f));
+            if (math.dot(from, to) >= c) return to;
+            if (from.x * to.y - from.y * to.x < 0f) s = -s;
+            return math.normalize(new float2(from.x * c - from.y * s, from.x * s + from.y * c));
+        }
+
+        /// <summary>
+        /// Plans the anchor's path to the destination (Burst job). Wide formations want room to the sides; an
+        /// unreachable destination becomes the reachable point closest to it.
+        /// </summary>
+        void PlanPath(ref FormationData f)
+        {
+            f.NeedsPath = 0;
+            f.PathGridVersion = grid.Version;
+            f.PathIndex = 0;
+            f.PathCount = 0;
+            f.PathTruncated = 0;
+            if (math.distancesq(f.Destination, f.Position) < 1e-8f) return;
+
+            float halfFront = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f;
+            var job = new PathJob
+            {
+                AStar = astar,
+                NavCost = grid.NavCost,
+                RefreshClearance = clearanceVersion != grid.Version ? 1 : 0,
+                Request = new PathRequest
+                {
+                    Start = f.Position,
+                    Goal = f.Destination,
+                    RequiredClearance = math.min((int)math.ceil(halfFront / SimConstants.CellSize), settings.PathMaxClearance),
+                    ClearancePenalty = settings.PathClearancePenalty,
+                },
+                Output = paths.GetSubArray(f.Id * FormationLimits.MaxPathPoints, FormationLimits.MaxPathPoints),
+                Result = pathResult,
+            };
+            job.Schedule().Complete();
+            clearanceVersion = grid.Version;
+            f.PathCount = pathResult[0];
+            float length = 0f;
+            float2 previous = f.Position;
+            for (int k = 0; k < f.PathCount; k++)
+            {
+                float2 p = paths[f.Id * FormationLimits.MaxPathPoints + k];
+                length += math.distance(previous, p);
+                previous = p;
+            }
+            f.FaceMarch = length >= settings.FaceMarchMinDistance ? 1 : 0;
+            f.PathTruncated = pathResult[1];
+            if (pathResult[2] == 0 && f.PathCount > 0) f.Destination = paths[f.Id * FormationLimits.MaxPathPoints + f.PathCount - 1];
+            if (f.PathCount == 0) f.Destination = f.Position;
+        }
+
+        float2 ClampToMap(float2 p)
+        {
+            var layout = grid.Layout;
+            const float inset = 0.5f;
+            return math.clamp(p, layout.Origin + inset, layout.Origin + new float2(layout.Width, layout.Height) * SimConstants.CellSize - inset);
+        }
+
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        struct PathJob : IJob
+        {
+            public GridAStar AStar;
+            [ReadOnly] public NativeArray<byte> NavCost;
+            public int RefreshClearance;
+            public PathRequest Request;
+            public NativeArray<float2> Output;
+            /// <summary>(waypoints, truncated, reached goal).</summary>
+            public NativeArray<int> Result;
+
+            public void Execute()
+            {
+                if (RefreshClearance == 1) AStar.RefreshClearance(NavCost);
+                int count = AStar.FindPath(NavCost, Request, Output, out bool truncated, out bool reached);
+                Result[0] = count;
+                Result[1] = truncated ? 1 : 0;
+                Result[2] = reached ? 1 : 0;
+            }
         }
 
         [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
@@ -335,6 +491,7 @@ namespace Shieldbreak.Sim.Formations
         {
             h.Add(formations.GetSubArray(0, formationCount));
             h.Add(members.GetSubArray(0, agentCount));
+            h.Add(paths);
         }
 
         public void Dispose()
@@ -350,6 +507,9 @@ namespace Shieldbreak.Sim.Formations
             assignment.Dispose();
             if (errorSum.IsCreated) errorSum.Dispose();
             if (anchorOut.IsCreated) anchorOut.Dispose();
+            if (paths.IsCreated) paths.Dispose();
+            if (pathResult.IsCreated) pathResult.Dispose();
+            astar.Dispose();
         }
     }
 }

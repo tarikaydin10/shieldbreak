@@ -201,6 +201,14 @@ namespace Shieldbreak.EditorTools
                 Group("B Keil", 1, 10, 9, new Vector2(58f, 54f), new Vector2(38f, 54f), FormationType.Wedge),
                 Group("B Linie", 1, 10, 5, new Vector2(58f, 42f), new Vector2(38f, 42f)),
             };
+            // A wall with a 6 m gate to the north, a rock to the south, brush behind team B
+            s.obstacles = new[]
+            {
+                Obstacle("Mauer links", new Vector2(26f, 64f), new Vector2(45f, 66f), 255),
+                Obstacle("Mauer rechts", new Vector2(51f, 64f), new Vector2(70f, 66f), 255),
+                Obstacle("Fels", new Vector2(42f, 24f), new Vector2(54f, 32f), 255),
+                Obstacle("Gestrüpp", new Vector2(70f, 36f), new Vector2(78f, 60f), 4),
+            };
         }
 
         static void FillStress(SandboxScenarioDefinition s)
@@ -222,6 +230,9 @@ namespace Shieldbreak.EditorTools
                 name = name, team = team, count = count, files = files, front = front, faceTowards = face,
                 asFormation = !loose, formationType = type,
             };
+
+        static SandboxScenarioDefinition.Obstacle Obstacle(string name, Vector2 min, Vector2 max, int cost) =>
+            new SandboxScenarioDefinition.Obstacle { name = name, min = min, max = max, cost = cost };
 
         internal static T LoadOrCreate<T>(string path, System.Action<T> fill) where T : ScriptableObject
         {

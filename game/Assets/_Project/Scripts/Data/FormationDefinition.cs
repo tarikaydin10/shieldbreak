@@ -31,6 +31,16 @@ namespace Shieldbreak.Data
         [Min(0f)] public float faceSlotDistance = 1.0f;
         [Tooltip("After losses the formation closes gaps at most this often (ms).")]
         [Min(0)] public int lossReformIntervalMs = 1000;
+        [Tooltip("Paths keep up to this many metres to walls (half the front, capped), so wide formations avoid narrow gaps.")]
+        [Range(0, 32)] public int pathMaxClearance = 6;
+        [Tooltip("How much a path avoids being cramped: extra cost per metre walked and metre of missing room. 0 = squeeze through anything.")]
+        [Range(0, 100)] public int pathClearancePenalty = 4;
+        [Tooltip("Marches at least this long (m) face the way they walk, so the body follows round corners; shorter ones keep the ordered facing.")]
+        [Min(0f)] public float faceMarchMinDistance = 8f;
+        [Tooltip("Wheeling speed: the outermost soldier never moves sideways faster than this (m/s).")]
+        [Min(0.1f)] public float wheelFlankSpeed = 1.0f;
+        [Tooltip("Turns larger than this do not wheel: the formation re-forms facing the new way, the rear rank becomes the front (degrees).")]
+        [Range(5f, 180f)] public float reformTurnDeg = 60f;
 
         static FormationSpacing Spacing(Vector2 v) => new FormationSpacing { Lateral = v.x, Depth = v.y };
 
@@ -47,6 +57,12 @@ namespace Shieldbreak.Data
             MinMarchFactor = minMarchFactor,
             FaceSlotDistance = faceSlotDistance,
             LossReformIntervalTicks = Mathf.RoundToInt(lossReformIntervalMs * SimConstants.TickRate / 1000f),
+            PathMaxClearance = pathMaxClearance,
+            PathClearancePenalty = pathClearancePenalty,
+            FaceMarchMinDistance = faceMarchMinDistance,
+            WheelFlankSpeed = wheelFlankSpeed,
+            // Converted once here (presentation side), so the sim compares cosines and needs no trigonometry
+            ReformTurnCos = reformTurnDeg >= 180f ? -1f : Mathf.Cos(reformTurnDeg * Mathf.Deg2Rad),
         };
     }
 }

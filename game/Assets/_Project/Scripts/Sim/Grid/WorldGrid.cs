@@ -1,5 +1,6 @@
 using System;
 using Unity.Collections;
+using Unity.Mathematics;
 
 namespace Shieldbreak.Sim.Grid
 {
@@ -20,6 +21,26 @@ namespace Shieldbreak.Sim.Grid
             Layout = layout;
             NavCost = new NativeArray<byte>(layout.CellCount, allocator, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < NavCost.Length; i++) NavCost[i] = DefaultCost;
+        }
+
+        /// <summary>Bumped on every cost change, so derived data (clearance, planned paths) knows when to refresh.</summary>
+        public int Version { get; private set; }
+
+        public bool IsPassable(int2 cell) => Layout.InBounds(cell) && NavCost[Layout.CellIndex(cell)] != Impassable;
+
+        /// <summary>
+        /// Sets the cost of every cell in the inclusive rectangle (clamped to the map). Scenario setup, or later a
+        /// deterministic sim event (destruction); never from presentation.
+        /// </summary>
+        public void SetCost(int2 min, int2 max, byte cost)
+        {
+            if (cost == 0) throw new ArgumentOutOfRangeException(nameof(cost), "Cost 0 is not allowed; 1 is the cheapest cell.");
+            int2 lo = math.max(math.min(min, max), int2.zero);
+            int2 hi = math.min(math.max(min, max), new int2(Layout.Width - 1, Layout.Height - 1));
+            for (int y = lo.y; y <= hi.y; y++)
+            for (int x = lo.x; x <= hi.x; x++)
+                NavCost[Layout.CellIndex(new int2(x, y))] = cost;
+            Version++;
         }
 
         public void Dispose()

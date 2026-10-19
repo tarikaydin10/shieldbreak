@@ -64,6 +64,25 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void Agent_NeverEntersABlockedCell_AndSlidesAlongTheWall()
+        {
+            using var world = new SimWorld(TestScenarios.Config(1, 32, 1));
+            world.SetNavCost(new int2(15, 0), new int2(16, 31), byte.MaxValue);
+            world.SpawnAgent(0, new float2(10f, 10f), TestScenarios.AgentRadius);
+            MoveAll(world, new float2(25f, 20f));
+            float startY = 10f;
+            for (int t = 0; t < 900; t++)
+            {
+                world.Step();
+                var a = world.Agents[0];
+                Assert.That(world.Grid.IsPassable(world.Grid.Layout.WorldToCell(a.Position)), $"tick {t} at {a.Position}");
+            }
+            var end = world.Agents[0];
+            Assert.That(end.Position.x, Is.LessThan(15f), "the wall holds");
+            Assert.That(end.Position.y, Is.GreaterThan(startY + 5f), "slid along the wall towards the target");
+        }
+
+        [Test]
         public void InvalidTargetCommands_AreClampedOrIgnored()
         {
             using var world = new SimWorld(TestScenarios.Config(1, 16, 3));

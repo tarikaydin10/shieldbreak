@@ -35,6 +35,18 @@ namespace Shieldbreak.Data
             [Min(0)] public int owner;
         }
 
+        [Serializable]
+        public class Obstacle
+        {
+            public string name = "Hindernis";
+            [Tooltip("Lower-left corner (map coordinates in m).")]
+            public Vector2 min;
+            [Tooltip("Upper-right corner (map coordinates in m).")]
+            public Vector2 max;
+            [Tooltip("255 = impassable (wall, rock); 2-254 = passable but slow to path through (brush, mud).")]
+            [Range(2, 255)] public int cost = 255;
+        }
+
         [Tooltip("Seed of the SimWorld; same seed, same battle.")]
         public int seed = 1;
         [Tooltip("Lockstep input delay in ticks (60 per second).")]
@@ -49,6 +61,8 @@ namespace Shieldbreak.Data
         [Tooltip("Formation spacing and march tuning. Empty = defaults of FormationDefinition.")]
         public FormationDefinition formation;
         public SpawnGroup[] groups = Array.Empty<SpawnGroup>();
+        [Tooltip("Blocked or rough rectangles on the map; formations path around them.")]
+        public Obstacle[] obstacles = Array.Empty<Obstacle>();
 
         public int TotalAgents
         {
@@ -107,9 +121,13 @@ namespace Shieldbreak.Data
             return world;
         }
 
-        /// <summary>Spawns all groups in list order; agent ids are contiguous per group.</summary>
+        /// <summary>Sets the obstacles, then spawns all groups in list order; agent ids are contiguous per group.</summary>
         public void Spawn(SimWorld world)
         {
+            var layout = world.Grid.Layout;
+            foreach (var o in obstacles)
+                world.SetNavCost(layout.WorldToCell(o.min), layout.WorldToCell((float2)o.max - 1e-3f), (byte)math.clamp(o.cost, 2, 255));
+
             foreach (var g in groups)
             {
                 float2 f = math.normalizesafe((float2)(g.faceTowards - g.front), new float2(1f, 0f));
