@@ -19,28 +19,41 @@ MonoBehaviour:
   agentRadius: 0.3
   spawnSpacing: 1.1
   spawnJitter: 0.15
+  formation: {fileID: 11400000, guid: 3e7842487fbf4f639292949532d67ba7, type: 2}
   groups:
-  - name: A Linie links
+  - name: A Linie
     team: 0
     count: 10
     files: 5
     front: {x: 38, y: 42}
     faceTowards: {x: 58, y: 42}
-  - name: A Linie rechts
+    asFormation: 1
+    formationType: 0
+    owner: 0
+  - name: A Schildwall
     team: 0
     count: 10
     files: 5
     front: {x: 38, y: 54}
     faceTowards: {x: 58, y: 54}
-  - name: B Linie links
+    asFormation: 1
+    formationType: 1
+    owner: 0
+  - name: B Keil
     team: 1
     count: 10
-    files: 5
+    files: 9
     front: {x: 58, y: 54}
     faceTowards: {x: 38, y: 54}
-  - name: B Linie rechts
+    asFormation: 1
+    formationType: 2
+    owner: 0
+  - name: B Linie
     team: 1
     count: 10
     files: 5
     front: {x: 58, y: 42}
     faceTowards: {x: 38, y: 42}
+    asFormation: 1
+    formationType: 0
+    owner: 0

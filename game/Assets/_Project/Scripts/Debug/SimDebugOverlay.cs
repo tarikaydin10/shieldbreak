@@ -1,6 +1,9 @@
 using Shieldbreak.Presentation;
 using Shieldbreak.Presentation.Admin;
 using Shieldbreak.Sim.Core;
+using Shieldbreak.Sim.Formations;
+using Shieldbreak.Sim.Orders;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
@@ -9,7 +12,8 @@ namespace Shieldbreak.DebugTools
 {
     /// <summary>
     /// GL line overlay drawn after the camera renders: grid cells around the view centre and the map border, velocity
-    /// arrows, and the targets of selected agents. Toggles via the DebugOverlay action map.
+    /// arrows, the targets of selected agents, and formations (slots, anchor, facing, destination, type label).
+    /// Toggles via the DebugOverlay action map.
     /// </summary>
     public class SimDebugOverlay : MonoBehaviour, IAdminStatus
     {
@@ -22,17 +26,24 @@ namespace Shieldbreak.DebugTools
         public bool showGrid = true;
         public bool showVelocity;
         public bool showTargets = true;
+        public bool showFormations = true;
         public Color gridColor = new Color(1f, 1f, 1f, 0.12f);
         public Color borderColor = new Color(1f, 0.85f, 0.4f, 0.8f);
         public Color velocityColor = new Color(0.4f, 1f, 0.5f, 0.9f);
         public Color targetColor = new Color(1f, 0.85f, 0.4f, 0.6f);
+        [Tooltip("Formation lines per team (A, B).")]
+        public Color[] teamColors = { new Color(1f, 0.55f, 0.45f, 0.85f), new Color(0.55f, 0.75f, 1f, 0.85f) };
+        [Tooltip("Size of a slot marker (m).")]
+        [Min(0.05f)] public float slotMarkerSize = 0.18f;
 
-        Material lineMaterial;
         InputActionMap map;
-        InputAction toggleGrid, toggleVelocity, toggleTargets;
+        InputAction toggleGrid, toggleVelocity, toggleTargets, toggleFormations;
+        GUIStyle labelStyle;
+
+        static readonly string[] TypeNames = { "Linie", "Schildwall", "Keil", "Kreis", "Locker" };
 
         public string AdminStatusLabel => "Overlay";
-        public string AdminStatus => $"Grid {OnOff(showGrid)} · Geschwindigkeit {OnOff(showVelocity)} · Ziele {OnOff(showTargets)}";
+        public string AdminStatus => $"Grid {OnOff(showGrid)} · Geschwindigkeit {OnOff(showVelocity)} · Ziele {OnOff(showTargets)} · Formationen {OnOff(showFormations)}";
         static string OnOff(bool b) => b ? "an" : "aus";
 
         void OnEnable()
@@ -41,6 +52,7 @@ namespace Shieldbreak.DebugTools
             toggleGrid = map.FindAction("ToggleGrid", true);
             toggleVelocity = map.FindAction("ToggleVelocity", true);
             toggleTargets = map.FindAction("ToggleTargets", true);
+            toggleFormations = map.FindAction("ToggleFormations", true);
             map.Enable();
             RenderPipelineManager.endCameraRendering += Draw;
         }
@@ -51,39 +63,19 @@ namespace Shieldbreak.DebugTools
             RenderPipelineManager.endCameraRendering -= Draw;
         }
 
-        void OnDestroy()
-        {
-            if (lineMaterial != null) Destroy(lineMaterial);
-        }
-
         void Update()
         {
             if (toggleGrid.WasPressedThisFrame()) showGrid = !showGrid;
             if (toggleVelocity.WasPressedThisFrame()) showVelocity = !showVelocity;
             if (toggleTargets.WasPressedThisFrame()) showTargets = !showTargets;
-        }
-
-        void EnsureMaterial()
-        {
-            if (lineMaterial != null) return;
-            lineMaterial = new Material(Shader.Find("Hidden/Internal-Colored")) { hideFlags = HideFlags.HideAndDontSave };
-            lineMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-            lineMaterial.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-            lineMaterial.SetInt("_Cull", (int)CullMode.Off);
-            lineMaterial.SetInt("_ZWrite", 0);
-            // Ground patches are bumpy; draw on top so the overlay never disappears into the grass
-            lineMaterial.SetInt("_ZTest", (int)CompareFunction.Always);
+            if (toggleFormations.WasPressedThisFrame()) showFormations = !showFormations;
         }
 
         void Draw(ScriptableRenderContext context, Camera cam)
         {
             var world = runner != null ? runner.World : null;
             if (world == null || cam != viewCamera) return;
-            EnsureMaterial();
-            lineMaterial.SetPass(0);
-            GL.PushMatrix();
-            GL.MultMatrix(Matrix4x4.identity);
-            GL.Begin(GL.LINES);
+            DebugLines.Begin();
 
             const float lift = 0.03f;
             var layout = world.Grid.Layout;
@@ -127,15 +119,80 @@ namespace Shieldbreak.DebugTools
                 }
             }
 
-            GL.End();
-            GL.PopMatrix();
+            if (showFormations) DrawFormations(world, lift);
+            DebugLines.End();
         }
 
-        static void Line(Vector3 a, Vector3 b)
+        /// <summary>
+        /// Per formation: a marker on every slot (brighter when selected), the anchor with its facing, and while it
+        /// marches a line to the destination with the front it will form there.
+        /// </summary>
+        void DrawFormations(SimWorld world, float lift)
         {
-            GL.Vertex(a);
-            GL.Vertex(b);
+            var formations = world.Formations;
+            var members = world.FormationMembers;
+            var settings = world.FormationSettings;
+            for (int i = 0; i < members.Length; i++)
+            {
+                var m = members[i];
+                if (m.Formation < 0 || m.Slot < 0) continue;
+                var f = formations[m.Formation];
+                GL.Color(FormationColor(f, AgentSelection.IsSelected(i)));
+                DebugLines.Cross(SimRunner.ToWorld(f.ToWorld(m.Local), lift), slotMarkerSize);
+            }
+            for (int id = 0; id < formations.Length; id++)
+            {
+                var f = formations[id];
+                if (f.MemberCount == 0) continue;
+                GL.Color(FormationColor(f, true));
+                Vector3 anchor = SimRunner.ToWorld(f.Position, lift);
+                Vector3 facing = new Vector3(f.Facing.x, 0f, f.Facing.y);
+                DebugLines.Arrow(anchor, facing * 2.5f, 0.6f);
+                if (math.distancesq(f.Destination, f.Position) > 0.09f)
+                {
+                    Vector3 dest = SimRunner.ToWorld(f.Destination, lift);
+                    DebugLines.Line(anchor, dest);
+                    float half = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f;
+                    Vector3 along = new Vector3(f.Facing.y, 0f, -f.Facing.x) * half;
+                    Vector3 front = f.Type == FormationType.Circle ? dest + facing * half : dest;
+                    DebugLines.Line(front - along, front + along);
+                    DebugLines.Arrow(front, facing * 1.5f, 0.4f);
+                }
+            }
         }
+
+        Color FormationColor(in FormationData f, bool bright)
+        {
+            var c = teamColors != null && teamColors.Length > 0 ? teamColors[math.clamp(f.Team, 0, teamColors.Length - 1)] : Color.white;
+            if (!bright) c.a *= 0.45f;
+            return c;
+        }
+
+        /// <summary>Type, size and state above every formation's anchor.</summary>
+        void OnGUI()
+        {
+            var world = runner != null ? runner.World : null;
+            if (!showFormations || world == null || viewCamera == null) return;
+            if (labelStyle == null)
+                labelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, fontSize = 13 };
+            var formations = world.Formations;
+            for (int id = 0; id < formations.Length; id++)
+            {
+                var f = formations[id];
+                if (f.MemberCount == 0) continue;
+                Vector3 s = viewCamera.WorldToScreenPoint(SimRunner.ToWorld(f.Position, 2.2f));
+                if (s.z <= 0f) continue;
+                bool marching = math.distancesq(f.Destination, f.Position) > 0.09f;
+                string text = $"{TypeNames[math.clamp((int)f.Type, 0, TypeNames.Length - 1)]} · {f.MemberCount}" + (marching ? " · marschiert" : "");
+                var rect = new Rect(s.x - 90f, Screen.height - s.y - 11f, 180f, 22f);
+                labelStyle.normal.textColor = Color.black;
+                GUI.Label(new Rect(rect.x + 1f, rect.y + 1f, rect.width, rect.height), text, labelStyle);
+                labelStyle.normal.textColor = FormationColor(f, true);
+                GUI.Label(rect, text, labelStyle);
+            }
+        }
+
+        static void Line(Vector3 a, Vector3 b) => DebugLines.Line(a, b);
 
         static Vector3 ViewCentre(Camera cam)
         {

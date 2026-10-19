@@ -5,6 +5,7 @@ using Shieldbreak.Data;
 using Shieldbreak.DebugTools;
 using Shieldbreak.Presentation;
 using Shieldbreak.Presentation.Cameras;
+using Shieldbreak.Sim.Formations;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -14,7 +15,7 @@ using UnityEngine.Rendering.Universal;
 namespace Shieldbreak.EditorTools
 {
     /// <summary>
-    /// Builds Scenes/M0_Sandbox.unity (debug top-down view, capsule agents, selection and move orders) plus its data
+    /// Builds Scenes/M0_Sandbox.unity (debug top-down view, soldiers, selection, formation and move orders) plus its data
     /// assets. Existing assets are kept so tuning survives a rebuild; the scene is only overwritten after asking.
     /// </summary>
     public static class SandboxSceneBuilder
@@ -23,6 +24,7 @@ namespace Shieldbreak.EditorTools
         const string MovementPath = "Assets/_Project/Data/Agents/AgentMovement_Default.asset";
         const string SandboxPath = "Assets/_Project/Data/Scenarios/Sandbox_20v20.asset";
         const string StressPath = "Assets/_Project/Data/Scenarios/Stress_250v250.asset";
+        const string FormationPath = "Assets/_Project/Data/Formations/Formation_Default.asset";
         internal const string VisualPath = "Assets/_Project/Data/Visuals/SoldierVisual_Default.asset";
         const string Gen = GeneratedArtImporter.GeneratedDir;
         const float GroundTile = 20f;
@@ -39,7 +41,12 @@ namespace Shieldbreak.EditorTools
             if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
             var movement = LoadOrCreate<AgentMovementDefinition>(MovementPath, _ => { });
-            var sandbox = LoadOrCreate<SandboxScenarioDefinition>(SandboxPath, FillSandbox);
+            var formation = LoadOrCreate<FormationDefinition>(FormationPath, _ => { });
+            var sandbox = LoadOrCreate<SandboxScenarioDefinition>(SandboxPath, s =>
+            {
+                FillSandbox(s);
+                s.formation = formation;
+            });
             LoadOrCreate<SandboxScenarioDefinition>(StressPath, FillStress);
 
             var teamASel = LitMaterial("M_Agent_TeamA_Selected", "#E0664B", emission: 0.35f);
@@ -189,10 +196,10 @@ namespace Shieldbreak.EditorTools
             s.mapHeight = 96;
             s.groups = new[]
             {
-                Group("A Linie links", 0, 10, 5, new Vector2(38f, 42f), new Vector2(58f, 42f)),
-                Group("A Linie rechts", 0, 10, 5, new Vector2(38f, 54f), new Vector2(58f, 54f)),
-                Group("B Linie links", 1, 10, 5, new Vector2(58f, 54f), new Vector2(38f, 54f)),
-                Group("B Linie rechts", 1, 10, 5, new Vector2(58f, 42f), new Vector2(38f, 42f)),
+                Group("A Linie", 0, 10, 5, new Vector2(38f, 42f), new Vector2(58f, 42f)),
+                Group("A Schildwall", 0, 10, 5, new Vector2(38f, 54f), new Vector2(58f, 54f), FormationType.ShieldWall),
+                Group("B Keil", 1, 10, 9, new Vector2(58f, 54f), new Vector2(38f, 54f), FormationType.Wedge),
+                Group("B Linie", 1, 10, 5, new Vector2(58f, 42f), new Vector2(38f, 42f)),
             };
         }
 
@@ -202,13 +209,19 @@ namespace Shieldbreak.EditorTools
             s.mapHeight = 128;
             s.groups = new[]
             {
-                Group("A Block", 0, 250, 25, new Vector2(52f, 64f), new Vector2(76f, 64f)),
-                Group("B Block", 1, 250, 25, new Vector2(76f, 64f), new Vector2(52f, 64f)),
+                // Loose blocks: the stress test measures steering and combat, not 250-soldier reforms
+                Group("A Block", 0, 250, 25, new Vector2(52f, 64f), new Vector2(76f, 64f), loose: true),
+                Group("B Block", 1, 250, 25, new Vector2(76f, 64f), new Vector2(52f, 64f), loose: true),
             };
         }
 
-        static SandboxScenarioDefinition.SpawnGroup Group(string name, int team, int count, int files, Vector2 front, Vector2 face) =>
-            new SandboxScenarioDefinition.SpawnGroup { name = name, team = team, count = count, files = files, front = front, faceTowards = face };
+        static SandboxScenarioDefinition.SpawnGroup Group(string name, int team, int count, int files, Vector2 front, Vector2 face,
+            FormationType type = FormationType.Line, bool loose = false) =>
+            new SandboxScenarioDefinition.SpawnGroup
+            {
+                name = name, team = team, count = count, files = files, front = front, faceTowards = face,
+                asFormation = !loose, formationType = type,
+            };
 
         internal static T LoadOrCreate<T>(string path, System.Action<T> fill) where T : ScriptableObject
         {

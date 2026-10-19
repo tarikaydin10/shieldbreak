@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-19**, Meilenstein **M2 Kompanie**, Task 1 von 8 fertig: Formationen in der Sim (noch nicht sichtbar). **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-19**, Meilenstein **M2 Kompanie**, Task 2 von 8 fertig: Formationen in der Sandbox sichtbar und per Maus befehligbar (in Unity noch nicht angesehen). **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
 
 ## Sofort spielen
 
@@ -35,6 +35,22 @@
 ![Tutorial: geführtes Duell](screenshots/tutorial.jpg)
 ![Nach dem Kampf: Ergebnis, Statistik, Auswahl](screenshots/duel_result.jpg)
 
+## Formationen in der Sandbox (`M0_Sandbox`)
+
+Hauptmenü → Sandbox. Vier Formationen: A Linie, A Schildwall (rot) gegen B Keil, B Linie (blau). Die Zeit läuft; Esc pausiert.
+
+| Taste | Aktion |
+|---|---|
+| Linksklick auf einen Soldaten / Rahmen ziehen | Formation(en) auswählen (ein Soldat wählt seine ganze Formation); Shift fügt hinzu; 1 / 2 / 3 = Team A / Team B / alle |
+| Rechtsklick | Auswahl marschiert dorthin, Blick in Laufrichtung, Breite bleibt |
+| Rechts ziehen | Frontlinie zeichnen: Position, Breite und Blickrichtung (weg von dort, wo die Truppe steht); mehrere Formationen teilen sich die Linie nebeneinander |
+| 4 / 5 / 6 / 7 / 8 | Form: Linie / Schildwall / Keil / Kreis / locker |
+| H | anhalten, wo sie gerade steht |
+| F / G / T / V | Overlay: Formationen / Grid / Ziele / Geschwindigkeit |
+| WASD, Q/E, Mausrad, mittlere Maustaste | Kamera |
+
+Im Overlay: Kreuz = Slot (hell bei Auswahl), Pfeil = Anker und Blickrichtung, Linie zum Marschziel mit der Front, die dort entsteht, Beschriftung = Typ · Soldaten · Zustand.
+
 ## Was existiert
 
 | Bereich | Inhalt | Wo |
@@ -43,12 +59,12 @@
 | Grid, Agenten | Spatial Hash per Counting-Sort, Steering mit Trennung; 500 Agenten 0,12 ms pro Tick | `Scripts/Sim/Grid`, `Agents` |
 | Kampf-Grammatik | Ausholen → Treffen → Erholen, Finte, Morph, Eingabepuffer, ein Block im Frontbogen, Perfect Block, Guard Break, Ausweichschritt, Sprung, Sprint, Waffenwechsel, Rückstoß, Energie-Schaden über Klingenbahn (SwingTrace) | [Sim/Combat](../game/Assets/_Project/Scripts/Sim/Combat/README.md) |
 | Waffen | **Schwert + Schild** (Schild 120°, Schildstoß) und **Zweihänder** (90° Block, Sprung-Hieb, trifft härter, drückt Blocker stark) | `Data/Weapons`, `Data/Attacks` |
-| Formationen (M2, nur Sim) | Linie, Schildwall, Keil, Kreis, lockere Ordnung; Slots mit optimaler Zuordnung (kurze Wege, stabil), Marsch mit Zusammenhalt, Umdrehen auf der Stelle, Lücken schließen nach Verlusten; `FormationOrder` (Bewegen/Ausrichten, Form, Breite) über die `InputQueue`. Noch keine Szene und kein Overlay | `Scripts/Sim/Formations`, `Sim/Orders`, `Data/FormationDefinition` |
+| Formationen (M2) | Linie, Schildwall, Keil, Kreis, lockere Ordnung; Slots mit optimaler Zuordnung (kurze Wege, stabil), Marsch mit Zusammenhalt, Umdrehen auf der Stelle, Lücken schließen nach Verlusten; `FormationOrder` (Bewegen/Ausrichten, Form, Breite) über die `InputQueue`; Frontlinien-Planer für mehrere Formationen; in der Sandbox sichtbar und per Maus befehligbar | `Scripts/Sim/Formations`, `Sim/Orders`, `Data/FormationDefinition`, `Debug/` |
 | Bots | Stufen L1–L5 spielen dieselben Regeln, nur Reaktionszeit, Fehlerquote und Techniken unterscheiden sich; höchstens 2 greifen gleichzeitig an | `Scripts/Sim/AI` |
 | Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Leben als roter Rand und Ausdauer als dunkler Puls statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
 | Feel-Presets | Schwer, Mittel, Tödlich (alle Zahlen in ScriptableObjects) | `Data/Combat` |
 | Rahmen | Hauptmenü, Pausemenü, Steuerung mit Tastenänderung, Optionen, Tutorial, Ergebnisbildschirm mit Statistik | `Scripts/Presentation/Menu`, `Player/TutorialDirector` |
-| Weitere Szenen | `M0_Sandbox` (20 gegen 20 aus der Draufsicht), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
+| Weitere Szenen | `M0_Sandbox` (4 Formationen, 20 gegen 20 aus der Draufsicht, ohne Kampf), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
 | Asset-Pipeline | Low-Poly-Modelle aus JSON-Specs per Headless-Blender, Palette, Validator, Kontaktbogen | [art](../art/README.md), [tools/assetgen](../tools/assetgen/README.md) |
 
 Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 22. Zweihänder oben 69, Seite 47, Stich 39, Sprung-Hieb aus 2,6 m 92. Leben 100.
@@ -57,14 +73,16 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (108, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (116, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2`. Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
-| Sim-Tests ohne Unity (Cloud, Linux) | `tools/simcheck/run.sh`: Sim + 43 Unity-freie Tests mit .NET 8, [Details](../tools/simcheck/README.md) |
+| Sim-Tests ohne Unity (Cloud, Linux) | `tools/simcheck/run.sh`: Sim + 51 Unity-freie Tests mit .NET 8, [Details](../tools/simcheck/README.md) |
 
 **Von Hand prüfen (Rahmen):** Hauptmenü → Tutorial durchspielen (F12 überspringt), Esc-Menü öffnen, eine Taste umlegen und prüfen, dass sie nach Neustart gilt, Optionen ändern und im Duell merken.
 
 **Fun-Gate M1:** bestanden am 2026-10-19.
+
+**Von Hand prüfen (Formationen, Sandbox):** eine Formation anklicken und rechts klicken (marschiert als Block, Linie bleibt Linie), eine Linie hinter die Truppe ziehen (dreht um, hinteres Glied wird Front), beide A-Formationen wählen und eine lange Linie ziehen (teilen sich die Linie, kein Kreuzen), 4–8 durchschalten (formt auf der Stelle um).
 
 ## Offen
 
@@ -83,4 +101,4 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 ## Aktueller Meilenstein
 
-**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · 2 Sichtbar machen (Sandbox, Overlay, Befehle per Klick) · 3 Formations-Pfad (A*) · 4 Behaviors + Kampf in Formation, 20 gegen 20 · 5 Moral und Rout · 6 Radialmenü · 7 Kommandoansicht · 8 Szene `M2_Company`, Build, Fun-Gate.
+**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · 3 Formations-Pfad (A*) · 4 Behaviors + Kampf in Formation, 20 gegen 20 · 5 Moral und Rout · 6 Radialmenü · 7 Kommandoansicht · 8 Szene `M2_Company`, Build, Fun-Gate.

@@ -324,6 +324,99 @@ namespace Shieldbreak.Tests
             Assert.That(Play(new float2(45f, 41f)), Is.Not.EqualTo(h1));
         }
 
+        // ---- Line planner (shared by debug view, command view, AI) ----
+
+        static FormationOrder[] Plan(SimWorld world, int[] ids, System.Action<NativeArray<int>, NativeArray<FormationOrder>> plan)
+        {
+            var idArray = new NativeArray<int>(ids, Allocator.Temp);
+            var orders = new NativeArray<FormationOrder>(ids.Length, Allocator.Temp);
+            try
+            {
+                plan(idArray, orders);
+                return orders.ToArray();
+            }
+            finally
+            {
+                idArray.Dispose();
+                orders.Dispose();
+            }
+        }
+
+        [Test]
+        public void DrawnLine_IsSplitSideBySide_InCurrentOrder_FacingAway()
+        {
+            using var world = World(40);
+            var s = TestScenarios.Formations;
+            // Two lines facing +x; "left" (y = 50) is formation 0 because +x facing has its left at +y
+            int left = world.SpawnFormation(0, 0, FormationType.Line, 10, 20, new float2(20f, 50f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            int right = world.SpawnFormation(0, 0, FormationType.Line, 10, 20, new float2(20f, 30f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            // Drawn from bottom to top at x = 60: front 30 m wide, gap 2 m
+            var orders = Plan(world, new[] { right, left }, (ids, o) =>
+                FormationLinePlanner.PlanLine(world.Formations, ids, 2, new float2(60f, 25f), new float2(60f, 55f), true, 2f, s, o));
+
+            var r = orders[0];
+            var l = orders[1];
+            Assert.That(r.Formation, Is.EqualTo(right));
+            Assert.That(math.dot(r.Facing, new float2(1f, 0f)), Is.GreaterThan(0.999f), "faces away from where it stands");
+            Assert.That(r.Destination.y, Is.LessThan(l.Destination.y), "keeps its side: no crossing paths");
+            Assert.That(r.Destination.x, Is.EqualTo(60f).Within(1e-4f));
+            Assert.That(r.Files, Is.EqualTo(FormationLinePlanner.FilesForWidth(FormationType.Line, 14f, 20, s)));
+            Assert.That(l.Destination.y - r.Destination.y, Is.EqualTo(16f).Within(1e-3f), "14 m each plus a 2 m gap");
+            Assert.That((r.Flags & FormationOrderFlags.Width) != 0);
+        }
+
+        [Test]
+        public void DrawnLine_ThroughTheGroup_KeepsTheFront_AndDrawnBehind_TurnsAround()
+        {
+            using var world = World(20);
+            var s = TestScenarios.Formations;
+            int f = world.SpawnFormation(0, 0, FormationType.Line, 10, 20, new float2(40f, 40f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            // Line through the anchor, drawn top to bottom (its left normal would face -x)
+            var through = Plan(world, new[] { f }, (ids, o) =>
+                FormationLinePlanner.PlanLine(world.Formations, ids, 1, new float2(40f, 50f), new float2(40f, 30f), true, 2f, s, o));
+            Assert.That(math.dot(through[0].Facing, new float2(1f, 0f)), Is.GreaterThan(0.999f));
+
+            var behind = Plan(world, new[] { f }, (ids, o) =>
+                FormationLinePlanner.PlanLine(world.Formations, ids, 1, new float2(20f, 30f), new float2(20f, 50f), true, 2f, s, o));
+            Assert.That(math.dot(behind[0].Facing, new float2(-1f, 0f)), Is.GreaterThan(0.999f));
+        }
+
+        [Test]
+        public void Click_KeepsWidths_FacesTheWalk_AndCircleStaysBehindTheLine()
+        {
+            using var world = World(40);
+            var s = TestScenarios.Formations;
+            int line = world.SpawnFormation(0, 0, FormationType.Line, 8, 16, new float2(20f, 50f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            int ring = world.SpawnFormation(0, 0, FormationType.Circle, 12, 16, new float2(20f, 30f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            var orders = Plan(world, new[] { line, ring }, (ids, o) =>
+                FormationLinePlanner.PlanPoint(world.Formations, ids, 2, new float2(70f, 40f), 2f, s, o));
+
+            foreach (var o in orders)
+            {
+                Assert.That((o.Flags & FormationOrderFlags.Width) == 0, "a click keeps the width");
+                Assert.That(math.dot(o.Facing, new float2(1f, 0f)), Is.GreaterThan(0.999f));
+            }
+            Assert.That(orders[0].Destination.y, Is.GreaterThan(orders[1].Destination.y), "line stays left of the ring");
+            Assert.That(orders[0].Destination.x, Is.EqualTo(70f).Within(1e-4f));
+            Assert.That(orders[1].Destination.x, Is.LessThan(70f), "ring centre behind the line");
+            float lineWidth = FormationLinePlanner.FrontWidth(FormationType.Line, 8, 16, s);
+            float ringWidth = FormationLinePlanner.FrontWidth(FormationType.Circle, 12, 16, s);
+            Assert.That(orders[0].Destination.y - orders[1].Destination.y, Is.EqualTo((lineWidth + ringWidth) * 0.5f + 2f).Within(1e-3f), "side by side, 2 m apart");
+        }
+
+        [Test]
+        public void FilesForWidth_InvertsFrontWidth([ValueSource(nameof(AllTypes))] FormationType type)
+        {
+            var s = TestScenarios.Formations;
+            // A circle never gets narrower than two ring spacings; below that the width says nothing about the files
+            int first = type == FormationType.Circle ? (int)math.ceil(2f * s.Circle.Depth * math.PI / s.Circle.Lateral) : 3;
+            for (int files = first; files <= 30; files++)
+            {
+                float w = FormationLinePlanner.FrontWidth(type, files, 100, s);
+                Assert.That(FormationLinePlanner.FilesForWidth(type, w, 100, s), Is.EqualTo(files), $"{type} files={files}");
+            }
+        }
+
         [Test]
         public void OrderCodec_RoundTrips()
         {

@@ -644,6 +644,60 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ShapeLine",
+                    "type": "Button",
+                    "id": "eb413395-946a-4370-811f-53534821558d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ShapeShieldWall",
+                    "type": "Button",
+                    "id": "26a1e301-dc96-435b-84fe-bed8fc4b4919",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ShapeWedge",
+                    "type": "Button",
+                    "id": "67b94082-fc2d-4195-bda9-3862819eb212",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ShapeCircle",
+                    "type": "Button",
+                    "id": "062c34ee-aa7b-4bbc-ad9a-0bd78f563a72",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ShapeLoose",
+                    "type": "Button",
+                    "id": "4d7443c2-b7c6-4495-8955-52b339d0b151",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Halt",
+                    "type": "Button",
+                    "id": "b376549e-6a0f-4825-8670-dd4c4b46b2ec",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -723,6 +777,72 @@
                     "action": "SelectAll",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c5cf3a1e-a5a7-4c88-a7b0-19c3f58d5ee1",
+                    "path": "<Keyboard>/4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ShapeLine",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "89c5b110-7322-4d8d-9643-0a03dc273142",
+                    "path": "<Keyboard>/5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ShapeShieldWall",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "007b9f68-cfe5-48ed-8c56-5491cacfced5",
+                    "path": "<Keyboard>/6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ShapeWedge",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "673b1542-2e6b-4b8a-9e89-12856e56a32c",
+                    "path": "<Keyboard>/7",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ShapeCircle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2347e598-4f71-4560-acb6-69b7e64efc20",
+                    "path": "<Keyboard>/8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ShapeLoose",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "21d2ff84-869a-4e20-ae11-67b98c3ad8c1",
+                    "path": "<Keyboard>/h",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Halt",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -752,6 +872,15 @@
                     "name": "ToggleTargets",
                     "type": "Button",
                     "id": "95626158-3b8f-466b-9045-6e0b35166c5e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleFormations",
+                    "type": "Button",
+                    "id": "ad7ecc4d-03fb-47cc-9f24-8352160d023f",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -789,6 +918,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ToggleTargets",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5e9beb11-1e3a-4728-a174-6320c2c7fb8d",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleFormations",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

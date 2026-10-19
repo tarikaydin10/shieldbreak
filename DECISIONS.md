@@ -180,6 +180,16 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | `CombatData.OrderFacing` (jetzt 160 Bytes): Blickrichtung am Slot für Bots ohne Gegner | Formationen müssen aus 40 m lesbar sein (Säule 3); eine Linie, die in Laufrichtung guckt, liest sich nicht als Linie | Blickrichtung nur in der Darstellung |
 | `tools/simcheck`: Sim und Unity-freie Tests laufen mit .NET 8 gegen Stubs für Collections/Jobs/Burst | Cloud-Sessions ohne Unity können Sim-Code kompilieren und testen, statt blind zu committen. Ersetzt `.\sb.ps1 test` nicht | Ohne Tests committen |
 
+## 2026-10-19 — M2: Formationen in der Sandbox sichtbar und befehligbar
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Ein Klick auf einen Soldaten wählt seine ganze Formation | Befehle gehen an Formationen, nicht an Soldaten (CLAUDE.md 3.1); Einzelsoldaten in einer Formation zu wählen hätte keine Wirkung | Soldaten einzeln, Formation per Doppelklick |
+| Rechtsklick = hinmarschieren mit Blick in Laufrichtung, Breite bleibt. Rechts ziehen = Frontlinie: Mitte, Breite und Ausrichtung aus der Linie; Blick weg von dort, wo die Truppe steht (eine Linie durch die Truppe behält die Front) | Wie Bannerlord, also bekannt; ein Zug legt alles Räumliche fest, ohne Zusatztaste für die Richtung | Richtung aus der Ziehrichtung (links→rechts), separate Dreh-Taste |
+| Mehrere Formationen teilen eine Linie nebeneinander, 2 m Abstand, Anteil nach ihrer jetzigen Frontbreite, Reihenfolge nach jetziger Lage (keine kreuzenden Wege). Kreis: Ring hinter der Linie | Ein Befehl für die ganze Armee ist der Normalfall in der Kommandoansicht (Task 7) | Alle Formationen auf denselben Punkt, feste Reihenfolge nach Id |
+| `FormationLinePlanner` liegt in `Sim/Orders`, nicht in Presentation | Pur und deterministisch; Kommandoansicht und Commander-AI planen später dieselben Linien. Ohne Unity testbar | Planung im MonoBehaviour |
+| Die Sandbox spawnt Gruppen als Formationen (Typ pro Gruppe); der Stresstest 250 gegen 250 bleibt lose | Umformen von 250 Soldaten kostet einen Tick lang geschätzt ~60 ms (O(n³), 150 Soldaten gemessen 14 ms ohne Burst); der Stresstest misst Steering und Kampf | Stresstest als Formationen |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

@@ -89,11 +89,11 @@
     },
     {
       "action": "DebugOrders/Select",
-      "text": "Klicken oder Rahmen ziehen: Soldaten auswählen"
+      "text": "Klicken oder Rahmen ziehen: Soldaten auswählen (ein Soldat einer Formation wählt die ganze Formation)"
     },
     {
       "action": "DebugOrders/Command",
-      "text": "Auswahl marschiert hierher und stellt sich auf"
+      "text": "Klicken: Auswahl marschiert hierher. Ziehen: Frontlinie zeichnen (Position, Breite, Blickrichtung)"
     },
     {
       "action": "DebugOrders/Additive",
@@ -112,6 +112,30 @@
       "text": "Alle auswählen"
     },
     {
+      "action": "DebugOrders/ShapeLine",
+      "text": "Auswahl: Formation Linie"
+    },
+    {
+      "action": "DebugOrders/ShapeShieldWall",
+      "text": "Auswahl: Formation Schildwall"
+    },
+    {
+      "action": "DebugOrders/ShapeWedge",
+      "text": "Auswahl: Formation Keil"
+    },
+    {
+      "action": "DebugOrders/ShapeCircle",
+      "text": "Auswahl: Formation Kreis"
+    },
+    {
+      "action": "DebugOrders/ShapeLoose",
+      "text": "Auswahl: lockere Ordnung"
+    },
+    {
+      "action": "DebugOrders/Halt",
+      "text": "Auswahl: anhalten, wo sie gerade steht"
+    },
+    {
       "action": "DebugOverlay/ToggleGrid",
       "text": "Grid ein/aus"
     },
@@ -122,6 +146,10 @@
     {
       "action": "DebugOverlay/ToggleTargets",
       "text": "Ziele der Auswahl ein/aus"
+    },
+    {
+      "action": "DebugOverlay/ToggleFormations",
+      "text": "Formationen (Slots, Anker, Ziel, Typ) ein/aus"
     },
     {
       "action": "ProtoCamera/View1",
