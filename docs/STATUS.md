@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-18 (abends)**, Meilenstein **M1 Duell**: Bau-Umfang vollständig (alle Verben, zwei Waffen, Bots, Kampfgefühl, Menüs, Tutorial), **nur das Fun-Gate ist offen**.
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-19**, Meilenstein **M1 Duell**: Bau-Umfang vollständig (alle Verben, zwei Waffen, Bots, Kampfgefühl, Menüs, Tutorial), **nur das Fun-Gate ist offen**.
 
 ## Sofort spielen
 
@@ -67,7 +67,11 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 ## Offen
 
 - Feinschliff an Sprint-Angriff und Sprung (Tarik, nach erstem Anspielen)
-- **Perfect Block zu stark** (Tarik, 2026-10-18): damit gewinnt man gegen L5. Kandidaten: Fenster 250 → 150 ms, Perfect Block kostet etwas Ausdauer, Bots feinten häufiger gegen Spieler, die oft perfekt blocken, Stun nach Perfect Block kürzer. Entscheidung beim Fun-Gate
+- **Perfect Block zu stark** (Tarik, 2026-10-18): damit gewinnt man gegen L5. **Plan beschlossen (2026-10-19), noch nicht umgesetzt:**
+  1. **Bots antworten mit Finten:** Bots merken sich, wie oft ihr Gegner perfekt blockt, und finten dann häufiger (Säule 4: Antwort über dieselbe Grammatik, kein Stat-Cheat). Die Stärke der Reaktion wird ein Feld pro Bot-Stufe in `BotRosterDefinition` (neben `feintChance`)
+  2. **Fenster kleiner:** `perfectBlockMs` in `CombatTuningDefinition` von 250 auf 150 ms, pro Feel-Preset tunebar
+  3. Nachweis per EditMode-Test: L5-Bot gewinnt gegen einen Bot, der nur Perfect Blocks versucht
+  - Verworfen für jetzt: Ausdauerkosten für Perfect Block, kürzerer Stun danach (bleiben Reserve, falls 1 und 2 nicht reichen)
 
 - **Fun-Gate M1** (Tarik) und Bewertung des prozeduralen Hiebs aus M0 (`Proto_Animation`)
 - Sounds sind Platzhalter (M5), Figuren sind Gliederpuppen aus der Pipeline (Synty-Vergleich offen, `DECISIONS.md`)
