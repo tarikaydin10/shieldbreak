@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-19**, Meilenstein **M1 Duell**: Bau-Umfang vollständig (alle Verben, zwei Waffen, Bots, Kampfgefühl, Menüs, Tutorial), **nur das Fun-Gate ist offen**.
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-19**, Meilenstein **M2 Kompanie**, Task 1 von 8 fertig: Formationen in der Sim (noch nicht sichtbar). **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
 
 ## Sofort spielen
 
@@ -43,6 +43,7 @@
 | Grid, Agenten | Spatial Hash per Counting-Sort, Steering mit Trennung; 500 Agenten 0,12 ms pro Tick | `Scripts/Sim/Grid`, `Agents` |
 | Kampf-Grammatik | Ausholen → Treffen → Erholen, Finte, Morph, Eingabepuffer, ein Block im Frontbogen, Perfect Block, Guard Break, Ausweichschritt, Sprung, Sprint, Waffenwechsel, Rückstoß, Energie-Schaden über Klingenbahn (SwingTrace) | [Sim/Combat](../game/Assets/_Project/Scripts/Sim/Combat/README.md) |
 | Waffen | **Schwert + Schild** (Schild 120°, Schildstoß) und **Zweihänder** (90° Block, Sprung-Hieb, trifft härter, drückt Blocker stark) | `Data/Weapons`, `Data/Attacks` |
+| Formationen (M2, nur Sim) | Linie, Schildwall, Keil, Kreis, lockere Ordnung; Slots mit optimaler Zuordnung (kurze Wege, stabil), Marsch mit Zusammenhalt, Umdrehen auf der Stelle, Lücken schließen nach Verlusten; `FormationOrder` (Bewegen/Ausrichten, Form, Breite) über die `InputQueue`. Noch keine Szene und kein Overlay | `Scripts/Sim/Formations`, `Sim/Orders`, `Data/FormationDefinition` |
 | Bots | Stufen L1–L5 spielen dieselben Regeln, nur Reaktionszeit, Fehlerquote und Techniken unterscheiden sich; höchstens 2 greifen gleichzeitig an | `Scripts/Sim/AI` |
 | Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Leben als roter Rand und Ausdauer als dunkler Puls statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
 | Feel-Presets | Schwer, Mittel, Tödlich (alle Zahlen in ScriptableObjects) | `Data/Combat` |
@@ -56,13 +57,14 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (87, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (108, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2`. Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
+| Sim-Tests ohne Unity (Cloud, Linux) | `tools/simcheck/run.sh`: Sim + 43 Unity-freie Tests mit .NET 8, [Details](../tools/simcheck/README.md) |
 
 **Von Hand prüfen (Rahmen):** Hauptmenü → Tutorial durchspielen (F12 überspringt), Esc-Menü öffnen, eine Taste umlegen und prüfen, dass sie nach Neustart gilt, Optionen ändern und im Duell merken.
 
-**Von Hand prüfen (Fun-Gate M1):** 10 Duelle pro Preset (F6) gegen L3, dann die Frage, welches Preset man zum elften Mal spielen will. Dabei achten auf: Treffer fühlen sich wuchtig an, Ausholen ist lesbar, Perfect Block ist erreichbar, Zweihänder gegen Schild fühlt sich anders an, 1 gegen 3 (F10) fühlt sich mächtig, aber bedroht an, die Sounds sind erträglich.
+**Fun-Gate M1:** bestanden am 2026-10-19.
 
 ## Offen
 
@@ -73,10 +75,12 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
   3. Nachweis per EditMode-Test: L5-Bot gewinnt gegen einen Bot, der nur Perfect Blocks versucht
   - Verworfen für jetzt: Ausdauerkosten für Perfect Block, kürzerer Stun danach (bleiben Reserve, falls 1 und 2 nicht reichen)
 
-- **Fun-Gate M1** (Tarik) und Bewertung des prozeduralen Hiebs aus M0 (`Proto_Animation`)
+- Welches Feel-Preset (Schwer, Mittel, Tödlich) Standard wird, und die Bewertung des prozeduralen Hiebs aus M0 (`Proto_Animation`) (Tarik)
+- Formationen: Umformen einer Formation mit 150 Soldaten kostet einen Tick lang ~14 ms (ohne Burst gemessen; bei 25–40 pro Formation < 0,3 ms). Falls in M4 große Formationen hängen: Lücken nach Verlusten lokal füllen statt komplett neu zuordnen
+- Formationen im Kampf: Bots verlassen ihren Slot, sobald sie einen Gegner sehen (Task 4: Kampf in Formation)
 - Sounds sind Platzhalter (M5), Figuren sind Gliederpuppen aus der Pipeline (Synty-Vergleich offen, `DECISIONS.md`)
 - Bogen und Lanze: zwei Grammatik-Erweiterungen geplant, siehe [Papier-Test](combat/papier-test-bogen-lanze.md)
 
-## Nächster Meilenstein
+## Aktueller Meilenstein
 
-**M2 Kompanie:** Formationen mit Slots, `FormationOrder`-API, Radialmenü, Kommandoansicht mit Drag-Befehlen, 20 gegen 20, Moral, Rout (CLAUDE.md Abschnitt 6).
+**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · 2 Sichtbar machen (Sandbox, Overlay, Befehle per Klick) · 3 Formations-Pfad (A*) · 4 Behaviors + Kampf in Formation, 20 gegen 20 · 5 Moral und Rout · 6 Radialmenü · 7 Kommandoansicht · 8 Szene `M2_Company`, Build, Fun-Gate.

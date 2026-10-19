@@ -1,5 +1,6 @@
 using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Core;
+using Shieldbreak.Sim.Formations;
 using Unity.Mathematics;
 
 namespace Shieldbreak.Tests
@@ -18,6 +19,22 @@ namespace Shieldbreak.Tests
             SeparationRadius = 0.8f,
             SeparationWeight = 1.5f,
             MaxTurnRateDeg = 540f,
+        };
+
+        /// <summary>Mirrors the FormationDefinition defaults.</summary>
+        public static FormationSettings Formations => new FormationSettings
+        {
+            Line = new FormationSpacing { Lateral = 1.1f, Depth = 1.3f },
+            ShieldWall = new FormationSpacing { Lateral = 0.8f, Depth = 1.0f },
+            Wedge = new FormationSpacing { Lateral = 1.0f, Depth = 1.1f },
+            Circle = new FormationSpacing { Lateral = 1.0f, Depth = 1.2f },
+            Loose = new FormationSpacing { Lateral = 2.2f, Depth = 2.4f },
+            MarchSpeed = 1.2f,
+            CohesionSlack = 0.6f,
+            CohesionRange = 1.5f,
+            MinMarchFactor = 0.2f,
+            FaceSlotDistance = 1.0f,
+            LossReformIntervalTicks = 60,
         };
 
         public static SimConfig Config(ulong seed, int size, int maxAgents) => new SimConfig

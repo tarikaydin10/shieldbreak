@@ -1,6 +1,6 @@
 # EditMode-Tests
 
-Vor jedem Commit grün: `.\sb.ps1 test` (Unity darf offen bleiben) oder Test Runner in Unity.
+Vor jedem Commit grün: `.\sb.ps1 test` (Unity darf offen bleiben) oder Test Runner in Unity. Ohne Unity laufen die Sim-Tests mit `tools/simcheck/run.sh`.
 
 | Testklasse | Prüft |
 |---|---|
@@ -9,6 +9,7 @@ Vor jedem Commit grün: `.\sb.ps1 test` (Unity darf offen bleiben) oder Test Run
 | `SimPurityTests` | keine verbotenen APIs in `Sim/` |
 | `GridTests` | Grid-Koordinaten, Spatial Hash, Nachbarsuche |
 | `AgentTests` | Ankommen, Tempo- und Beschleunigungsgrenzen, Trennung, ungültige Befehle |
+| `FormationTests` | Slot-Layouts aller Typen, Zuordnung optimal (gegen Brute Force), Marsch, Umdrehen, Umformen, Befehls-Rechte, Determinismus mit Befehlen |
 | `CombatTests` | jede Kampfregel tick-genau, Bot-Duelle, Bot-Stufen gegeneinander |
 | `CombatVerbTests` | Sprint, Ausweichschritt, Sprung (Beine in der Luft unverwundbar), Schildstoß mit Nachstich, Rückstoß, Reaktionszeit ≤ 50 ms, Angriffs-Tokens (1vX) |
 | `TwoHandTests` | Zweihänder gegen Einhand, Blockbogen, Sprung-Hieb, Waffenwechsel, Zweihand-Bots |

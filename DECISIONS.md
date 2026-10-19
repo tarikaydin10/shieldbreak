@@ -167,6 +167,19 @@ Jede Abweichung von CLAUDE.md Abschnitt 3 wird hier zuerst eingetragen (Datum, E
 | Nach jedem Duell ein Ergebnisbildschirm: Sieg/Besiegt, die laufenden Einstellungen, Statistik (Dauer, Treffer, Schaden, Blocks, Perfect Blocks, Specials, Finten), dann drei Buttons: Nochmal, Anders einstellen (dieselbe Setup-Seite wie im Hauptmenü), Hauptmenü. Beim Start 4 s lang eine Zeile, was läuft | Tarik: „ich muss genau wissen, was wie abgeht"; die alte Zeile „F5 neu · F6 …" erklärte nichts. F-Tasten bleiben als Abkürzung, stehen in F1 | Automatischer Neustart, Tastenkürzel-Zeile |
 | Leben als roter Bildrand, der ab 70 % Leben wächst und bei 0 fast den Rand füllt (CoD-Stil), plus kurzes Aufflackern bei Treffern; Ausdauer bleibt der dunkle Puls; Haltung zeigt Leben zusätzlich | Ohne HUD muss Leben trotzdem spürbar sein; roter Rand ist in Shootern gelernt und lenkt nicht ab | Lebensbalken als Standard |
 
+## 2026-10-19 — M1 abgeschlossen, M2: Formationen in der Sim
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Fun-Gate M1 bestanden (Tarik: „es macht Spaß"). Perfect Block bleibt vorerst wie er ist; der Plan (Bots finten zurück, Fenster 150 ms) steht in `docs/STATUS.md` | Tarik will erst festhalten, nicht anpassen | Vor M2 nachbessern |
+| **Slot-Zuordnung exakt mit der Ungarischen Methode (O(n³)) statt Sinkhorn** (Abweichung von CLAUDE.md 3.6, dort angepasst) | Sinkhorn braucht `exp()` und eine Rundung auf eine Permutation; `exp` ist zwischen Mono, IL2CPP und Burst nicht bit-gleich garantiert und die Rundung ist eine Näherung. Die Ungarische Methode nutzt nur +, −, Vergleiche: exakt, deterministisch, Gleichstände nach Index. Läuft nur beim Umformen (Befehl, Lücken nach Verlusten höchstens 1×/s), als Burst-Job. Gemessen ohne Burst: 150 Soldaten ≈ 14 ms, 40 Soldaten ≈ 0,3 ms | Sinkhorn (Näherung, transzendente Mathematik), Auktions-Algorithmus (ε-abhängig), gieriges Zuordnen (kreuzende Wege) |
+| Formation = Anker (Mitte des vordersten Glieds, beim Kreis die Mitte) + Ausrichtung + Typ + Breite. Slots in lokalen Koordinaten; jeder Agent steuert seinen Slot, nie das Formationsziel | CLAUDE.md 3.6; Spieler zieht die Frontlinie, also ist die Front der Anker | Anker im Schwerpunkt |
+| Bewegungsbefehl dreht sofort auf der Stelle (Umformen um die Soldaten herum), dann marschiert der Anker mit 1,2 m/s zum Ziel und bremst, wenn die Soldaten im Schnitt mehr als 0,6 m vom Slot weg sind (nie unter 20 %) | Sichtbare, sofortige Reaktion (Fun-Gate M2); kehrt eine Linie um, wird das hintere Glied zur Front statt dass alle durchlaufen | Drehen während des Marsches (Flügel laufen weit), Anker teleportiert (Linie zerfällt) |
+| Soldaten zielen beim Marsch etwas vor ihren Slot (Geschwindigkeit × SlowRadius / Tempo) | Das Ankommen-Steering hängt einem bewegten Ziel sonst ~1 m hinterher; so bleibt die Linie im Marsch eine Linie (Test: < 0,8 m Abweichung) | Eigener Geschwindigkeits-Abgleich im Steering (mehr Zustand im Agenten) |
+| Spieler-Befehle laufen als `InputCommandType.FormationOrder` durch die `InputQueue`; die Commander-AI ruft dieselbe `FormationOrder` direkt in der Sim auf. Beide nur für eigene Formationen (`Owner`), ungültige Befehle werden ignoriert | CLAUDE.md 3.1: zwei Clients derselben API, kein Spieler-Sonderpfad; Lockstep-robust | Eigene Befehlstypen pro Client |
+| `CombatData.OrderFacing` (jetzt 160 Bytes): Blickrichtung am Slot für Bots ohne Gegner | Formationen müssen aus 40 m lesbar sein (Säule 3); eine Linie, die in Laufrichtung guckt, liest sich nicht als Linie | Blickrichtung nur in der Darstellung |
+| `tools/simcheck`: Sim und Unity-freie Tests laufen mit .NET 8 gegen Stubs für Collections/Jobs/Burst | Cloud-Sessions ohne Unity können Sim-Code kompilieren und testen, statt blind zu committen. Ersetzt `.\sb.ps1 test` nicht | Ohne Tests committen |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

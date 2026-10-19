@@ -122,7 +122,7 @@ Alles hier ist Schicht C oder Presentation. Werte sind Startpunkte, als Scriptab
 ### 3.6 Formationen (M2)
 
 - `Formation` = Position, Facing, Typ, Breite/Tiefe → erzeugt Slots. Agent steuert immer seinen Slot, nie das Formationsziel.
-- Slot-Zuordnung beim Umformen: Sinkhorn/Optimal-Transport auf Distanz² (keine kreuzenden Laufwege). Zuordnung stabil halten.
+- Slot-Zuordnung beim Umformen: Optimal-Transport auf Distanz², exakt gelöst (Ungarische Methode statt Sinkhorn, siehe `DECISIONS.md` 2026-10-19). Kurze Laufwege, Zuordnung stabil halten.
 - Pathfinding **auf Formationsebene** (Grid-A*), Agenten machen nur lokales Steering (Slot, Separation, Terrain).
 - Typen v1: Linie, Schildwall, Keil, Kreis, lockere Ordnung (Fernkampf). SDF-Formen als Experiment nach M2.
 - Formation-Behaviors (von AI und Standing Orders genutzt): Halten, Vorrücken, Angriff, Folgen, Rückzug, Schildwall-bei-Kavallerie, Fernkampf-Screening, Rückzug-hinter-Infanterie.
@@ -240,20 +240,18 @@ Budget: ~10 h/Woche, ~650 h gesamt. Ein Meilenstein gilt erst als erreicht, wenn
 ### Phase 2 (nach M6, Reihenfolge offen)
 Doktrinen-UI · Feldherr-Modus (nur Kommandoansicht, kein Held) · Sandtisch-Aufstellung · First-Person-Kamera · Gebäude-Destruction · SDF-Formationen · PBD-Kohäsion/Druck · GPU-Hit-Detection · MCTS-Commander · Ranked/Relay
 
-### M0 Taskliste (aktueller Meilenstein)
+### M2 Taskliste (aktueller Meilenstein)
 
-Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebnis und einem Commit.
+M0 und M1 sind abgeschlossen (Fun-Gates bestanden, M1 am 2026-10-19). Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebnis und einem Commit.
 
-1. **Sim/Core** — `SimConstants` (`TickRate = 60`, `DT = 1f/60f`), `SimRandom` (seeded xorshift, struct, keine Allokation), `InputCommand` (struct: `Tick`, `PlayerId`, `Type`, Payload) + `InputQueue` (deterministisch sortiert nach Tick, PlayerId, Sequenz), `SimWorld` (`Tick`, `Step()`, besitzt alle NativeArrays, `IDisposable`), `SimHash` (FNV-1a 64 über Rohbytes aller Sim-Arrays + Tick).
-2. **Determinismus-Test** — `game/Assets/Tests/EditMode/DeterminismTests.cs`: zwei `SimWorld` mit gleichem Seed und gleichem Input-Log, 10.000 Ticks, Hash nach jedem 100. Tick vergleichen; zusätzlich ein Negativtest (anderer Seed → anderer Hash). Assembly-Definitionen anlegen: `Shieldbreak.Sim` (ohne UnityEngine-Referenz, `noEngineReferences: true`), `Shieldbreak.Presentation`, `Shieldbreak.Tests.EditMode`.
-3. **Sim/Grid** — `WorldGrid` (Zellgröße 1 m, Breite/Höhe aus Map-Daten, Kosten-Array), Spatial Hash per Counting-Sort jeden Tick (deterministische Reihenfolge, keine HashMaps), Nachbar-Query über 3×3-Zellen.
-4. **Sim/Agents** — `AgentData` (struct: Id, Team, Position `float2`, Velocity, Facing, Target, Radius), Burst-Job `AgentMoveJob`: Seek zum Ziel + Separation über Spatial Hash, max. Beschleunigung. Burst-Jobs immer kompiliert ausführen (Burst im Editor nicht deaktivieren), sonst weichen Editor- und Build-Ergebnisse ab.
-5. **Presentation** — `SimRunner : MonoBehaviour` (Akkumulator, fixe Ticks, Zeitskala für SP, Interpolations-Alpha zwischen Tick N-1 und N), Kapsel-Rendering per `Graphics.RenderMeshInstanced`, Teamfarbe.
-6. **Debug-Draufsicht + Overlay** — `DebugTopDownCamera` (WASD/Maus-Pan, Zoom, Rotation), Klick setzt Ziel für selektierte Agenten (über `InputQueue`!), Overlay: Grid, Ziele, Velocity-Pfeile, Anzeige Sim-ms pro Tick und aktueller Hash.
-7. **Performance-Check** — 500 Agenten, Profiler-Marker um `SimWorld.Step()`, Ziel < 2 ms.
-8. **Animations-Prototyp** — nach `docs/animation/overhead-hieb.md` über Blender MCP + Unity MCP; separate Szene `Scenes/Proto_Animation.unity`, berührt `Sim/` nicht.
-
-**Startprompt für Claude Code:** „Lies CLAUDE.md. Wir sind in M0. Setze Task 1 und 2 der M0-Taskliste um: Assembly-Definitionen, Sim/Core und den Determinismus-Test. Danach Tests ausführen und mir das Ergebnis zeigen. Noch keine Agenten, kein Rendering."
+1. **Sim/Formations + Sim/Orders** ✅ — `FormationData`, `SlotGenerator` (Linie, Schildwall, Keil, Kreis, lockere Ordnung), `SlotAssignment` (exakt, Distanz²), `FormationSystem` (Marsch des Ankers mit Kohäsion, Lücken schließen nach Verlusten, Slot als Steering-Ziel), `FormationOrder` (Bewegen/Ausrichten, Form, Breite) über die `InputQueue`; AI nutzt dieselbe Order direkt. `FormationDefinition` (ScriptableObject). Tests: `FormationTests`.
+2. **Sichtbar machen** — Sandbox-Szenario mit Formationen statt Spawn-Blöcken, Debug-Overlay (Slots, Anker, Ziel, Formationstyp), Befehle aus der Debug-Draufsicht (Klick/Drag = `FormationOrder`).
+3. **Formations-Pfad** — `Nav/GridAStar` auf dem `WorldGrid` für den Anker (Formationsebene), Agenten bleiben beim lokalen Steering.
+4. **Formation-Behaviors v1 + Kampf in Formation** — Halten, Vorrücken, Angriff, Folgen, Rückzug als `FormationOrder`-Erweiterung; `Combat/Context/FormationCombatRules` (Slot halten, frontal angreifen, Schildwall blockt bevorzugt), 20 gegen 20.
+5. **Moral** — Panik-Feld im `WorldGrid` mit Diffusion (`P += D·ΔP − k·P + Quellen − Senken`), Moral pro Agent, Rout und Flucht; Werte im ScriptableObject; im Overlay sichtbar.
+6. **Radialmenü** — einhändig aus dem Kampf heraus (Halten, Angriff, Folgen, Rückzug, Form), eigene Action-Map, sendet `FormationOrder`.
+7. **Kommandoansicht** — Kamera hoch/zurück, Formationen farbig lesbar, Drag-Befehle (Position, Breite, Ausrichtung), Betreten/Verlassen als Sim-Input, Held wird `HeroUnattended`, SP-Zeitlupe über weniger Ticks.
+8. **Szene `M2_Company` + Build** — Held mit eigener Kompanie gegen eine Bot-Kompanie, Ergebnisbildschirm; danach Fun-Gate M2 (Tarik).
 
 ## 7. Arbeitsregeln
 

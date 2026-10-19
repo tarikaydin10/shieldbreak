@@ -97,6 +97,8 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public int BotDefenseDecidedFor;
         /// <summary>Where the agent goes when it has no enemy to engage (set by move orders).</summary>
         public float2 OrderTarget;
+        /// <summary>Facing wanted while idle at OrderTarget (formation slot), zero = face the walking direction.</summary>
+        public float2 OrderFacing;
         /// <summary>1 while sprinting (players via PlayerMove, bots when closing distance).</summary>
         public int Sprinting;
         /// <summary>Weapon ids in the loadout slots (CLAUDE.md: 3-4 slots), -1 = empty. WeaponId is the drawn one.</summary>

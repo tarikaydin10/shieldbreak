@@ -29,8 +29,16 @@ namespace Shieldbreak.Sim.AI
 
             if (c.BotTarget < 0)
             {
-                me.FaceAgent = -1;
                 me.Target = c.OrderTarget;
+                if (math.lengthsq(c.OrderFacing) > 0f)
+                {
+                    me.FaceAgent = AgentData.FaceFixed;
+                    me.FaceDirection = c.OrderFacing;
+                }
+                else
+                {
+                    me.FaceAgent = -1;
+                }
                 job.SetAgent(i, me);
                 if (c.BlockHeld == 1 && p.HoldBlock == 0) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
                 c.RngState = rng.State;

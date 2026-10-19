@@ -56,3 +56,7 @@ __pycache__/
 
 # Spielbare Builds (tools/build-windows.ps1)
 builds/
+
+# simcheck (.NET-Build der Sim-Tests)
+tools/simcheck/bin/
+tools/simcheck/obj/

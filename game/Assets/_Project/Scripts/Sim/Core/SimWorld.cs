@@ -5,7 +5,9 @@ using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat;
 using Shieldbreak.Sim.Combat.Archetypes;
 using Shieldbreak.Sim.Combat.Grammar;
+using Shieldbreak.Sim.Formations;
 using Shieldbreak.Sim.Grid;
+using Shieldbreak.Sim.Orders;
 
 namespace Shieldbreak.Sim.Core
 {
@@ -21,6 +23,9 @@ namespace Shieldbreak.Sim.Core
         /// <summary>Capacity of the agent arrays; agents are spawned during scenario setup.</summary>
         public int MaxAgents;
         public AgentMoveSettings Movement;
+        /// <summary>Capacity of the formation array (0 = no formations).</summary>
+        public int MaxFormations;
+        public FormationSettings Formations;
     }
 
     /// <summary>
@@ -55,6 +60,7 @@ namespace Shieldbreak.Sim.Core
         NativeArray<float2> facingScratch;
         NativeList<CombatEvent> events;
         readonly CombatSetup combatSetup;
+        readonly FormationSystem formations;
 
         /// <param name="combatSetup">Weapons, attacks and rules; copied, so the caller keeps ownership. Null = no combat.</param>
         public SimWorld(SimConfig config, CombatSetup combatSetup = null)
@@ -86,6 +92,7 @@ namespace Shieldbreak.Sim.Core
             attackerScratch = new NativeArray<int>(config.MaxAgents, Allocator.Persistent);
 
             this.combatSetup = Copy(combatSetup);
+            formations = new FormationSystem(config.MaxFormations, config.MaxAgents, config.Formations, config.Movement);
         }
 
         static CombatSetup Copy(CombatSetup source)
@@ -115,6 +122,14 @@ namespace Shieldbreak.Sim.Core
 
         public CombatSetup CombatSetup => combatSetup;
         public bool HasCombat => combatSetup.Weapons.Length > 0;
+
+        /// <summary>Formations for reading (presentation, debug, commander AI). Valid until the next Step.</summary>
+        public NativeArray<FormationData>.ReadOnly Formations => formations.Formations;
+
+        /// <summary>Formation membership per agent (same index as Agents). Valid until the next Step.</summary>
+        public NativeArray<FormationMember>.ReadOnly FormationMembers => formations.Members(AgentCount);
+
+        public FormationSettings FormationSettings => formations.Settings;
 
         /// <summary>Spatial hash from the last Step, for debug overlays.</summary>
         public SpatialHash Spatial => spatial;
@@ -206,7 +221,55 @@ namespace Shieldbreak.Sim.Core
         {
             if (playerId >= SimConstants.MaxPlayers) throw new ArgumentOutOfRangeException(nameof(playerId));
             if (agentId < 0 || agentId >= AgentCount) throw new ArgumentOutOfRangeException(nameof(agentId));
+            if (formations.Members(AgentCount)[agentId].Formation >= 0) throw new InvalidOperationException($"Agent {agentId} belongs to a formation.");
             playerAgent[playerId] = agentId;
+        }
+
+        /// <summary>
+        /// Creates an empty formation (scenario setup). <paramref name="owner"/> is the player id allowed to order it.
+        /// <paramref name="position"/> is the anchor: centre of the front rank (centre for Circle).
+        /// </summary>
+        public int CreateFormation(int team, int owner, FormationType type, int files, float2 position, float2 facing) =>
+            formations.Create(team, owner, type, files, position, facing);
+
+        /// <summary>Puts an agent into a formation (scenario setup). Heroes controlled by a player stay outside.</summary>
+        public void AddToFormation(int formationId, int agentId)
+        {
+            if (agentId < 0 || agentId >= AgentCount) throw new ArgumentOutOfRangeException(nameof(agentId));
+            for (int p = 0; p < playerAgent.Length; p++)
+                if (playerAgent[p] == agentId) throw new InvalidOperationException($"Agent {agentId} is controlled by player {p}.");
+            formations.Add(formationId, agentId, agents[agentId].Team);
+        }
+
+        /// <summary>
+        /// Scenario setup: spawns <paramref name="count"/> soldiers standing in their slots and groups them into a new
+        /// formation. Returns the formation id; the agents get contiguous ids in slot order.
+        /// </summary>
+        public int SpawnFormation(int team, int owner, FormationType type, int files, int count, float2 position, float2 facing,
+            float radius, int weaponId = 0, int botProfile = 0)
+        {
+            if (count < 1 || count > FormationLimits.MaxMembers) throw new ArgumentOutOfRangeException(nameof(count));
+            int id = CreateFormation(team, owner, type, files, position, facing);
+            var f = formations.Formations[id];
+            using var local = new NativeArray<float2>(count, Allocator.Temp);
+            using var localFacing = new NativeArray<float2>(count, Allocator.Temp);
+            SlotGenerator.Generate(f.Type, count, f.Files, formations.Settings, local, localFacing);
+            for (int s = 0; s < count; s++)
+            {
+                int agent = SpawnAgent(team, f.ToWorld(local[s]), radius, FormationData.Rotate(localFacing[s], f.Facing), weaponId, botProfile);
+                formations.Add(id, agent, team);
+            }
+            return id;
+        }
+
+        /// <summary>Order path of sim-internal clients (commander AI): same FormationOrder, applied at once.</summary>
+        public bool ApplyFormationOrder(in FormationOrder order, int issuer) => formations.Apply(order, issuer);
+
+        /// <summary>Order path of players: stamps the order like any other input (lockstep).</summary>
+        public InputCommand SubmitFormationOrder(ushort playerId, in FormationOrder order)
+        {
+            order.ToArgs(out int4 intArgs, out float4 floatArgs);
+            return Submit(playerId, InputCommandType.FormationOrder, intArgs, floatArgs);
         }
 
         public int PlayerAgent(ushort playerId) => playerId < SimConstants.MaxPlayers ? playerAgent[playerId] : -1;
@@ -244,6 +307,7 @@ namespace Shieldbreak.Sim.Core
             for (int i = 0; i < tickInputs.Length; i++)
                 ApplyInput(tickInputs[i]);
 
+            formations.Step(Tick, agents, combat, AgentCount, HasCombat);
             ApplyMoveIntents();
             AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement);
             CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch);
@@ -290,6 +354,9 @@ namespace Shieldbreak.Sim.Core
                     break;
                 case InputCommandType.PlayerMove:
                     ApplyPlayerMove(command);
+                    break;
+                case InputCommandType.FormationOrder:
+                    formations.Apply(FormationOrder.FromCommand(command), command.PlayerId);
                     break;
             }
         }
@@ -385,6 +452,8 @@ namespace Shieldbreak.Sim.Core
             h.Add(playerAgent);
             h.Add(playerMoveIntent);
             h.Add(playerSprint);
+            h.Add(formations.Count);
+            formations.AddToHash(ref h, AgentCount);
             return h.Value;
         }
 
@@ -394,6 +463,7 @@ namespace Shieldbreak.Sim.Core
             Grid.Dispose();
             spatial.Dispose();
             combatSetup.Dispose();
+            formations.Dispose();
             if (tickInputs.IsCreated) tickInputs.Dispose();
             if (nextSequence.IsCreated) nextSequence.Dispose();
             if (playerAgent.IsCreated) playerAgent.Dispose();

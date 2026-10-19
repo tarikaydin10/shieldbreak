@@ -11,3 +11,5 @@ Innereien von `..\sb.ps1`. Du rufst nur `.\sb.ps1 play|test|build|assets|setup` 
 | `assets` | `assetgen/run.ps1` und `run.ps1 -Check` | Asset-Pipeline, siehe [assetgen/README.md](assetgen/README.md) |
 
 `-Shadow` spiegelt `game/` ohne `Library` nach `.ci/game`. Der erste Lauf importiert alles neu (einige Minuten), danach geht es schnell. Neue Dateien sollten vorher eine `.meta` haben: Sonst erzeugt die Kopie eine eigene GUID, und Verweise darauf passen später nicht zum Hauptprojekt.
+
+**Ohne sb.ps1:** [`simcheck/`](simcheck/README.md) kompiliert die Sim und ihre Unity-freien Tests mit .NET 8 (für Cloud-Sessions ohne Unity, `tools/simcheck/run.sh`). Für dich nicht nötig.

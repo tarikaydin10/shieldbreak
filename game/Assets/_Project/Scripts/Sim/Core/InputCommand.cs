@@ -25,6 +25,8 @@ namespace Shieldbreak.Sim.Core
         CombatSwitchWeapon = 8,
         /// <summary>IntArgs.x = own agent id. Jump (legs cannot be hit while airborne).</summary>
         CombatJump = 9,
+        /// <summary>A FormationOrder (Sim/Orders): IntArgs = (formation, flags, type | files &lt;&lt; 8, 0), FloatArgs = (destination, facing).</summary>
+        FormationOrder = 10,
     }
 
     /// <summary>
