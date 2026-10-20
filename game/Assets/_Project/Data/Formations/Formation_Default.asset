@@ -28,3 +28,11 @@ MonoBehaviour:
   faceMarchMinDistance: 8
   wheelFlankSpeed: 1
   reformTurnDeg: 60
+  engageLeash: 2
+  frontArcDeg: 120
+  selfDefenseRange: 1.6
+  advanceContactGap: 1.5
+  retreatDistance: 20
+  followDistance: 4
+  behaviorIntervalMs: 500
+  retargetDistance: 2

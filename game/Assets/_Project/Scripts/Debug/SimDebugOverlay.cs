@@ -13,7 +13,7 @@ namespace Shieldbreak.DebugTools
     /// <summary>
     /// GL line overlay drawn after the camera renders: grid cells around the view centre and the map border, velocity
     /// arrows, the targets of selected agents, terrain (blocked and rough cells) and formations (slots, anchor,
-    /// facing, planned path, destination, type label).
+    /// facing, planned path, destination, label with type, size and behavior).
     /// Toggles via the DebugOverlay action map.
     /// </summary>
     public class SimDebugOverlay : MonoBehaviour, IAdminStatus
@@ -45,6 +45,7 @@ namespace Shieldbreak.DebugTools
         GUIStyle labelStyle;
 
         static readonly string[] TypeNames = { "Linie", "Schildwall", "Keil", "Kreis", "Locker" };
+        static readonly string[] BehaviorNames = { "hält", "rückt vor", "greift an", "folgt", "zieht sich zurück" };
 
         public string AdminStatusLabel => "Overlay";
         public string AdminStatus => $"Grid {OnOff(showGrid)} · Geschwindigkeit {OnOff(showVelocity)} · Ziele {OnOff(showTargets)} · Formationen {OnOff(showFormations)}";
@@ -218,7 +219,7 @@ namespace Shieldbreak.DebugTools
             return c;
         }
 
-        /// <summary>Type, size and state above every formation's anchor.</summary>
+        /// <summary>Type, size and behavior above every formation's anchor.</summary>
         void OnGUI()
         {
             var world = runner != null ? runner.World : null;
@@ -233,8 +234,9 @@ namespace Shieldbreak.DebugTools
                 Vector3 s = viewCamera.WorldToScreenPoint(SimRunner.ToWorld(f.Position, 2.2f));
                 if (s.z <= 0f) continue;
                 bool marching = math.distancesq(f.Destination, f.Position) > 0.09f;
-                string text = $"{TypeNames[math.clamp((int)f.Type, 0, TypeNames.Length - 1)]} · {f.MemberCount}" + (marching ? " · marschiert" : "");
-                var rect = new Rect(s.x - 90f, Screen.height - s.y - 11f, 180f, 22f);
+                string state = f.Behavior == FormationBehavior.Hold && marching ? "marschiert" : BehaviorNames[math.clamp((int)f.Behavior, 0, BehaviorNames.Length - 1)];
+                string text = $"{TypeNames[math.clamp((int)f.Type, 0, TypeNames.Length - 1)]} · {f.MemberCount} · {state}";
+                var rect = new Rect(s.x - 120f, Screen.height - s.y - 11f, 240f, 22f);
                 labelStyle.normal.textColor = Color.black;
                 GUI.Label(new Rect(rect.x + 1f, rect.y + 1f, rect.width, rect.height), text, labelStyle);
                 labelStyle.normal.textColor = FormationColor(f, true);

@@ -5,9 +5,11 @@ using Unity.Mathematics;
 using Shieldbreak.Sim.AI;
 using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat.Archetypes;
+using Shieldbreak.Sim.Combat.Context;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Combat.Resolvers;
 using Shieldbreak.Sim.Core;
+using Shieldbreak.Sim.Formations;
 using Shieldbreak.Sim.Grid;
 
 namespace Shieldbreak.Sim.Combat
@@ -17,12 +19,14 @@ namespace Shieldbreak.Sim.Combat
     /// input buffer, one-button block in a front arc with stamina cost, perfect block with riposte stun, guard break,
     /// dodge step, sprint, archetype specials (shield bash, two-hand leaping overhead with a lunge), weapon switching,
     /// SwingTrace hits with energy-based damage, 1vX attack tokens. Players (via InputQueue commands) and bots (BotBrain) call the same Try* rules. Runs single-threaded
-    /// in agent id order, so hits resolve identically on every peer.
+    /// in agent id order, so hits resolve identically on every peer. Bots in a formation follow its context rules
+    /// (FormationCombatRules); the formation arrays are only read here.
     /// </summary>
     public static class CombatSystem
     {
         public static void Step(int tick, NativeArray<AgentData> agents, NativeArray<CombatData> combat, int count,
-            in SpatialHash spatial, CombatSetup setup, NativeList<CombatEvent> events, NativeArray<int> attackerScratch)
+            in SpatialHash spatial, CombatSetup setup, NativeList<CombatEvent> events, NativeArray<int> attackerScratch,
+            NativeArray<FormationData> formations, NativeArray<FormationMember> members, in FormationSettings formationSettings)
         {
             if (count == 0 || !setup.Weapons.IsCreated || setup.Weapons.Length == 0) return;
             new CombatJob
@@ -41,6 +45,9 @@ namespace Shieldbreak.Sim.Combat
                 Tuning = setup.Tuning,
                 Events = events,
                 AttackersOn = attackerScratch,
+                Formations = formations,
+                Members = members,
+                FormationSettings = formationSettings,
             }.Run();
         }
 
@@ -221,6 +228,9 @@ namespace Shieldbreak.Sim.Combat
             public NativeList<CombatEvent> Events;
             /// <summary>Bots currently swinging at each agent (attack tokens).</summary>
             public NativeArray<int> AttackersOn;
+            [ReadOnly] public NativeArray<FormationData> Formations;
+            [ReadOnly] public NativeArray<FormationMember> Members;
+            public FormationSettings FormationSettings;
 
             AttackData AttackOf(in CombatData c) => Attacks[Weapons[c.WeaponId].AttackIndex(c.Direction)];
 
@@ -674,6 +684,15 @@ namespace Shieldbreak.Sim.Combat
             public int EntryAt(int e) => Entries[e];
             public NativeList<CombatEvent> EventList => Events;
             public int AttackersSwingingAt(int target) => target >= 0 && target < Count ? AttackersOn[target] : 0;
+            public FormationSettings FormationRules => FormationSettings;
+
+            /// <summary>What the agent's formation asks of it in a fight; default (free) outside formations.</summary>
+            public FormationCombatContext FormationContext(int i)
+            {
+                if (i >= Members.Length) return default;
+                var m = Members[i];
+                return m.Formation >= 0 && m.Formation < Formations.Length ? FormationCombatRules.For(m, Formations[m.Formation]) : default;
+            }
             public void ClaimAttackToken(int target) { if (target >= 0 && target < Count) AttackersOn[target]++; }
         }
     }

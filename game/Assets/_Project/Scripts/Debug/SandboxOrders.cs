@@ -15,8 +15,9 @@ namespace Shieldbreak.DebugTools
     /// <summary>
     /// Sandbox control from the debug top-down view. Click or drag to select; a soldier of a formation selects the
     /// whole formation. Right-click marches the selection there, right-drag draws the front line (position, width,
-    /// facing). Formations get FormationOrders, loose soldiers get per-soldier move targets; both go through the
-    /// InputQueue. The same planner will serve the command view (M2 task 7).
+    /// facing); H, R, C, X set the behavior (hold, advance, charge, retreat). Formations get FormationOrders, loose
+    /// soldiers get per-soldier move targets; both go through the InputQueue. The same planner will serve the command
+    /// view (M2 task 7).
     /// </summary>
     public class SandboxOrders : MonoBehaviour, IAdminStatus
     {
@@ -38,7 +39,7 @@ namespace Shieldbreak.DebugTools
         public Color lineColor = new Color(1f, 0.95f, 0.6f, 0.95f);
 
         InputActionMap map;
-        InputAction point, select, command, additive, teamA, teamB, all, halt;
+        InputAction point, select, command, additive, teamA, teamB, all, halt, advance, charge, retreat;
         readonly InputAction[] shapes = new InputAction[FormationLimits.TypeCount];
         bool dragging, commanding;
         Vector2 dragStart, commandStartScreen;
@@ -78,6 +79,9 @@ namespace Shieldbreak.DebugTools
             teamB = map.FindAction("SelectTeamB", true);
             all = map.FindAction("SelectAll", true);
             halt = map.FindAction("Halt", true);
+            advance = map.FindAction("Advance", true);
+            charge = map.FindAction("Charge", true);
+            retreat = map.FindAction("Retreat", true);
             for (int t = 0; t < shapes.Length; t++) shapes[t] = map.FindAction(ShapeActions[t], true);
             map.Enable();
             RenderPipelineManager.endCameraRendering += DrawPreview;
@@ -132,7 +136,10 @@ namespace Shieldbreak.DebugTools
 
             for (int t = 0; t < shapes.Length; t++)
                 if (shapes[t].WasPressedThisFrame()) IssueShape(world, (FormationType)t);
-            if (halt.WasPressedThisFrame()) IssueHalt(world);
+            if (halt.WasPressedThisFrame()) IssueBehavior(world, FormationBehavior.Hold);
+            if (advance.WasPressedThisFrame()) IssueBehavior(world, FormationBehavior.Advance);
+            if (charge.WasPressedThisFrame()) IssueBehavior(world, FormationBehavior.Charge);
+            if (retreat.WasPressedThisFrame()) IssueBehavior(world, FormationBehavior.Retreat);
         }
 
         // ---- Selection ----
@@ -234,11 +241,11 @@ namespace Shieldbreak.DebugTools
             foreach (int f in formationIds) world.SubmitFormationOrder(LocalPlayer, FormationOrder.Reshape(f, type));
         }
 
-        /// <summary>Stop where the formation stands now (its anchor becomes the destination).</summary>
-        void IssueHalt(SimWorld world)
+        /// <summary>Hold stops where the formation stands; advance, charge and retreat pick their enemy in the sim.</summary>
+        void IssueBehavior(SimWorld world, FormationBehavior behavior)
         {
             SplitSelection();
-            foreach (int f in formationIds) world.SubmitFormationOrder(LocalPlayer, FormationOrder.MoveTo(f, world.Formations[f].Position));
+            foreach (int f in formationIds) world.SubmitFormationOrder(LocalPlayer, FormationOrder.SetBehavior(f, behavior));
         }
 
         /// <summary>Loose soldiers (M0 behaviour): march to the point and line up in ranks facing away from where they came from.</summary>

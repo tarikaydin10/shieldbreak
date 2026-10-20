@@ -14,8 +14,10 @@ namespace Shieldbreak.Sim.Formations
 {
     /// <summary>
     /// Formation layer (CLAUDE.md 3.1, 3.6): owns formations and per-agent membership, applies FormationOrders,
-    /// plans the anchor's path on the WorldGrid (A*), marches it, closes gaps after losses and hands every member its
-    /// slot as the steering target. Agents always steer to their own slot, never to the formation's destination.
+    /// runs the behaviors (hold, advance, charge, follow, retreat) by choosing where to march, plans the anchor's path
+    /// on the WorldGrid (A*), marches it, closes gaps after losses and hands every member its slot as the steering
+    /// target. Agents always steer to their own slot, never to the formation's destination; how far they may leave it
+    /// to fight is decided by Combat/Context/FormationCombatRules.
     /// </summary>
     public sealed class FormationSystem : IDisposable
     {
@@ -77,6 +79,9 @@ namespace Shieldbreak.Sim.Formations
         }
 
         public int Count => formationCount;
+        /// <summary>Full buffers for the combat job (formation context of each soldier); read-only there.</summary>
+        internal NativeArray<FormationData> FormationBuffer => formations;
+        internal NativeArray<FormationMember> MemberBuffer => members;
         public NativeArray<FormationData>.ReadOnly Formations => formations.GetSubArray(0, formationCount).AsReadOnly();
         public NativeArray<FormationMember>.ReadOnly Members(int agentCount) => members.GetSubArray(0, agentCount).AsReadOnly();
         public FormationSettings Settings => settings;
@@ -98,6 +103,8 @@ namespace Shieldbreak.Sim.Formations
                 Facing = math.normalizesafe(facing, new float2(0f, 1f)),
                 TargetFacing = math.normalizesafe(facing, new float2(0f, 1f)),
                 Destination = position,
+                Behavior = FormationBehavior.Hold,
+                FollowAgent = -1,
             };
             return id;
         }
@@ -128,13 +135,31 @@ namespace Shieldbreak.Sim.Formations
             var f = formations[order.Formation];
             if (f.Owner != issuer || f.MemberCount == 0) return false;
             bool changed = false;
-            if ((order.Flags & FormationOrderFlags.Move) != 0 && math.all(math.isfinite(order.Destination)) && math.all(math.isfinite(order.Facing)))
+            bool move = (order.Flags & FormationOrderFlags.Move) != 0 && math.all(math.isfinite(order.Destination)) && math.all(math.isfinite(order.Facing));
+            if (move)
             {
                 f.Destination = ClampToMap(order.Destination);
                 f.NeedsPath = 1;
                 // The formation turns in Step: towards its path on a long march, to this facing on arrival
                 f.TargetFacing = math.lengthsq(order.Facing) > 1e-8f ? math.normalize(order.Facing) : f.Facing;
                 changed = true;
+            }
+            bool behavior = (order.Flags & FormationOrderFlags.Behavior) != 0 && (uint)order.Behavior < FormationLimits.BehaviorCount &&
+                            (order.Behavior != FormationBehavior.Follow || (order.FollowAgent >= 0 && order.FollowAgent < members.Length));
+            if (behavior)
+            {
+                f.Behavior = order.Behavior;
+                f.FollowAgent = order.Behavior == FormationBehavior.Follow ? order.FollowAgent : -1;
+                // Look at the target on the next tick; a retreat to a given point has nothing to look for
+                f.NextBehaviorTick = order.Behavior == FormationBehavior.Retreat && move ? int.MaxValue : 0;
+                if (order.Behavior == FormationBehavior.Hold && !move) Stop(ref f);
+                changed = true;
+            }
+            else if (move)
+            {
+                // A plain move order means: go there and hold
+                f.Behavior = FormationBehavior.Hold;
+                f.FollowAgent = -1;
             }
             if ((order.Flags & FormationOrderFlags.Shape) != 0 && (uint)order.Type < FormationLimits.TypeCount && order.Type != f.Type)
             {
@@ -183,6 +208,7 @@ namespace Shieldbreak.Sim.Formations
             for (int id = 0; id < formationCount; id++)
             {
                 var f = formations[id];
+                if (f.MemberCount > 0) UpdateBehavior(ref f, tick, agents, agentCount);
                 if (f.Reform != FormationData.ReformNone && tick >= f.NextReformTick && f.MemberCount > 0)
                     Reform(ref f, agents, agentCount);
                 // Plan after the reform, which may have moved the anchor; a changed map replans whoever marches
@@ -270,6 +296,153 @@ namespace Shieldbreak.Sim.Formations
                     agents[i] = a;
                 }
             }
+        }
+
+        /// <summary>
+        /// Behaviors choose where the formation marches; the march, path and turn are the same as for a move order.
+        /// Advance and Charge head for the nearest enemy formation (Advance stops a contact gap short, Charge goes in),
+        /// Follow trails its agent, Retreat falls back once and then holds. Targets are looked at every
+        /// BehaviorIntervalTicks and the march is only re-ordered when the target point moved noticeably.
+        /// </summary>
+        void UpdateBehavior(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
+        {
+            if (f.Behavior == FormationBehavior.Hold) return;
+            if (f.Behavior == FormationBehavior.Retreat)
+            {
+                if (tick >= f.NextBehaviorTick)
+                {
+                    f.NextBehaviorTick = int.MaxValue;
+                    float2 away = FindEnemy(f, agents, agentCount, out float2 aim, out _) ? math.normalizesafe(f.Position - aim, -f.Facing) : -f.Facing;
+                    f.Destination = ClampToMap(f.Position + away * settings.RetreatDistance);
+                    f.TargetFacing = -away;
+                    f.NeedsPath = 1;
+                }
+                else if (f.NeedsPath == 0 && f.PathIndex >= f.PathCount && math.distancesq(f.Destination, f.Position) < 1e-8f)
+                {
+                    f.Behavior = FormationBehavior.Hold;
+                }
+                return;
+            }
+            if (tick < f.NextBehaviorTick) return;
+            f.NextBehaviorTick = tick + settings.BehaviorIntervalTicks;
+
+            float2 goal, facing;
+            if (f.Behavior == FormationBehavior.Follow)
+            {
+                int leader = f.FollowAgent;
+                if (leader < 0 || leader >= agentCount || agents[leader].IsDead || agents[leader].Team != f.Team)
+                {
+                    f.Behavior = FormationBehavior.Hold;
+                    f.FollowAgent = -1;
+                    Stop(ref f);
+                    return;
+                }
+                // Trail the leader along the line from the formation to it, so looking around does not move the formation
+                float2 to = agents[leader].Position - f.Position;
+                float distance = math.length(to);
+                if (distance <= settings.FollowDistance)
+                {
+                    // The leader came back towards the formation: stop instead of marching through it
+                    if (math.distancesq(f.Destination, f.Position) > 1e-8f) Stop(ref f);
+                    return;
+                }
+                facing = to / distance;
+                goal = agents[leader].Position - facing * settings.FollowDistance;
+            }
+            else
+            {
+                if (!FindEnemy(f, agents, agentCount, out float2 aim, out float contact))
+                {
+                    f.Behavior = FormationBehavior.Hold;
+                    Stop(ref f);
+                    return;
+                }
+                float2 to = aim - f.Position;
+                facing = math.lengthsq(to) > 1e-8f ? math.normalize(to) : f.Facing;
+                float gap = f.Behavior == FormationBehavior.Charge ? 0f : settings.AdvanceContactGap;
+                goal = f.Position + facing * math.max(0f, contact - gap);
+                // In contact the formation keeps turning to the enemy even when it does not march
+                f.TargetFacing = facing;
+            }
+            goal = ClampToMap(goal);
+            if (math.distancesq(goal, f.Destination) > settings.RetargetDistance * settings.RetargetDistance)
+            {
+                f.Destination = goal;
+                f.TargetFacing = facing;
+                f.NeedsPath = 1;
+            }
+        }
+
+        /// <summary>Halts where the anchor stands, keeping the current facing.</summary>
+        static void Stop(ref FormationData f)
+        {
+            f.Destination = f.Position;
+            f.TargetFacing = f.Facing;
+            f.NeedsPath = 1;
+        }
+
+        /// <summary>
+        /// The enemy this formation goes for: the formation with the nearest anchor (lowest id on ties), else the
+        /// nearest enemy soldier outside formations. <paramref name="aim"/> is where to head (the enemy's centre),
+        /// <paramref name="contact"/> how far along that direction its nearest soldier stands from the anchor.
+        /// </summary>
+        bool FindEnemy(in FormationData f, NativeArray<AgentData> agents, int agentCount, out float2 aim, out float contact)
+        {
+            int target = -1;
+            float bestSq = float.MaxValue;
+            for (int g = 0; g < formationCount; g++)
+            {
+                var other = formations[g];
+                if (other.Team == f.Team || other.MemberCount == 0) continue;
+                float dsq = math.distancesq(other.Position, f.Position);
+                if (dsq < bestSq)
+                {
+                    bestSq = dsq;
+                    target = g;
+                }
+            }
+
+            aim = f.Position;
+            contact = 0f;
+            if (target >= 0)
+            {
+                float2 sum = float2.zero;
+                int n = 0;
+                for (int i = 0; i < agentCount; i++)
+                {
+                    if (members[i].Formation != target || agents[i].IsDead) continue;
+                    sum += agents[i].Position;
+                    n++;
+                }
+                aim = n > 0 ? sum / n : formations[target].Position;
+                float2 dir = math.normalizesafe(aim - f.Position, f.Facing);
+                contact = float.MaxValue;
+                for (int i = 0; i < agentCount; i++)
+                {
+                    if (members[i].Formation != target || agents[i].IsDead) continue;
+                    contact = math.min(contact, math.dot(agents[i].Position - f.Position, dir));
+                }
+                if (n == 0) contact = math.dot(aim - f.Position, dir);
+                return true;
+            }
+
+            int nearest = -1;
+            bestSq = float.MaxValue;
+            for (int i = 0; i < agentCount; i++)
+            {
+                var a = agents[i];
+                if (a.IsDead || a.Team == f.Team) continue;
+                float dsq = math.distancesq(a.Position, f.Position);
+                if (dsq < bestSq)
+                {
+                    bestSq = dsq;
+                    nearest = i;
+                }
+            }
+            if (nearest < 0) return false;
+            aim = agents[nearest].Position;
+            contact = math.sqrt(bestSq);
+            return true;
         }
 
         /// <summary>Generates slots for the current members and assigns them (Burst job, deterministic float mode).</summary>

@@ -15,6 +15,11 @@ namespace Shieldbreak.Sim.Orders
         Shape = 1 << 1,
         /// <summary>Change the number of files (soldiers per rank).</summary>
         Width = 1 << 2,
+        /// <summary>
+        /// Set the behavior (Hold, Advance, Charge, Follow, Retreat). Without it a Move order means Hold at the
+        /// destination; Hold without Move stops where the formation stands; Retreat with Move falls back to Destination.
+        /// </summary>
+        Behavior = 1 << 3,
     }
 
     /// <summary>
@@ -32,6 +37,9 @@ namespace Shieldbreak.Sim.Orders
         public float2 Destination;
         /// <summary>Facing at the destination; zero keeps the current one. Long marches face the way they walk until then.</summary>
         public float2 Facing;
+        public FormationBehavior Behavior;
+        /// <summary>Agent of the own team to follow (Behavior Follow), -1 = none.</summary>
+        public int FollowAgent;
 
         public static FormationOrder MoveTo(int formation, float2 destination, float2 facing = default) => new FormationOrder
         {
@@ -47,10 +55,42 @@ namespace Shieldbreak.Sim.Orders
         public static FormationOrder SetWidth(int formation, int files) =>
             new FormationOrder { Formation = formation, Flags = FormationOrderFlags.Width, Files = files };
 
-        /// <summary>IntArgs = (formation, flags, type | files &lt;&lt; 8, 0), FloatArgs = (destination, facing).</summary>
+        /// <summary>Behavior order without a destination (Hold: stop here, Retreat: fall back from the enemy).</summary>
+        public static FormationOrder SetBehavior(int formation, FormationBehavior behavior) =>
+            new FormationOrder { Formation = formation, Flags = FormationOrderFlags.Behavior, Behavior = behavior, FollowAgent = -1 };
+
+        public static FormationOrder Hold(int formation) => SetBehavior(formation, FormationBehavior.Hold);
+        public static FormationOrder Advance(int formation) => SetBehavior(formation, FormationBehavior.Advance);
+        public static FormationOrder Charge(int formation) => SetBehavior(formation, FormationBehavior.Charge);
+        public static FormationOrder Retreat(int formation) => SetBehavior(formation, FormationBehavior.Retreat);
+
+        public static FormationOrder Follow(int formation, int agent) => new FormationOrder
+        {
+            Formation = formation,
+            Flags = FormationOrderFlags.Behavior,
+            Behavior = FormationBehavior.Follow,
+            FollowAgent = agent,
+        };
+
+        /// <summary>Fall back to a chosen point without fighting and face <paramref name="facing"/> there.</summary>
+        public static FormationOrder RetreatTo(int formation, float2 destination, float2 facing = default) => new FormationOrder
+        {
+            Formation = formation,
+            Flags = FormationOrderFlags.Move | FormationOrderFlags.Behavior,
+            Destination = destination,
+            Facing = facing,
+            Behavior = FormationBehavior.Retreat,
+            FollowAgent = -1,
+        };
+
+        /// <summary>
+        /// IntArgs = (formation, flags, type | files &lt;&lt; 8, behavior | (followAgent + 1) &lt;&lt; 8),
+        /// FloatArgs = (destination, facing).
+        /// </summary>
         public void ToArgs(out int4 intArgs, out float4 floatArgs)
         {
-            intArgs = new int4(Formation, (int)Flags, ((int)Type & 0xFF) | (math.clamp(Files, 0, 0xFFFFFF) << 8), 0);
+            intArgs = new int4(Formation, (int)Flags, ((int)Type & 0xFF) | (math.clamp(Files, 0, 0xFFFFFF) << 8),
+                ((int)Behavior & 0xFF) | (math.clamp(FollowAgent + 1, 0, 0xFFFFFF) << 8));
             floatArgs = new float4(Destination, Facing);
         }
 
@@ -62,6 +102,8 @@ namespace Shieldbreak.Sim.Orders
             Files = (int)((uint)command.IntArgs.z >> 8),
             Destination = command.FloatArgs.xy,
             Facing = command.FloatArgs.zw,
+            Behavior = (FormationBehavior)(command.IntArgs.w & 0xFF),
+            FollowAgent = (int)((uint)command.IntArgs.w >> 8) - 1,
         };
     }
 }

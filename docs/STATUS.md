@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-19**, Meilenstein **M2 Kompanie**, Task 3 von 8 fertig: Formationen finden Wege um Hindernisse (A* auf dem Grid), Soldaten weichen Wänden aus (in Unity noch nicht angesehen). **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-20**, Meilenstein **M2 Kompanie**, Task 4 von 8 fertig: Formationen haben Verhalten (Halten, Vorrücken, Angriff, Folgen, Rückzug) und kämpfen aus der Formation; die Sandbox ist ein Gefecht 20 gegen 20 (in Unity noch nicht angesehen). **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
 
 ## Sofort spielen
 
@@ -37,7 +37,7 @@
 
 ## Formationen in der Sandbox (`M0_Sandbox`)
 
-Hauptmenü → Sandbox. Vier Formationen: A Linie, A Schildwall (rot) gegen B Keil, B Linie (blau). Im Norden eine Mauer mit 6 m breitem Tor, im Süden ein Fels, hinter Team B Gestrüpp (begehbar, aber teuer). Die Zeit läuft; Esc pausiert.
+Hauptmenü → Sandbox. Vier Formationen zu je 10 Soldaten: A Linie, A Schildwall (rot) gegen B Keil, B Linie (blau), alle Bots Stufe 3 mit Schwert und Schild, gezeigt als Kampf-Figuren. Sie stehen, bis sie einen Befehl bekommen; wer an den Feind gerät, kämpft. Im Norden eine Mauer mit 6 m breitem Tor, im Süden ein Fels, hinter Team B Gestrüpp (begehbar, aber teuer). Die Zeit läuft; Esc pausiert.
 
 | Taste | Aktion |
 |---|---|
@@ -45,11 +45,26 @@ Hauptmenü → Sandbox. Vier Formationen: A Linie, A Schildwall (rot) gegen B Ke
 | Rechtsklick | Auswahl marschiert dorthin, Blick in Laufrichtung, Breite bleibt |
 | Rechts ziehen | Frontlinie zeichnen: Position, Breite und Blickrichtung (weg von dort, wo die Truppe steht); mehrere Formationen teilen sich die Linie nebeneinander |
 | 4 / 5 / 6 / 7 / 8 | Form: Linie / Schildwall / Keil / Kreis / locker |
-| H | anhalten, wo sie gerade steht |
+| H | **Halten:** bleibt stehen, wo sie gerade ist; kämpft nur, wenn ein Feind vor die Front kommt |
+| R | **Vorrücken:** marschiert geschlossen zur nächsten feindlichen Formation, hält 1,5 m davor und kämpft aus der Formation; folgt dem Feind, wenn er ausweicht |
+| C | **Angriff:** stürmt auf den nächsten Feind, die Soldaten verlassen ihre Plätze und kämpfen frei |
+| X | **Rückzug:** zieht sich 20 m zurück, ohne zu kämpfen, dann Halten mit Front zum Feind |
 | F / G / T / V | Overlay: Formationen / Grid / Ziele / Geschwindigkeit |
 | WASD, Q/E, Mausrad, mittlere Maustaste | Kamera |
 
-Im Overlay: Kreuz = Slot (hell bei Auswahl), Pfeil = Anker und Blickrichtung, weiße Linie = geplanter Weg mit Wegpunkten, am Ende die Front, die dort entsteht; Beschriftung = Typ · Soldaten · Zustand. Rote Kästchen mit Kreuz = gesperrt, gelbe Schraffur = Gestrüpp.
+Im Overlay: Kreuz = Slot (hell bei Auswahl), Pfeil = Anker und Blickrichtung, weiße Linie = geplanter Weg mit Wegpunkten, am Ende die Front, die dort entsteht; Beschriftung = Typ · Soldaten · Verhalten (hält, marschiert, rückt vor, greift an, folgt, zieht sich zurück). Rote Kästchen mit Kreuz = gesperrt, gelbe Schraffur = Gestrüpp.
+
+Kampf in Formation: Beim Halten, Vorrücken und Folgen bleiben die Soldaten an einer 2-m-Leine um ihren Platz, kämpfen nach vorn (120°-Bogen), zur Seite und nach hinten nur gegen Feinde, die näher als 1,6 m kommen; das zweite Glied rückt in Lücken nach. Beim Angriff kämpfen sie frei, beim Rückzug gar nicht. Ein Schildwall blockt, statt auszuweichen. Folgen geht schon über die Befehls-API, aber noch ohne Taste: es braucht den Helden (Task 6 und 8).
+
+Gemessen ohne Unity (je 10 Gefechte, 20 gegen 20, Stufe 3; Siege A:B):
+
+| Gefecht | A:B |
+|---|---|
+| Halten gegen Vorrücken, Halten gegen Angriff, Angriff gegen Vorrücken | je 5:5 |
+| Schildwall 8 m breit (hält) gegen Linie 11 m (rückt vor) | 5:5 |
+| Schildwall 11 m breit gegen Linie 11 m | 9:1 |
+| Linie 8 m breit gegen Linie 11 m | 1:9 |
+| Stufe 5 gegen Stufe 3 | 10:0 |
 
 Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körper folgt dem Anker um Ecken) und dreht am Ziel in die befohlene Richtung. Kleine Drehungen schwenkt sie (die Flügel laufen höchstens 1 m/s), Drehungen über 60° formt sie um (hinteres Glied wird Front).
 
@@ -61,12 +76,13 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Grid, Agenten | Spatial Hash per Counting-Sort, Steering mit Trennung und Ausweichen an Wänden (nie in gesperrte Zellen); Hindernisse und Gelände-Kosten pro 1-m-Zelle; 500 Agenten 0,12 ms pro Tick (vor dem Wand-Ausweichen gemessen) | `Scripts/Sim/Grid`, `Agents`, `Nav` |
 | Kampf-Grammatik | Ausholen → Treffen → Erholen, Finte, Morph, Eingabepuffer, ein Block im Frontbogen, Perfect Block, Guard Break, Ausweichschritt, Sprung, Sprint, Waffenwechsel, Rückstoß, Energie-Schaden über Klingenbahn (SwingTrace) | [Sim/Combat](../game/Assets/_Project/Scripts/Sim/Combat/README.md) |
 | Waffen | **Schwert + Schild** (Schild 120°, Schildstoß) und **Zweihänder** (90° Block, Sprung-Hieb, trifft härter, drückt Blocker stark) | `Data/Weapons`, `Data/Attacks` |
-| Formationen (M2) | Linie, Schildwall, Keil, Kreis, lockere Ordnung; Slots mit optimaler Zuordnung (kurze Wege, stabil), Marsch mit Zusammenhalt auf einem A*-Weg um Hindernisse (breite Fronten meiden enge Lücken), Schwenken und Umdrehen, Lücken schließen nach Verlusten; `FormationOrder` (Bewegen/Ausrichten, Form, Breite) über die `InputQueue`; Frontlinien-Planer für mehrere Formationen; in der Sandbox sichtbar und per Maus befehligbar | `Scripts/Sim/Formations`, `Sim/Orders`, `Data/FormationDefinition`, `Debug/` |
+| Formationen (M2) | Linie, Schildwall, Keil, Kreis, lockere Ordnung; Slots mit optimaler Zuordnung (kurze Wege, stabil), Marsch mit Zusammenhalt auf einem A*-Weg um Hindernisse (breite Fronten meiden enge Lücken), Schwenken und Umdrehen, Lücken schließen nach Verlusten; `FormationOrder` (Bewegen/Ausrichten, Form, Breite, Verhalten) über die `InputQueue`; Verhalten Halten, Vorrücken, Angriff, Folgen, Rückzug; Frontlinien-Planer für mehrere Formationen; in der Sandbox sichtbar und per Maus und Tasten befehligbar | `Scripts/Sim/Formations`, `Sim/Orders`, `Data/FormationDefinition`, `Debug/` |
+| Kampf in Formation (M2) | Leine um den Slot, Kampf nach vorn, Selbstverteidigung, Schildwall blockt statt auszuweichen, Angriff löst die Leine, Rückzug kämpft nicht; Bots spielen dabei unverändert ihre Stufe | [Sim/Combat/Context](../game/Assets/_Project/Scripts/Sim/Combat/README.md) |
 | Bots | Stufen L1–L5 spielen dieselben Regeln, nur Reaktionszeit, Fehlerquote und Techniken unterscheiden sich; höchstens 2 greifen gleichzeitig an | `Scripts/Sim/AI` |
 | Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Leben als roter Rand und Ausdauer als dunkler Puls statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
 | Feel-Presets | Schwer, Mittel, Tödlich (alle Zahlen in ScriptableObjects) | `Data/Combat` |
 | Rahmen | Hauptmenü, Pausemenü, Steuerung mit Tastenänderung, Optionen, Tutorial, Ergebnisbildschirm mit Statistik | `Scripts/Presentation/Menu`, `Player/TutorialDirector` |
-| Weitere Szenen | `M0_Sandbox` (4 Formationen, 20 gegen 20 aus der Draufsicht, ohne Kampf), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
+| Weitere Szenen | `M0_Sandbox` (4 Formationen, 20 gegen 20 aus der Draufsicht, mit Kampf), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
 | Asset-Pipeline | Low-Poly-Modelle aus JSON-Specs per Headless-Blender, Palette, Validator, Kontaktbogen | [art](../art/README.md), [tools/assetgen](../tools/assetgen/README.md) |
 
 Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 22. Zweihänder oben 69, Seite 47, Stich 39, Sprung-Hieb aus 2,6 m 92. Leben 100.
@@ -75,16 +91,18 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (128, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (145, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2`. Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
-| Sim-Tests ohne Unity (Cloud, Linux) | `tools/simcheck/run.sh`: Sim + 63 Unity-freie Tests mit .NET 8, [Details](../tools/simcheck/README.md) |
+| Sim- und Kampf-Tests ohne Unity (Cloud, Linux) | `tools/simcheck/run.sh`: Sim, Definitionen und 137 Tests (alle Kampf- und Formations-Tests) mit .NET 8, [Details](../tools/simcheck/README.md) |
 
 **Von Hand prüfen (Rahmen):** Hauptmenü → Tutorial durchspielen (F12 überspringt), Esc-Menü öffnen, eine Taste umlegen und prüfen, dass sie nach Neustart gilt, Optionen ändern und im Duell merken.
 
 **Fun-Gate M1:** bestanden am 2026-10-19.
 
 **Von Hand prüfen (Formationen, Sandbox):** eine Formation anklicken und rechts klicken (marschiert als Block, Linie bleibt Linie), eine Linie hinter die Truppe ziehen (dreht um, hinteres Glied wird Front), beide A-Formationen wählen und eine lange Linie ziehen (teilen sich die Linie, kein Kreuzen), 4–8 durchschalten (formt auf der Stelle um), eine Formation durch das Tor in der Mauer schicken (Weg im Overlay, alle kommen durch), eine breite Linie hinter den Fels ziehen (läuft außen herum).
+
+**Von Hand prüfen (Kampf, Sandbox):** 1 und R (Team A rückt vor, Team B hält): die Linien treffen sich, kämpfen, das zweite Glied rückt nach, die Formationen bleiben erkennbar. Dann 2 und C (Team B greift an): die blauen Soldaten lösen sich und stürmen. Eine Formation mitten im Kampf mit X zurückziehen: sie dreht ab, kämpft nicht mehr und steht 20 m weiter mit Front zum Feind. Läuft das flüssig (F1 zeigt FPS und Sim-Zeit)?
 
 ## Offen
 
@@ -97,11 +115,14 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 - Welches Feel-Preset (Schwer, Mittel, Tödlich) Standard wird, und die Bewertung des prozeduralen Hiebs aus M0 (`Proto_Animation`) (Tarik)
 - Formationen: Umformen einer Formation mit 150 Soldaten kostet einen Tick lang ~14 ms (ohne Burst gemessen; bei 25–40 pro Formation < 0,3 ms). Falls in M4 große Formationen hängen: Lücken nach Verlusten lokal füllen statt komplett neu zuordnen
-- Formationen im Kampf: Bots verlassen ihren Slot, sobald sie einen Gegner sehen (Task 4: Kampf in Formation)
+- **Schildwall (Tarik):** Er wird nur durch Dichte stark (gleich breit wie die Linie gewinnt er 9:1). Dauerhaft erhobene Schilde verlieren, weil der Schildstoß jeden Block bricht. Soll der Schildwall eine eigene Regel bekommen (z. B. verschränkte Schilde, die der Schildstoß nicht bricht)? Das wäre eine Design-Entscheidung, siehe `DECISIONS.md` 2026-10-20
+- Kampf in der Sandbox: noch ohne Treffer-Effekte und Sounds (die gibt es im Duell), die Kamera bleibt die Draufsicht. Kommt mit Task 7 (Kommandoansicht) und 8 (`M2_Company`)
+- Rückzug ist ein einfacher Rückzug (Rücken zum Feind); ein kämpfender Rückzug kommt frühestens mit Moral und Rout (Task 5)
+- Vorrücken und Angriff wählen die nächste feindliche Formation selbst; eine bestimmte Formation als Ziel kommt mit der Kommandoansicht
 - Formationen und Hindernisse: Beim Umformen laufen Soldaten geradeaus zum neuen Slot, ein Slot hinter einer Wand wird erst erreicht, wenn die Formation weiterzieht (nur lokales Steering, CLAUDE.md 3.6). Hindernisse sind nur im Overlay sichtbar (keine Meshes vor M4)
 - Sounds sind Platzhalter (M5), Figuren sind Gliederpuppen aus der Pipeline (Synty-Vergleich offen, `DECISIONS.md`)
 - Bogen und Lanze: zwei Grammatik-Erweiterungen geplant, siehe [Papier-Test](combat/papier-test-bogen-lanze.md)
 
 ## Aktueller Meilenstein
 
-**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · ✅ 3 Formations-Pfad (A*) · 4 Behaviors + Kampf in Formation, 20 gegen 20 · 5 Moral und Rout · 6 Radialmenü · 7 Kommandoansicht · 8 Szene `M2_Company`, Build, Fun-Gate.
+**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · ✅ 3 Formations-Pfad (A*) · ✅ 4 Verhalten + Kampf in Formation, 20 gegen 20 · 5 Moral und Rout · 6 Radialmenü · 7 Kommandoansicht · 8 Szene `M2_Company`, Build, Fun-Gate.

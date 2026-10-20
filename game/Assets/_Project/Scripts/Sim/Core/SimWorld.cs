@@ -319,7 +319,8 @@ namespace Shieldbreak.Sim.Core
             formations.Step(Tick, agents, combat, AgentCount, HasCombat);
             ApplyMoveIntents();
             AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement, Grid.NavCost);
-            CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch);
+            CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch,
+                formations.FormationBuffer, formations.MemberBuffer, formations.Settings);
 
             Tick++;
         }

@@ -20,6 +20,11 @@ MonoBehaviour:
   spawnSpacing: 1.1
   spawnJitter: 0.15
   formation: {fileID: 11400000, guid: 3e7842487fbf4f639292949532d67ba7, type: 2}
+  weapons:
+  - {fileID: 11400000, guid: 8a86d0d595f33364c9019681623497d4, type: 2}
+  - {fileID: 11400000, guid: f897d33dd8b3bad4fb9c058e406a1b7b, type: 2}
+  combatTuning: {fileID: 11400000, guid: 11d7b1dc0de997d49b4379fe4034cffc, type: 2}
+  roster: {fileID: 11400000, guid: 50d1c94144ec20f4da5d2d9a64a39b87, type: 2}
   groups:
   - name: A Linie
     team: 0
@@ -30,6 +35,8 @@ MonoBehaviour:
     asFormation: 1
     formationType: 0
     owner: 0
+    botLevel: 3
+    weapon: 0
   - name: A Schildwall
     team: 0
     count: 10
@@ -39,6 +46,8 @@ MonoBehaviour:
     asFormation: 1
     formationType: 1
     owner: 0
+    botLevel: 3
+    weapon: 0
   - name: B Keil
     team: 1
     count: 10
@@ -48,6 +57,8 @@ MonoBehaviour:
     asFormation: 1
     formationType: 2
     owner: 0
+    botLevel: 3
+    weapon: 0
   - name: B Linie
     team: 1
     count: 10
@@ -57,6 +68,8 @@ MonoBehaviour:
     asFormation: 1
     formationType: 0
     owner: 0
+    botLevel: 3
+    weapon: 0
   obstacles:
   - name: Mauer links
     min: {x: 26, y: 64}

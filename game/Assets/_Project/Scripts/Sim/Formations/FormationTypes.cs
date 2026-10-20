@@ -14,9 +14,28 @@ namespace Shieldbreak.Sim.Formations
         Loose = 4,
     }
 
+    /// <summary>
+    /// What a formation does between orders (CLAUDE.md 3.6). Players and the commander AI set it through the same
+    /// FormationOrder; standing orders and doctrines later only choose among these.
+    /// </summary>
+    public enum FormationBehavior
+    {
+        /// <summary>Stand at the destination; soldiers fight only what comes within their leash (standoff).</summary>
+        Hold = 0,
+        /// <summary>March in formation to the nearest enemy formation and stop in contact; soldiers stay on the leash.</summary>
+        Advance = 1,
+        /// <summary>Close with the nearest enemy and fight freely: soldiers leave their slots.</summary>
+        Charge = 2,
+        /// <summary>Stay behind an agent of the own team (the hero), facing where it faces.</summary>
+        Follow = 3,
+        /// <summary>Fall back away from the enemy without fighting, then hold facing it.</summary>
+        Retreat = 4,
+    }
+
     public static class FormationLimits
     {
         public const int TypeCount = 5;
+        public const int BehaviorCount = 5;
         /// <summary>Upper bound per formation; slot assignment is O(n³) and runs only on reforms.</summary>
         public const int MaxMembers = 256;
         /// <summary>Waypoints stored per formation; a longer path is replanned when the anchor reaches the last one.</summary>
@@ -63,6 +82,11 @@ namespace Shieldbreak.Sim.Formations
         public float2 TargetFacing;
         /// <summary>1 = this march is long enough to face the way it walks (decided when the path is planned).</summary>
         public int FaceMarch;
+        public FormationBehavior Behavior;
+        /// <summary>Agent a Follow formation stays behind, -1 = none.</summary>
+        public int FollowAgent;
+        /// <summary>Next tick the behavior looks at its target (Advance, Charge, Follow; Retreat once, then never).</summary>
+        public int NextBehaviorTick;
 
         public const int ReformNone = 0, ReformKeepAnchor = 1, ReformAroundMembers = 2;
 
@@ -133,6 +157,26 @@ namespace Shieldbreak.Sim.Formations
         /// </summary>
         public float ReformTurnCos;
 
+        /// <summary>How far a soldier may leave its slot to fight while the formation holds, advances or follows (m).</summary>
+        public float EngageLeash;
+        /// <summary>
+        /// Cosine of half the arc in front of the formation in which soldiers pick their enemies (frontal fighting);
+        /// enemies outside it are only fought when closer than SelfDefenseRange.
+        /// </summary>
+        public float FrontArcCos;
+        /// <summary>Enemies closer than this (m) are fought from any side, also outside the front arc.</summary>
+        public float SelfDefenseRange;
+        /// <summary>Advance stops with its front this far (m) from the nearest enemy soldier.</summary>
+        public float AdvanceContactGap;
+        /// <summary>Retreat without a destination falls back this far (m), away from the nearest enemy formation.</summary>
+        public float RetreatDistance;
+        /// <summary>Follow keeps the anchor this far (m) behind the followed agent.</summary>
+        public float FollowDistance;
+        /// <summary>Advance, Charge and Follow look at their target this often (ticks)...</summary>
+        public int BehaviorIntervalTicks;
+        /// <summary>...and only re-order the march when the target point moved further than this (m).</summary>
+        public float RetargetDistance;
+
         public FormationSpacing Spacing(FormationType type) => type switch
         {
             FormationType.ShieldWall => ShieldWall,
@@ -159,6 +203,10 @@ namespace Shieldbreak.Sim.Formations
             if (ReformTurnCos < -1f || ReformTurnCos >= 1f) throw new ArgumentException("ReformTurnCos must be in [-1, 1).");
             if (PathMaxClearance < 0 || PathMaxClearance > 32) throw new ArgumentException("PathMaxClearance must be in [0, 32] cells.");
             if (PathClearancePenalty < 0 || PathClearancePenalty > 100) throw new ArgumentException("PathClearancePenalty must be in [0, 100] (integer path costs must not overflow).");
+            if (EngageLeash < 0f || SelfDefenseRange < 0f) throw new ArgumentException("EngageLeash and SelfDefenseRange must be >= 0.");
+            if (FrontArcCos < -1f || FrontArcCos > 1f) throw new ArgumentException("FrontArcCos must be in [-1, 1].");
+            if (AdvanceContactGap < 0f || RetreatDistance <= 0f || FollowDistance < 0f) throw new ArgumentException("Require AdvanceContactGap >= 0, RetreatDistance > 0, FollowDistance >= 0.");
+            if (BehaviorIntervalTicks < 1 || RetargetDistance < 0f) throw new ArgumentException("Require BehaviorIntervalTicks >= 1 and RetargetDistance >= 0.");
         }
     }
 }

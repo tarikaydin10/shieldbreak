@@ -7,8 +7,9 @@ namespace Shieldbreak.Presentation
 {
     /// <summary>
     /// Draws every agent from the pipeline meshes in a SoldierVisualDefinition (body, helmet, shield, weapon) via
-    /// Graphics.RenderMeshInstanced, no GameObject per agent. Selected agents get a ring in their team colour.
-    /// Positions are interpolated by the SimRunner.
+    /// Graphics.RenderMeshInstanced, no GameObject per agent; the dead lie on the ground. Agents a CombatFigureRenderer
+    /// shows as fighting figures are skipped. Selected agents get a ring in their team colour. Positions are
+    /// interpolated by the SimRunner.
     /// </summary>
     public class AgentRenderer : MonoBehaviour
     {
@@ -18,6 +19,10 @@ namespace Shieldbreak.Presentation
 
         public SimRunner runner;
         public SoldierVisualDefinition visual;
+        [Tooltip("Optional: agents this renderer draws as fighting figures (the first maxFigures) get only their selection ring here.")]
+        public CombatFigureRenderer figures;
+        [Tooltip("Height of a dead soldier's body lying on the ground (m).")]
+        [Min(0f)] public float deadLift = 0.15f;
 
         // [team * PartsPerTeam + part] and [team] for selection rings
         readonly List<Matrix4x4>[] parts = new List<Matrix4x4>[Teams * PartsPerTeam];
@@ -46,17 +51,26 @@ namespace Shieldbreak.Presentation
 
             var agents = world.Agents;
             float ring = visual.selectionRadius * 2f;
+            // Agents shown as figures only get their selection ring here
+            int firstBody = figures != null && figures.isActiveAndEnabled ? Mathf.Min(agents.Length, figures.maxFigures) : 0;
             for (int i = 0; i < agents.Length; i++)
             {
                 var a = agents[i];
                 int team = Mathf.Clamp(a.Team, 0, Teams - 1);
                 Vector3 p = SimRunner.ToWorld(runner.InterpolatedPosition(i));
+                if (AgentSelection.IsSelected(i) && !a.IsDead)
+                    rings[team].Add(Matrix4x4.TRS(p + Vector3.up * 0.04f, Quaternion.identity, new Vector3(ring, 0.01f, ring)));
+                if (i < firstBody) continue;
                 var rotation = Quaternion.LookRotation(new Vector3(a.Facing.x, 0f, a.Facing.y), Vector3.up);
+                // The dead lie face down where they fell
+                if (a.IsDead)
+                {
+                    rotation *= Quaternion.Euler(90f, 0f, 0f);
+                    p += Vector3.up * deadLift;
+                }
                 var root = Matrix4x4.TRS(p, rotation, Vector3.one);
                 for (int k = 0; k < PartsPerTeam; k++)
                     parts[team * PartsPerTeam + k].Add(root * local[team * PartsPerTeam + k]);
-                if (AgentSelection.IsSelected(i))
-                    rings[team].Add(Matrix4x4.TRS(p + Vector3.up * 0.04f, Quaternion.identity, new Vector3(ring, 0.01f, ring)));
             }
 
             for (int team = 0; team < Teams; team++)

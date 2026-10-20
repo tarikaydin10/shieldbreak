@@ -41,6 +41,14 @@ namespace Shieldbreak.Tests
             FaceMarchMinDistance = 8f,
             WheelFlankSpeed = 1f,
             ReformTurnCos = 0.5f,
+            EngageLeash = 2.0f,
+            FrontArcCos = 0.5f,
+            SelfDefenseRange = 1.6f,
+            AdvanceContactGap = 1.5f,
+            RetreatDistance = 20f,
+            FollowDistance = 4f,
+            BehaviorIntervalTicks = 30,
+            RetargetDistance = 2f,
         };
 
         public static SimConfig Config(ulong seed, int size, int maxAgents) => new SimConfig

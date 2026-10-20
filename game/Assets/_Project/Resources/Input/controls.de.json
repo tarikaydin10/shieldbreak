@@ -133,7 +133,19 @@
     },
     {
       "action": "DebugOrders/Halt",
-      "text": "Auswahl: anhalten, wo sie gerade steht"
+      "text": "Auswahl: Halten. Bleibt stehen, wo sie gerade ist; die Soldaten kämpfen nur, wenn ein Feind vor ihre Front kommt"
+    },
+    {
+      "action": "DebugOrders/Advance",
+      "text": "Auswahl: Vorrücken. Marschiert geschlossen zur nächsten feindlichen Formation und kämpft aus der Formation"
+    },
+    {
+      "action": "DebugOrders/Charge",
+      "text": "Auswahl: Angriff. Stürmt auf den nächsten Feind, die Soldaten verlassen ihre Plätze und kämpfen frei"
+    },
+    {
+      "action": "DebugOrders/Retreat",
+      "text": "Auswahl: Rückzug. Zieht sich 20 m vom Feind zurück, ohne zu kämpfen, und hält dann mit Front zum Feind"
     },
     {
       "action": "DebugOverlay/ToggleGrid",

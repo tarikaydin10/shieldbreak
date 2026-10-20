@@ -4,7 +4,10 @@ using UnityEngine;
 
 namespace Shieldbreak.Data
 {
-    /// <summary>Formation tuning (spacing per type, march, cohesion); converted to the sim's FormationSettings.</summary>
+    /// <summary>
+    /// Formation tuning (spacing per type, march, cohesion, fighting in formation, behaviors); converted to the sim's
+    /// FormationSettings.
+    /// </summary>
     [CreateAssetMenu(menuName = "Shieldbreak/Formation", fileName = "Formation")]
     public class FormationDefinition : ScriptableObject
     {
@@ -42,6 +45,26 @@ namespace Shieldbreak.Data
         [Tooltip("Turns larger than this do not wheel: the formation re-forms facing the new way, the rear rank becomes the front (degrees).")]
         [Range(5f, 180f)] public float reformTurnDeg = 60f;
 
+        [Header("Fighting in formation")]
+        [Tooltip("How far a soldier may step out of its slot to fight while the formation holds, advances or follows (m). 2 m lets the second rank step up into gaps.")]
+        [Min(0f)] public float engageLeash = 2.0f;
+        [Tooltip("Arc in front of the formation in which soldiers pick their enemies (degrees, whole arc).")]
+        [Range(0f, 360f)] public float frontArcDeg = 120f;
+        [Tooltip("Enemies closer than this are fought from any side (m).")]
+        [Min(0f)] public float selfDefenseRange = 1.6f;
+
+        [Header("Behaviors")]
+        [Tooltip("Advance stops with its front this far from the nearest enemy soldier (m).")]
+        [Min(0f)] public float advanceContactGap = 1.5f;
+        [Tooltip("Retreat without a destination falls back this far, away from the nearest enemy formation (m).")]
+        [Min(1f)] public float retreatDistance = 20f;
+        [Tooltip("Follow keeps the front this far behind the followed soldier (m).")]
+        [Min(0f)] public float followDistance = 4f;
+        [Tooltip("Advance, charge and follow look at their target this often (ms).")]
+        [Min(17f)] public float behaviorIntervalMs = 500f;
+        [Tooltip("The march is only re-ordered when the target point moved further than this (m).")]
+        [Min(0f)] public float retargetDistance = 2f;
+
         static FormationSpacing Spacing(Vector2 v) => new FormationSpacing { Lateral = v.x, Depth = v.y };
 
         public FormationSettings ToSettings() => new FormationSettings
@@ -63,6 +86,14 @@ namespace Shieldbreak.Data
             WheelFlankSpeed = wheelFlankSpeed,
             // Converted once here (presentation side), so the sim compares cosines and needs no trigonometry
             ReformTurnCos = reformTurnDeg >= 180f ? -1f : Mathf.Cos(reformTurnDeg * Mathf.Deg2Rad),
+            EngageLeash = engageLeash,
+            FrontArcCos = frontArcDeg >= 360f ? -1f : Mathf.Cos(frontArcDeg * 0.5f * Mathf.Deg2Rad),
+            SelfDefenseRange = selfDefenseRange,
+            AdvanceContactGap = advanceContactGap,
+            RetreatDistance = retreatDistance,
+            FollowDistance = followDistance,
+            BehaviorIntervalTicks = Mathf.Max(1, Mathf.RoundToInt(behaviorIntervalMs * SimConstants.TickRate / 1000f)),
+            RetargetDistance = retargetDistance,
         };
     }
 }

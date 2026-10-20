@@ -15,8 +15,9 @@ using UnityEngine.Rendering.Universal;
 namespace Shieldbreak.EditorTools
 {
     /// <summary>
-    /// Builds Scenes/M0_Sandbox.unity (debug top-down view, soldiers, selection, formation and move orders) plus its data
-    /// assets. Existing assets are kept so tuning survives a rebuild; the scene is only overwritten after asking.
+    /// Builds Scenes/M0_Sandbox.unity (debug top-down view, soldiers, selection, formation and move orders, 20 against
+    /// 20 with the duel's weapons) plus its data assets. Existing assets are kept so tuning survives a rebuild; the
+    /// scene is only overwritten after asking.
     /// </summary>
     public static class SandboxSceneBuilder
     {
@@ -25,6 +26,10 @@ namespace Shieldbreak.EditorTools
         const string SandboxPath = "Assets/_Project/Data/Scenarios/Sandbox_20v20.asset";
         const string StressPath = "Assets/_Project/Data/Scenarios/Stress_250v250.asset";
         const string FormationPath = "Assets/_Project/Data/Formations/Formation_Default.asset";
+        const string OneHandPath = "Assets/_Project/Data/Weapons/Weapon_OneHandShield.asset";
+        const string TwoHandPath = "Assets/_Project/Data/Weapons/Weapon_TwoHand.asset";
+        const string TuningPath = "Assets/_Project/Data/Combat/CombatTuning_Mittel.asset";
+        const string RosterPath = "Assets/_Project/Data/Combat/BotRoster_Default.asset";
         internal const string VisualPath = "Assets/_Project/Data/Visuals/SoldierVisual_Default.asset";
         const string Gen = GeneratedArtImporter.GeneratedDir;
         const float GroundTile = 20f;
@@ -48,6 +53,8 @@ namespace Shieldbreak.EditorTools
                 s.formation = formation;
             });
             LoadOrCreate<SandboxScenarioDefinition>(StressPath, FillStress);
+            // The 20v20 fights with the duel's weapons once they exist (the duel builder creates them)
+            if (!sandbox.HasCombat && FillCombat(sandbox)) EditorUtility.SetDirty(sandbox);
 
             var teamASel = LitMaterial("M_Agent_TeamA_Selected", "#E0664B", emission: 0.35f);
             var teamBSel = LitMaterial("M_Agent_TeamB_Selected", "#5E92D6", emission: 0.35f);
@@ -110,6 +117,12 @@ namespace Shieldbreak.EditorTools
             var renderer = sim.AddComponent<AgentRenderer>();
             renderer.runner = runner;
             renderer.visual = visual;
+            // Fighting figures for the 20v20 (swings, blocks, stuns, deaths); the instanced renderer draws the rest
+            var figures = sim.AddComponent<CombatFigureRenderer>();
+            figures.runner = runner;
+            figures.visual = visual;
+            figures.maxFigures = 64;
+            renderer.figures = figures;
             var orders = sim.AddComponent<SandboxOrders>();
             orders.runner = runner;
             orders.viewCamera = cam;
@@ -209,6 +222,19 @@ namespace Shieldbreak.EditorTools
                 Obstacle("Fels", new Vector2(42f, 24f), new Vector2(54f, 32f), 255),
                 Obstacle("Gestrüpp", new Vector2(70f, 36f), new Vector2(78f, 60f), 4),
             };
+        }
+
+        /// <summary>Weapons (sword and shield, two-hander), the "Mittel" preset and the bot roster; false if the duel assets do not exist yet.</summary>
+        static bool FillCombat(SandboxScenarioDefinition s)
+        {
+            var oneHand = AssetDatabase.LoadAssetAtPath<WeaponDefinition>(OneHandPath);
+            var twoHand = AssetDatabase.LoadAssetAtPath<WeaponDefinition>(TwoHandPath);
+            var tuning = AssetDatabase.LoadAssetAtPath<CombatTuningDefinition>(TuningPath);
+            if (oneHand == null || twoHand == null || tuning == null) return false;
+            s.weapons = new[] { oneHand, twoHand };
+            s.combatTuning = tuning;
+            s.roster = AssetDatabase.LoadAssetAtPath<BotRosterDefinition>(RosterPath);
+            return true;
         }
 
         static void FillStress(SandboxScenarioDefinition s)

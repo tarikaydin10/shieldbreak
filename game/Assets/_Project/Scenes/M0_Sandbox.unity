@@ -650,6 +650,7 @@ GameObject:
   - component: {fileID: 635694276}
   - component: {fileID: 635694275}
   - component: {fileID: 635694274}
+  - component: {fileID: 635694279}
   m_Layer: 0
   m_Name: Sim
   m_TagString: Untagged
@@ -711,6 +712,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Shieldbreak.Presentation::Shieldbreak.Presentation.AgentRenderer
   runner: {fileID: 635694277}
   visual: {fileID: 11400000, guid: 5833f643bb5c2aa4ea5b6d259c919a56, type: 2}
+  figures: {fileID: 635694279}
 --- !u!114 &635694277
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -742,6 +744,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &635694279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 635694273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dded3b17dff9d28642e503b7d3b04903, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shieldbreak.Presentation::Shieldbreak.Presentation.CombatFigureRenderer
+  runner: {fileID: 635694277}
+  visual: {fileID: 11400000, guid: 5833f643bb5c2aa4ea5b6d259c919a56, type: 2}
+  maxFigures: 64
+  rightShoulder: {x: 0.22, y: 1.42, z: 0}
+  leftShoulder: {x: -0.22, y: 1.42, z: 0}
+  upperArmLength: 0.32
+  forearmLength: 0.32
+  armThickness: 0.1
+  rightElbowHint: {x: 1, y: -0.6, z: -0.4}
+  leftElbowHint: {x: -1, y: -0.6, z: -0.2}
+  shieldRest: {x: -0.26, y: 1, z: 0.2}
+  shieldGuard: {x: -0.08, y: 1.28, z: 0.42}
+  shieldBlend: 0.08
+  attackLean: {x: -8, y: 12}
+  stunLean: -14
+  flinchDegrees: 10
+  flinchSeconds: 0.25
+  fallSeconds: 0.6
+  deadDrop: 0.75
+  lowHealthSlouch: 12
 --- !u!1001 &635753608
 PrefabInstance:
   m_ObjectHideFlags: 0

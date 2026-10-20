@@ -1,6 +1,7 @@
 using Unity.Mathematics;
 using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat;
+using Shieldbreak.Sim.Combat.Context;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
 
@@ -10,10 +11,13 @@ namespace Shieldbreak.Sim.AI
     /// Melee bot on the combat grammar (CLAUDE.md 3.5): it sees what a player would see (the enemy's windup), reacts
     /// after a seeded delay, may fail, and uses only the same Try* rules a player uses. Levels differ in reaction
     /// time, error rates and allowed techniques, never in stats. Runs inside the CombatJob, so it is deterministic.
+    /// In a formation the context rules (FormationCombatRules) decide whom it may fight and how far it may leave its slot.
     /// </summary>
     internal static class BotBrain
     {
         const int ReacquireInterval = 30;
+        /// <summary>A target is kept a little further than it would be picked, so it does not flicker at the edge (m).</summary>
+        const float KeepMargin = 0.5f;
 
         public static void Think(int i, ref CombatData c, ref CombatSystem.CombatJob job)
         {
@@ -22,10 +26,15 @@ namespace Shieldbreak.Sim.AI
             int tick = job.CurrentTick;
             var rules = job.Rules;
             var me = job.Agent(i);
+            var ctx = job.FormationContext(i);
+            var formationRules = job.FormationRules;
 
-            // Target acquisition: periodic (staggered by id) or when the current target is gone
-            bool reacquire = c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead || (tick + i) % ReacquireInterval == 0;
-            if (reacquire) c.BotTarget = FindTarget(i, me, p.AcquireRange, ref job);
+            // Target acquisition: periodic (staggered by id), when the current target is gone, or when the formation
+            // no longer lets the bot fight it (out of the leash or the front arc, retreat)
+            bool lost = c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead ||
+                        !FormationCombatRules.Accepts(ctx, formationRules, me.Position, job.Agent(c.BotTarget).Position, p.EngageRange + KeepMargin);
+            if (lost || (tick + i) % ReacquireInterval == 0)
+                c.BotTarget = ctx.Disengaged == 1 ? -1 : FindTarget(i, me, p.AcquireRange, ctx, p.EngageRange, ref job);
 
             if (c.BotTarget < 0)
             {
@@ -56,11 +65,12 @@ namespace Shieldbreak.Sim.AI
             bool tokenFree = rules.MaxAttackersPerTarget <= 0 || swinging || job.AttackersSwingingAt(c.BotTarget) < rules.MaxAttackersPerTarget;
 
             // Keep engage distance (further back while waiting for a token), face the enemy, sprint to close in
+            // In formation the bot steps out of its slot at most the leash and does not sprint
             float keep = tokenFree ? p.EngageRange : p.EngageRange + rules.WaitingDistance;
             me.FaceAgent = c.BotTarget;
-            me.Target = enemy.Position - dir * keep;
+            me.Target = FormationCombatRules.Leashed(ctx, formationRules, enemy.Position - dir * keep);
             job.SetAgent(i, me);
-            c.Sprinting = c.State == CombatState.Idle && c.BlockHeld == 0 && dist > p.EngageRange + 3f ? 1 : 0;
+            c.Sprinting = FormationCombatRules.AllowsSprint(ctx) && c.State == CombatState.Idle && c.BlockHeld == 0 && dist > p.EngageRange + 3f ? 1 : 0;
 
             // Threat: the enemy swings at us (faces us, close enough; a lunging attack reaches further)
             var enemyAttack = job.Attack(ec);
@@ -78,13 +88,15 @@ namespace Shieldbreak.Sim.AI
                 {
                     c.BotDefenseDecidedFor = start;
                     int contactTick = start + enemyAttack.Timing.WindupTicks + enemyAttack.Timing.ReleaseTicks / 2;
+                    float blockChance = p.BlockChance, stepChance = p.StepChance;
+                    FormationCombatRules.PreferBlock(ctx, ref blockChance, ref stepChance);
                     float roll = rng.NextFloat();
                     if (roll < p.PerfectBlockChance) c.BotPlannedBlockTick = math.max(tick, contactTick - rules.PerfectBlockTicks / 2);
-                    else if (roll < p.PerfectBlockChance + p.BlockChance) c.BotPlannedBlockTick = tick;
+                    else if (roll < p.PerfectBlockChance + blockChance) c.BotPlannedBlockTick = tick;
                     else
                     {
                         c.BotPlannedBlockTick = -1;
-                        if (roll < p.PerfectBlockChance + p.BlockChance + p.StepChance)
+                        if (roll < p.PerfectBlockChance + blockChance + stepChance)
                             CombatSystem.TryStep(ref c, StepDirection.Back, tick, rules, job.EventList, i);
                     }
                 }
@@ -153,8 +165,10 @@ namespace Shieldbreak.Sim.AI
             c.RngState = rng.State;
         }
 
-        static int FindTarget(int i, in AgentData me, float range, ref CombatSystem.CombatJob job)
+        /// <summary>Nearest living enemy within <paramref name="range"/> that the formation context lets the bot fight.</summary>
+        static int FindTarget(int i, in AgentData me, float range, in FormationCombatContext ctx, float reach, ref CombatSystem.CombatJob job)
         {
+            var formationRules = job.FormationRules;
             var layout = job.Grid;
             int r = (int)math.ceil(range / SimConstants.CellSize);
             int2 cell = math.clamp(layout.WorldToCell(me.Position), int2.zero, new int2(layout.Width - 1, layout.Height - 1));
@@ -173,6 +187,8 @@ namespace Shieldbreak.Sim.AI
                     var other = job.Agent(j);
                     if (other.IsDead || other.Team == me.Team) continue;
                     float dsq = math.distancesq(other.Position, me.Position);
+                    if (dsq > bestSq || (dsq == bestSq && j > best)) continue;
+                    if (!FormationCombatRules.Accepts(ctx, formationRules, me.Position, other.Position, reach)) continue;
                     if (dsq < bestSq || (dsq == bestSq && j < best))
                     {
                         bestSq = dsq;

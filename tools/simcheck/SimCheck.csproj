@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Compiles game/Assets/_Project/Scripts/Sim and the Unity-free EditMode tests against UnityStubs.cs. -->
+  <!-- Compiles game/Assets/_Project/Scripts/Sim, the combat and formation definitions and the EditMode tests that
+       need no scene or asset against UnityStubs.cs and UnityEngineStubs.cs. -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -19,8 +20,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UnityStubs.cs" />
+    <Compile Include="UnityEngineStubs.cs" />
     <Compile Include="$(Game)_Project/Scripts/Sim/**/*.cs" />
-    <!-- Tests without UnityEngine / ScriptableObjects -->
+    <!-- Definitions the test setups build combat tables and formation settings from -->
+    <Compile Include="$(Game)_Project/Scripts/Data/AttackDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/WeaponDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/CombatTuningDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/BotRosterDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/CombatDatabase.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/FormationDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/AgentMovementDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/ISimScenario.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/DuelScenarioDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/SandboxScenarioDefinition.cs" />
+    <!-- Tests (ScriptableObjects are plain objects here) -->
     <Compile Include="$(Game)Tests/EditMode/TestScenarios.cs" />
     <Compile Include="$(Game)Tests/EditMode/SimCoreTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/DeterminismTests.cs" />
@@ -28,5 +41,13 @@
     <Compile Include="$(Game)Tests/EditMode/AgentTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/FormationTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/NavTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/FormationBehaviorTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/FormationCombatTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/TestCombat.cs" />
+    <Compile Include="$(Game)Tests/EditMode/CombatTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/CombatVerbTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/TwoHandTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/AttackTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/SandboxScenarioTests.cs" />
   </ItemGroup>
 </Project>

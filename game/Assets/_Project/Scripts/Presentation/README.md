@@ -5,8 +5,8 @@ Zeigt die Sim, ändert sie aber nie direkt: alles, was den Spielzustand beeinflu
 | Datei / Ordner | Inhalt |
 |---|---|
 | `SimRunner.cs` | treibt die Sim mit festen 60 Hz aus einem `ISimScenario`, interpoliert, Pause, Zeitlupe (auch kurz bei Kills), Hitstop, Neustart |
-| `AgentRenderer.cs` | zeichnet viele Soldaten per Instancing (Sandbox, ohne Kampf-Posen) |
-| `CombatFigureRenderer.cs` | Kämpfer als Figuren: Waffe folgt der Sim-Waffenbahn, Arme per IK an Schwert und Schild bzw. beide Hände am Zweihänder, Neigung, Haltung nach Leben, Stun, Tod weg vom Angreifer |
+| `AgentRenderer.cs` | zeichnet viele Soldaten per Instancing (ohne Kampf-Posen, Tote liegen); wer schon als Kampf-Figur gezeigt wird, bekommt hier nur seinen Auswahlring |
+| `CombatFigureRenderer.cs` | Kämpfer als Figuren (die ersten `maxFigures` Agenten; Duell und Sandbox): Waffe folgt der Sim-Waffenbahn, Arme per IK an Schwert und Schild bzw. beide Hände am Zweihänder, Neigung, Haltung nach Leben, Stun, Tod weg vom Angreifer |
 | `AgentSelection.cs` | ausgewählte Soldaten (reiner UI-Zustand, nicht in der Sim) |
 | `Menu/` | `MainMenu` (erste Szene: Modi, Duell-Setup), `PauseMenu` (Esc), `ControlsPage` (Tasten ändern), `OptionsPage`, `GameSettings` (PlayerPrefs), `DuelLaunch` (Menüwahl → Duell), `DuelSetupPage` (Setup-Seite, im Hauptmenü und nach dem Kampf) |
 | `Admin/` | F1-Menü, Pause, Eingabe-Zugriff (`GameInput`), Build-Smoke-Test (`AutoScreenshot`) |

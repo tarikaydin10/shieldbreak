@@ -24,38 +24,45 @@ namespace Shieldbreak.Tests
             var created = new List<Object>();
             try
             {
-                var oneHand = ScriptableObject.CreateInstance<WeaponDefinition>();
-                created.Add(oneHand);
-                for (int d = 0; d < AttackDirection.Count; d++)
-                {
-                    var attack = ScriptableObject.CreateInstance<AttackDefinition>();
-                    attack.ApplyDefaults(d);
-                    oneHand.attacks[d] = attack;
-                    created.Add(attack);
-                }
-                var twoHand = ScriptableObject.CreateInstance<WeaponDefinition>();
-                created.Add(twoHand);
-                twoHand.ApplyTwoHandDefaults();
-                for (int d = 0; d < AttackDirection.Count; d++)
-                {
-                    var attack = ScriptableObject.CreateInstance<AttackDefinition>();
-                    attack.ApplyTwoHandDefaults(d);
-                    twoHand.attacks[d] = attack;
-                    created.Add(attack);
-                }
-                twoHand.specialAttack = ScriptableObject.CreateInstance<AttackDefinition>();
-                twoHand.specialAttack.ApplyLeapDefaults();
-                created.Add(twoHand.specialAttack);
-
-                var tuning = ScriptableObject.CreateInstance<CombatTuningDefinition>();
-                created.Add(tuning);
+                var weapons = Weapons(created, out var tuning);
                 tune?.Invoke(tuning);
-                return CombatDatabase.Build(new[] { oneHand, twoHand }, tuning, null, Allocator.Persistent);
+                return CombatDatabase.Build(weapons, tuning, null, Allocator.Persistent);
             }
             finally
             {
                 foreach (var o in created) Object.DestroyImmediate(o);
             }
+        }
+
+        /// <summary>The weapon and tuning definitions behind Setup; every created object is added to <paramref name="created"/> for cleanup.</summary>
+        public static WeaponDefinition[] Weapons(List<Object> created, out CombatTuningDefinition tuning)
+        {
+            var oneHand = ScriptableObject.CreateInstance<WeaponDefinition>();
+            created.Add(oneHand);
+            for (int d = 0; d < AttackDirection.Count; d++)
+            {
+                var attack = ScriptableObject.CreateInstance<AttackDefinition>();
+                attack.ApplyDefaults(d);
+                oneHand.attacks[d] = attack;
+                created.Add(attack);
+            }
+            var twoHand = ScriptableObject.CreateInstance<WeaponDefinition>();
+            created.Add(twoHand);
+            twoHand.ApplyTwoHandDefaults();
+            for (int d = 0; d < AttackDirection.Count; d++)
+            {
+                var attack = ScriptableObject.CreateInstance<AttackDefinition>();
+                attack.ApplyTwoHandDefaults(d);
+                twoHand.attacks[d] = attack;
+                created.Add(attack);
+            }
+            twoHand.specialAttack = ScriptableObject.CreateInstance<AttackDefinition>();
+            twoHand.specialAttack.ApplyLeapDefaults();
+            created.Add(twoHand.specialAttack);
+
+            tuning = ScriptableObject.CreateInstance<CombatTuningDefinition>();
+            created.Add(tuning);
+            return new[] { oneHand, twoHand };
         }
 
         public static SimWorld World(CombatSetup setup, int maxAgents, int size = 32, ulong seed = 1) =>

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using Shieldbreak.Data;
 using Shieldbreak.Sim.Core;
@@ -36,6 +37,7 @@ namespace Shieldbreak.Tests
                 using var world = new SimWorld(s.ToConfig(movement.ToSettings()));
                 s.Spawn(world);
                 Assert.That(world.AgentCount, Is.EqualTo(23));
+                Assert.That(world.HasCombat, Is.False, "no weapons: the soldiers only march");
                 Assert.That(world.Formations.Length, Is.EqualTo(2), "two formations, one loose group");
                 Assert.That(world.Formations[1].Type, Is.EqualTo(FormationType.Wedge));
                 for (int i = 0; i < world.AgentCount; i++)
@@ -51,6 +53,37 @@ namespace Shieldbreak.Tests
             {
                 Object.DestroyImmediate(s);
                 Object.DestroyImmediate(movement);
+            }
+        }
+
+        [Test]
+        public void WithWeapons_SoldiersFightAsBotsOfTheirGroup()
+        {
+            var s = Scenario();
+            var movement = ScriptableObject.CreateInstance<AgentMovementDefinition>();
+            var created = new List<Object>();
+            try
+            {
+                s.weapons = TestCombat.Weapons(created, out var tuning);
+                s.combatTuning = tuning;
+                s.groups[0].botLevel = 5;
+                s.groups[1].weapon = TestCombat.TwoHand;
+                s.groups[2].botLevel = 0;
+                using var world = s.CreateWorld(movement.ToSettings(), out int player);
+                Assert.That(player, Is.EqualTo(-1));
+                Assert.That(world.HasCombat);
+                for (int i = 0; i < world.AgentCount; i++)
+                {
+                    var c = world.Combat[i];
+                    Assert.That(c.BotProfile, Is.EqualTo(i < 12 ? 5 : i < 19 ? 3 : 0), $"agent {i}: group level, default 3, 0 = does not fight");
+                    Assert.That(c.WeaponId, Is.EqualTo(i >= 12 && i < 19 ? TestCombat.TwoHand : TestCombat.OneHand), $"agent {i}");
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(s);
+                Object.DestroyImmediate(movement);
+                foreach (var o in created) Object.DestroyImmediate(o);
             }
         }
 

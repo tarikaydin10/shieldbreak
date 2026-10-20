@@ -47,6 +47,19 @@ Der Held trägt ein Loadout (bis 4 Slots, Tasten 1–4). Ein gezogener Zweihänd
 
 ![Held mit Zweihänder gegen Schildträger](../../../../../../docs/screenshots/m1_twohand.jpg)
 
+## Kampf in Formation (`Context/FormationCombatRules`, Schicht D)
+
+Regeln über der Grammatik, nie in ihr: Bots in einer Formation reagieren, blocken und schlagen genau wie allein (gleiche Reaktionszeit, gleiche Fehlerquote), die Formation legt nur fest, **wen** sie bekämpfen und **wie weit** sie dafür ihren Platz verlassen.
+
+| Verhalten der Formation | Soldaten |
+|---|---|
+| Halten, Vorrücken, Folgen | bleiben an der Leine: höchstens 2 m vom Slot weg; Gegner nur im 120°-Bogen vor der Front, von hinten und der Seite nur, wer näher als 1,6 m kommt; kein Sprint |
+| Angriff | frei wie im Duell (keine Leine, sprinten) |
+| Rückzug | kämpfen nicht, suchen kein Ziel |
+| Typ Schildwall | antwortet auf einen gesehenen Angriff mit dem Schild statt mit einem Ausweichschritt aus der Wand |
+
+Ein dauerhaft erhobener Schild im Schildwall wurde ausprobiert und verworfen: Der Schildstoß bricht jeden erhobenen Block, und unter erhobenem Schild lädt die Ausdauer nicht nach (Ergebnisse in `DECISIONS.md`, 2026-10-20). Alle Werte stehen im `FormationDefinition`.
+
 ## Ordner
 
 | Ordner | Inhalt |
@@ -54,6 +67,7 @@ Der Held trägt ein Loadout (bis 4 Slots, Tasten 1–4). Ein gezogener Zweihänd
 | `Grammar/` | Zustände, Ereignisse, Regeln (`CombatTuning`), Bot-Profile, Phasen-Timing |
 | `Archetypes/` | `WeaponData`, `AttackData`, `CombatSetup` (alle Tabellen) |
 | `Resolvers/` | `WeaponPath` (Waffenbahn aus Keyframes), `SwingTrace` (Geometrie, Durchdringung) |
+| `Context/` | `FormationCombatRules`: Leine, Frontbogen, Selbstverteidigung, Schildwall, Angriff, Rückzug |
 | `CombatSystem.cs` | der Kampf-Job, ein Tick in Agenten-Reihenfolge |
 
-Werte (Schaden, Fenster, Stamina, Bot-Stufen) kommen aus ScriptableObjects in `Scripts/Data`. Tests: `CombatTests`, `CombatVerbTests`, `TwoHandTests`, `AttackTests`. Papier-Test gegen Bogen und Lanze: [docs/combat](../../../../../../docs/combat/papier-test-bogen-lanze.md).
+Werte (Schaden, Fenster, Stamina, Bot-Stufen) kommen aus ScriptableObjects in `Scripts/Data`. Tests: `CombatTests`, `CombatVerbTests`, `TwoHandTests`, `AttackTests`, `FormationCombatTests`. Papier-Test gegen Bogen und Lanze: [docs/combat](../../../../../../docs/combat/papier-test-bogen-lanze.md).
