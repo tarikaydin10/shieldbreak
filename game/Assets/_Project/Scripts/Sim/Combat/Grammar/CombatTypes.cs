@@ -123,6 +123,10 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int SpecialStart = 8;
         public const int WeaponSwitch = 9;
         public const int Jump = 10;
+        /// <summary>Morale broke: Target starts to flee (Sim/Morale).</summary>
+        public const int Rout = 11;
+        /// <summary>A fleeing soldier left the field at the map edge.</summary>
+        public const int Fled = 12;
     }
 
     /// <summary>What happened in a tick, for presentation (hitstop, sounds, effects) and tests. Not part of the hash.</summary>

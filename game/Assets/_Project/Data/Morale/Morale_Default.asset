@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aefef521301e416bbe27947fe3d282a9, type: 3}
+  m_Name: Morale_Default
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.MoraleDefinition
+  enabled: 1
+  fieldIntervalMs: 50
+  diffusion: 1.5
+  decay: 0.3
+  deathPanic: 1
+  flankHitPanic: 0.3
+  frontArcDeg: 120
+  killCourage: 0.5
+  routPanicPerSecond: 0.3
+  leaderRadius: 8
+  leaderCalm: 0.5
+  panicDrain: 5
+  formationSteadiness: 0.7
+  calmPanic: 0.02
+  recoveryPerSecond: 0.02
+  routThreshold: 0.25
+  fleeSenseRange: 8
+  edgeMargin: 1

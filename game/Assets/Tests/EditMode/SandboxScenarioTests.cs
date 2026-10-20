@@ -38,6 +38,7 @@ namespace Shieldbreak.Tests
                 s.Spawn(world);
                 Assert.That(world.AgentCount, Is.EqualTo(23));
                 Assert.That(world.HasCombat, Is.False, "no weapons: the soldiers only march");
+                Assert.That(world.HasMorale, Is.False, "no morale asset: nobody breaks");
                 Assert.That(world.Formations.Length, Is.EqualTo(2), "two formations, one loose group");
                 Assert.That(world.Formations[1].Type, Is.EqualTo(FormationType.Wedge));
                 for (int i = 0; i < world.AgentCount; i++)
@@ -57,7 +58,7 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
-        public void WithWeapons_SoldiersFightAsBotsOfTheirGroup()
+        public void WithWeaponsAndMorale_SoldiersFightAsBotsOfTheirGroup_AndCanBreak()
         {
             var s = Scenario();
             var movement = ScriptableObject.CreateInstance<AgentMovementDefinition>();
@@ -66,12 +67,16 @@ namespace Shieldbreak.Tests
             {
                 s.weapons = TestCombat.Weapons(created, out var tuning);
                 s.combatTuning = tuning;
+                s.morale = ScriptableObject.CreateInstance<MoraleDefinition>();
+                created.Add(s.morale);
                 s.groups[0].botLevel = 5;
                 s.groups[1].weapon = TestCombat.TwoHand;
                 s.groups[2].botLevel = 0;
                 using var world = s.CreateWorld(movement.ToSettings(), out int player);
                 Assert.That(player, Is.EqualTo(-1));
                 Assert.That(world.HasCombat);
+                Assert.That(world.HasMorale);
+                Assert.That(world.MoraleSettings.FieldIntervalTicks, Is.EqualTo(3), "50 ms at 60 Hz");
                 for (int i = 0; i < world.AgentCount; i++)
                 {
                     var c = world.Combat[i];

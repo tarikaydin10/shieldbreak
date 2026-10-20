@@ -74,6 +74,8 @@ namespace Shieldbreak.Data
         public CombatTuningDefinition combatTuning;
         [Tooltip("Bot levels; empty = defaults.")]
         public BotRosterDefinition roster;
+        [Tooltip("Panic, morale and rout; empty = soldiers never break.")]
+        public MoraleDefinition morale;
 
         public bool HasCombat => weapons != null && weapons.Length > 0 && combatTuning != null;
         public SpawnGroup[] groups = Array.Empty<SpawnGroup>();
@@ -112,6 +114,7 @@ namespace Shieldbreak.Data
             Movement = movement,
             MaxFormations = FormationCount,
             Formations = BuildFormationSettings(),
+            Morale = morale != null ? morale.ToSettings() : default,
         };
 
         FormationSettings BuildFormationSettings()

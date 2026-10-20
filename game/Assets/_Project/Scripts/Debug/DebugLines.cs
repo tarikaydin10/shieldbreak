@@ -5,13 +5,27 @@ namespace Shieldbreak.DebugTools
 {
     /// <summary>
     /// Immediate-mode GL lines on the ground for debug views. Call Begin, then Line/Cross/Arrow, then End, from a
-    /// RenderPipelineManager.endCameraRendering callback. Drawn on top of everything (bumpy ground never hides them).
+    /// RenderPipelineManager.endCameraRendering callback (BeginQuads, Quad, End for filled cells). Drawn on top of
+    /// everything (bumpy ground never hides them).
     /// </summary>
     public static class DebugLines
     {
         static Material material;
 
-        public static void Begin()
+        public static void Begin() => Begin(GL.LINES);
+
+        /// <summary>Filled quads (heat maps); Quad takes four corners in order.</summary>
+        public static void BeginQuads() => Begin(GL.QUADS);
+
+        public static void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        {
+            GL.Vertex(a);
+            GL.Vertex(b);
+            GL.Vertex(c);
+            GL.Vertex(d);
+        }
+
+        static void Begin(int mode)
         {
             if (material == null)
             {
@@ -25,7 +39,7 @@ namespace Shieldbreak.DebugTools
             material.SetPass(0);
             GL.PushMatrix();
             GL.MultMatrix(Matrix4x4.identity);
-            GL.Begin(GL.LINES);
+            GL.Begin(mode);
         }
 
         public static void End()

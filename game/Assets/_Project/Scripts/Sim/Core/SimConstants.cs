@@ -12,6 +12,9 @@ namespace Shieldbreak.Sim.Core
         /// <summary>Upper bound for player ids; sizes per-player bookkeeping arrays.</summary>
         public const int MaxPlayers = 8;
 
+        /// <summary>Teams that have their own morale field (0 = A, 1 = B). Agents of other teams feel no panic.</summary>
+        public const int MaxTeams = 2;
+
         /// <summary>Edge length of a WorldGrid cell in meters (navigation, spatial hash, morale field).</summary>
         public const float CellSize = 1f;
     }

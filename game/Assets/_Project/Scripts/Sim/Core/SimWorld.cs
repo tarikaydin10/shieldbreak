@@ -7,6 +7,7 @@ using Shieldbreak.Sim.Combat.Archetypes;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Formations;
 using Shieldbreak.Sim.Grid;
+using Shieldbreak.Sim.Morale;
 using Shieldbreak.Sim.Orders;
 
 namespace Shieldbreak.Sim.Core
@@ -26,6 +27,8 @@ namespace Shieldbreak.Sim.Core
         /// <summary>Capacity of the formation array (0 = no formations).</summary>
         public int MaxFormations;
         public FormationSettings Formations;
+        /// <summary>Panic field, morale and rout; Enabled = 0 turns them off (duel).</summary>
+        public MoraleSettings Morale;
     }
 
     /// <summary>
@@ -61,6 +64,7 @@ namespace Shieldbreak.Sim.Core
         NativeList<CombatEvent> events;
         readonly CombatSetup combatSetup;
         readonly FormationSystem formations;
+        readonly MoraleSystem morale;
 
         /// <param name="combatSetup">Weapons, attacks and rules; copied, so the caller keeps ownership. Null = no combat.</param>
         public SimWorld(SimConfig config, CombatSetup combatSetup = null)
@@ -93,6 +97,7 @@ namespace Shieldbreak.Sim.Core
 
             this.combatSetup = Copy(combatSetup);
             formations = new FormationSystem(config.MaxFormations, config.MaxAgents, config.Formations, config.Movement, Grid);
+            morale = new MoraleSystem(config.MaxAgents, config.Morale, Grid);
         }
 
         static CombatSetup Copy(CombatSetup source)
@@ -131,6 +136,12 @@ namespace Shieldbreak.Sim.Core
 
         public FormationSettings FormationSettings => formations.Settings;
 
+        /// <summary>Morale per agent (same index as Agents). Valid until the next Step.</summary>
+        public NativeArray<MoraleData>.ReadOnly Morale => morale.Agents(AgentCount);
+
+        public MoraleSettings MoraleSettings => morale.Settings;
+        public bool HasMorale => morale.Enabled;
+
         /// <summary>Remaining waypoints of a formation's path (debug overlay, command view). Valid until the next Step.</summary>
         public NativeArray<float2>.ReadOnly FormationPath(int formationId) => formations.RemainingPath(formationId);
 
@@ -139,6 +150,17 @@ namespace Shieldbreak.Sim.Core
         /// every peer must make the same calls. Marching formations replan on the next tick.
         /// </summary>
         public void SetNavCost(int2 minCell, int2 maxCell, byte cost) => Grid.SetCost(minCell, maxCell, cost);
+
+        /// <summary>
+        /// Adds panic (negative = confidence) for <paramref name="team"/> in the cell at <paramref name="position"/>.
+        /// Scenario setup before tick 0 (an army that starts shaken) and tests; every peer must make the same calls.
+        /// </summary>
+        public void AddPanic(int team, float2 position, float amount)
+        {
+            if ((uint)team >= SimConstants.MaxTeams || !math.all(math.isfinite(position)) || !math.isfinite(amount)) throw new ArgumentOutOfRangeException(nameof(team));
+            int index = Grid.PanicIndex(team, Grid.Layout.ClampedCellIndex(position));
+            Grid.Panic[index] += amount;
+        }
 
         /// <summary>Spatial hash from the last Step, for debug overlays.</summary>
         public SpatialHash Spatial => spatial;
@@ -321,6 +343,7 @@ namespace Shieldbreak.Sim.Core
             AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement, Grid.NavCost);
             CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch,
                 formations.FormationBuffer, formations.MemberBuffer, formations.Settings);
+            morale.Step(Tick, agents, combat, AgentCount, events, spatial, playerAgent, formations.FormationBuffer, formations.MemberBuffer);
 
             Tick++;
         }
@@ -464,6 +487,8 @@ namespace Shieldbreak.Sim.Core
             h.Add(playerSprint);
             h.Add(formations.Count);
             formations.AddToHash(ref h, AgentCount);
+            h.Add(Grid.Panic);
+            morale.AddToHash(ref h, AgentCount);
             return h.Value;
         }
 
@@ -474,6 +499,7 @@ namespace Shieldbreak.Sim.Core
             spatial.Dispose();
             combatSetup.Dispose();
             formations.Dispose();
+            morale.Dispose();
             if (tickInputs.IsCreated) tickInputs.Dispose();
             if (nextSequence.IsCreated) nextSequence.Dispose();
             if (playerAgent.IsCreated) playerAgent.Dispose();

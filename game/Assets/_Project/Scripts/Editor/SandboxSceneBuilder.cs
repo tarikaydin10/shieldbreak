@@ -16,7 +16,7 @@ namespace Shieldbreak.EditorTools
 {
     /// <summary>
     /// Builds Scenes/M0_Sandbox.unity (debug top-down view, soldiers, selection, formation and move orders, 20 against
-    /// 20 with the duel's weapons) plus its data assets. Existing assets are kept so tuning survives a rebuild; the
+    /// 20 with the duel's weapons and morale) plus its data assets. Existing assets are kept so tuning survives a rebuild; the
     /// scene is only overwritten after asking.
     /// </summary>
     public static class SandboxSceneBuilder
@@ -26,6 +26,7 @@ namespace Shieldbreak.EditorTools
         const string SandboxPath = "Assets/_Project/Data/Scenarios/Sandbox_20v20.asset";
         const string StressPath = "Assets/_Project/Data/Scenarios/Stress_250v250.asset";
         const string FormationPath = "Assets/_Project/Data/Formations/Formation_Default.asset";
+        const string MoralePath = "Assets/_Project/Data/Morale/Morale_Default.asset";
         const string OneHandPath = "Assets/_Project/Data/Weapons/Weapon_OneHandShield.asset";
         const string TwoHandPath = "Assets/_Project/Data/Weapons/Weapon_TwoHand.asset";
         const string TuningPath = "Assets/_Project/Data/Combat/CombatTuning_Mittel.asset";
@@ -53,8 +54,14 @@ namespace Shieldbreak.EditorTools
                 s.formation = formation;
             });
             LoadOrCreate<SandboxScenarioDefinition>(StressPath, FillStress);
-            // The 20v20 fights with the duel's weapons once they exist (the duel builder creates them)
+            // The 20v20 fights with the duel's weapons once they exist (the duel builder creates them), and breaks
+            var morale = LoadOrCreate<MoraleDefinition>(MoralePath, _ => { });
             if (!sandbox.HasCombat && FillCombat(sandbox)) EditorUtility.SetDirty(sandbox);
+            if (sandbox.morale == null)
+            {
+                sandbox.morale = morale;
+                EditorUtility.SetDirty(sandbox);
+            }
 
             var teamASel = LitMaterial("M_Agent_TeamA_Selected", "#E0664B", emission: 0.35f);
             var teamBSel = LitMaterial("M_Agent_TeamB_Selected", "#5E92D6", emission: 0.35f);

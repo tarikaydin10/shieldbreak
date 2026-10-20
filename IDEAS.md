@@ -31,6 +31,9 @@ Regel: Neue Ideen landen hier, nicht im Sprint. Bewertung (Wert / Risiko / Aufwa
 - Wetter mit Wirkung (Regen: Bogen-Reichweite −, Schlamm: Kav-Speed −)
 - Nachschlachtbericht als Replay mit Zeitstrahl (Replays sind durch Determinismus gratis)
 - Captain-Mechanik: Formation ohne Captain verliert Moral-Senke
+- **Sammeln nach der Flucht** (aus M2 Task 5): Fliehende, die weit genug vom Feind weg sind und wieder Mut fassen, sammeln sich und kehren zurück (am Banner oder beim Helden). v1: wer flieht, verlässt das Feld
+- **Moral pro Truppentyp**: Veteranen oder Elite brechen später (eigener Faktor auf den Moral-Verlust); hängt an der Progressions-Entscheidung
+- **Kämpfender Rückzug**: Formation weicht rückwärts mit Front zum Feind (aus M2 Task 4, heute dreht der Rückzug dem Feind den Rücken zu)
 
 ## Meta (frühestens nach Setting-Entscheidung)
 

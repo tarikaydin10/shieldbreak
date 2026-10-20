@@ -7,7 +7,12 @@ namespace Shieldbreak.Sim.Agents
 {
     public static class AgentFlags
     {
+        /// <summary>No longer on the field: killed, or fled over the map edge (then Fled is set too).</summary>
         public const int Dead = 1 << 0;
+        /// <summary>Morale broke: the soldier runs from the enemy and no longer fights (Sim/Morale).</summary>
+        public const int Routing = 1 << 1;
+        /// <summary>Left the field at the map edge while routing; also Dead, so every system ignores it.</summary>
+        public const int Fled = 1 << 2;
     }
 
     /// <summary>
@@ -40,6 +45,8 @@ namespace Shieldbreak.Sim.Agents
         public const int FaceFixed = -2;
 
         public bool IsDead => (Flags & AgentFlags.Dead) != 0;
+        public bool IsRouting => (Flags & AgentFlags.Routing) != 0;
+        public bool HasFled => (Flags & AgentFlags.Fled) != 0;
     }
 
     /// <summary>

@@ -25,6 +25,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f897d33dd8b3bad4fb9c058e406a1b7b, type: 2}
   combatTuning: {fileID: 11400000, guid: 11d7b1dc0de997d49b4379fe4034cffc, type: 2}
   roster: {fileID: 11400000, guid: 50d1c94144ec20f4da5d2d9a64a39b87, type: 2}
+  morale: {fileID: 11400000, guid: 5b1b1f6f611648b899c8fd3d3241bf82, type: 2}
   groups:
   - name: A Linie
     team: 0

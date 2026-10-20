@@ -164,6 +164,10 @@
       "text": "Formationen (Slots, Anker, Ziel, Typ) ein/aus"
     },
     {
+      "action": "DebugOverlay/ToggleMorale",
+      "text": "Moral ein/aus: Panik-Feld pro Team (rot/lila, Zuversicht grün), Moral-Balken pro Soldat, Fliehende mit orangem Ring"
+    },
+    {
       "action": "ProtoCamera/View1",
       "text": "Kamera-Ansicht 1 (Name in der Statuszeile Kamera)"
     },

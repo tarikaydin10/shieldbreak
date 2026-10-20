@@ -190,10 +190,11 @@ namespace Shieldbreak.Sim.Formations
         {
             if (formationCount == 0) return;
 
+            // The dead and the routing (Sim/Morale) leave their formation; it closes the gaps
             for (int i = 0; i < agentCount; i++)
             {
                 var m = members[i];
-                if (m.Formation < 0 || !agents[i].IsDead) continue;
+                if (m.Formation < 0 || !(agents[i].IsDead || agents[i].IsRouting)) continue;
                 var f = formations[m.Formation];
                 f.MemberCount--;
                 if (f.Reform == FormationData.ReformNone)
@@ -383,7 +384,7 @@ namespace Shieldbreak.Sim.Formations
 
         /// <summary>
         /// The enemy this formation goes for: the formation with the nearest anchor (lowest id on ties), else the
-        /// nearest enemy soldier outside formations. <paramref name="aim"/> is where to head (the enemy's centre),
+        /// nearest enemy soldier outside formations that still fights (not routing). <paramref name="aim"/> is where to head (the enemy's centre),
         /// <paramref name="contact"/> how far along that direction its nearest soldier stands from the anchor.
         /// </summary>
         bool FindEnemy(in FormationData f, NativeArray<AgentData> agents, int agentCount, out float2 aim, out float contact)
@@ -431,7 +432,7 @@ namespace Shieldbreak.Sim.Formations
             for (int i = 0; i < agentCount; i++)
             {
                 var a = agents[i];
-                if (a.IsDead || a.Team == f.Team) continue;
+                if (a.IsDead || a.IsRouting || a.Team == f.Team) continue;
                 float dsq = math.distancesq(a.Position, f.Position);
                 if (dsq < bestSq)
                 {

@@ -9,6 +9,7 @@ Tunebare Werte als ScriptableObject-Assets. Im Inspector ändern, Play drücken;
 | `Attacks/` | `OneHand_Overhead/Left/Right/Thrust`, `TwoHand_Overhead/Left/Right/Thrust/Leap`, `Attack_OneHand_Overhead` (Hieb-Prototyp) |
 | `Weapons/` | `Weapon_OneHandShield`, `Weapon_TwoHand` |
 | `Combat/` | Presets `CombatTuning_Schwer/Mittel/Toedlich`, `BotRoster_Default` (L1–L5) |
+| `Morale/` | `Morale_Default` (Panik, Moral, Rout; in der Sandbox aktiv, im Duell nicht) |
 | `Visuals/` | `SoldierVisual_Default` |
 
 Szenen-Builder legen fehlende Assets an, überschreiben aber nie bestehende Werte.

@@ -5,7 +5,7 @@ Werkzeuge für die Debug-Draufsicht (`M0_Sandbox`): auswählen, Befehle geben, s
 | Datei | Inhalt |
 |---|---|
 | `SandboxOrders` | Auswahl (Klick, Rahmen, Teams), Formationsbefehle (Klick = hinmarschieren, Ziehen = Frontlinie, 4–8 = Form, H/R/C/X = Halten, Vorrücken, Angriff, Rückzug) über `FormationOrder` und `FormationLinePlanner`; lose Soldaten bekommen Einzelziele wie in M0 |
-| `SimDebugOverlay` | Grid, Kartenrand, Gelände (gesperrt/teuer), Geschwindigkeiten, Ziele der Auswahl, Formationen (Slots, Anker mit Blickrichtung, geplanter Weg, Marschziel mit künftiger Front, Beschriftung: Typ · Soldaten · Verhalten) |
-| `DebugLines` | GL-Linien auf dem Boden (Linie, Kreuz, Pfeil), immer obenauf |
+| `SimDebugOverlay` | Grid, Kartenrand, Gelände (gesperrt/teuer), Geschwindigkeiten, Ziele der Auswahl, Formationen (Slots, Anker mit Blickrichtung, geplanter Weg, Marschziel mit künftiger Front, Beschriftung: Typ · Soldaten · Verhalten · Moral), Moral (M: Panik-Feld pro Team als Heatmap, Zuversicht grün, Moral-Balken pro Soldat, Fliehende mit orangem Ring) |
+| `DebugLines` | GL-Linien und gefüllte Zellen auf dem Boden (Linie, Kreuz, Pfeil, Viereck), immer obenauf |
 
 Jede Taste ist eine Action in den Maps `DebugOrders` und `DebugOverlay` (Beschreibung in `controls.de.json`, im Spiel unter F1).

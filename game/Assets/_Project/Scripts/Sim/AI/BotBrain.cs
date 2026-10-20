@@ -29,6 +29,18 @@ namespace Shieldbreak.Sim.AI
             var ctx = job.FormationContext(i);
             var formationRules = job.FormationRules;
 
+            // Routing (Sim/Morale): no target, no block, no attack; run (sprint while stamina lasts). The morale
+            // system sets where to.
+            if (me.IsRouting)
+            {
+                c.BotTarget = -1;
+                c.BotPlannedBlockTick = -1;
+                if (c.BlockHeld == 1) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
+                c.Sprinting = c.State == CombatState.Idle && c.Stamina > 0f ? 1 : 0;
+                c.RngState = rng.State;
+                return;
+            }
+
             // Target acquisition: periodic (staggered by id), when the current target is gone, or when the formation
             // no longer lets the bot fight it (out of the leash or the front arc, retreat)
             bool lost = c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead ||

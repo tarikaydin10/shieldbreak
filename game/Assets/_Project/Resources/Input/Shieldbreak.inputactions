@@ -945,6 +945,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleMorale",
+                    "type": "Button",
+                    "id": "97228c04-774c-444b-9b22-f3821460f4a7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -989,6 +998,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ToggleFormations",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5a6f81ae-7942-49dd-b6f1-e02ae4c86e86",
+                    "path": "<Keyboard>/m",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleMorale",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

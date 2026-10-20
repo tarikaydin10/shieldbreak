@@ -1,12 +1,14 @@
 using System;
 using Unity.Collections;
 using Unity.Mathematics;
+using Shieldbreak.Sim.Core;
 
 namespace Shieldbreak.Sim.Grid
 {
     /// <summary>
-    /// The one grid shared by navigation, spatial queries and (from M2) the morale field. Navigation cost lives
-    /// per cell and may change at runtime, which is how destruction will plug in later (CLAUDE.md 3.4).
+    /// The one grid shared by navigation, spatial queries and the morale field (CLAUDE.md 3.4). Navigation cost lives
+    /// per cell and may change at runtime, which is how destruction will plug in later. Panic is one value per cell
+    /// and team, spread and decayed by Sim/Morale.
     /// </summary>
     public sealed class WorldGrid : IDisposable
     {
@@ -15,12 +17,25 @@ namespace Shieldbreak.Sim.Grid
 
         public readonly GridLayout Layout;
         public NativeArray<byte> NavCost;
+        /// <summary>Panic per team and cell (negative = confidence): index PanicIndex(team, cell). Only Sim/Morale writes it.</summary>
+        public NativeArray<float> Panic;
 
         public WorldGrid(GridLayout layout, Allocator allocator)
         {
             Layout = layout;
             NavCost = new NativeArray<byte>(layout.CellCount, allocator, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < NavCost.Length; i++) NavCost[i] = DefaultCost;
+            Panic = new NativeArray<float>(layout.CellCount * SimConstants.MaxTeams, allocator);
+        }
+
+        public int PanicIndex(int team, int cell) => team * Layout.CellCount + cell;
+
+        /// <summary>Panic a soldier of <paramref name="team"/> feels at <paramref name="position"/> (0 outside the map or for other teams).</summary>
+        public float PanicAt(int team, float2 position)
+        {
+            int2 cell = Layout.WorldToCell(position);
+            if ((uint)team >= SimConstants.MaxTeams || !Layout.InBounds(cell)) return 0f;
+            return Panic[PanicIndex(team, Layout.CellIndex(cell))];
         }
 
         /// <summary>Bumped on every cost change, so derived data (clearance, planned paths) knows when to refresh.</summary>
@@ -46,6 +61,7 @@ namespace Shieldbreak.Sim.Grid
         public void Dispose()
         {
             if (NavCost.IsCreated) NavCost.Dispose();
+            if (Panic.IsCreated) Panic.Dispose();
         }
     }
 }

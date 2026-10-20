@@ -7,7 +7,7 @@ Kompiliert `Sim/`, die Kampf- und Formations-Definitionen aus `Data/` und die Ed
 | Tests laufen lassen | `tools/simcheck/run.sh` (braucht `dotnet` 8; auf Ubuntu: `apt-get install dotnet-sdk-8.0`) |
 | nur eine Klasse | `tools/simcheck/run.sh --filter FormationTests` |
 
-Dabei: Sim-Kern, Determinismus, Grid, Agenten, Formationen, Verhalten, Wege, alle Kampf-Tests (Duell, Verben, Zweihänder, Angriffe, Kampf in Formation), Sandbox-Szenario. Übersprungen wird nur ein Test, der ein echtes Projekt-Asset lädt.
+Dabei: Sim-Kern, Determinismus, Grid, Agenten, Formationen, Verhalten, Wege, alle Kampf-Tests (Duell, Verben, Zweihänder, Angriffe, Kampf in Formation), Moral, Sandbox-Szenario. Übersprungen wird nur ein Test, der ein echtes Projekt-Asset lädt.
 
 | Datei | Inhalt |
 |---|---|

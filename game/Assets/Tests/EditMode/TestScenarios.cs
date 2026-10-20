@@ -1,6 +1,7 @@
 using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Core;
 using Shieldbreak.Sim.Formations;
+using Shieldbreak.Sim.Morale;
 using Unity.Mathematics;
 
 namespace Shieldbreak.Tests
@@ -49,6 +50,29 @@ namespace Shieldbreak.Tests
             FollowDistance = 4f,
             BehaviorIntervalTicks = 30,
             RetargetDistance = 2f,
+        };
+
+        /// <summary>Mirrors the MoraleDefinition defaults (Morale_Default).</summary>
+        public static MoraleSettings Morale => new MoraleSettings
+        {
+            Enabled = 1,
+            FieldIntervalTicks = 3,
+            Diffusion = 1.5f,
+            Decay = 0.3f,
+            DeathPanic = 1f,
+            FlankHitPanic = 0.3f,
+            FlankArcCos = 0.5f,
+            KillCourage = 0.5f,
+            RoutPanicPerSecond = 0.3f,
+            LeaderRadius = 8f,
+            LeaderCalm = 0.5f,
+            PanicDrain = 5f,
+            FormationSteadiness = 0.7f,
+            CalmPanic = 0.02f,
+            Recovery = 0.02f,
+            RoutThreshold = 0.25f,
+            FleeSenseRange = 8f,
+            EdgeMargin = 1f,
         };
 
         public static SimConfig Config(ulong seed, int size, int maxAgents) => new SimConfig

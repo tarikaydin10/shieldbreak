@@ -141,6 +141,9 @@ namespace Shieldbreak.Presentation
                 var a = agents[i];
                 var c = combat[i];
                 var f = figures[i];
+                // Fled soldiers (Sim/Morale) left the field
+                if (f.root.gameObject.activeSelf == a.HasFled) f.root.gameObject.SetActive(!a.HasFled);
+                if (a.HasFled) continue;
                 Vector3 pos = SimRunner.ToWorld(runner.InterpolatedPosition(i));
                 var facing = Quaternion.LookRotation(new Vector3(a.Facing.x, 0f, a.Facing.y), Vector3.up);
 

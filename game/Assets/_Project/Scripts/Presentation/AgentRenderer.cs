@@ -7,7 +7,7 @@ namespace Shieldbreak.Presentation
 {
     /// <summary>
     /// Draws every agent from the pipeline meshes in a SoldierVisualDefinition (body, helmet, shield, weapon) via
-    /// Graphics.RenderMeshInstanced, no GameObject per agent; the dead lie on the ground. Agents a CombatFigureRenderer
+    /// Graphics.RenderMeshInstanced, no GameObject per agent; the dead lie on the ground, the fled are gone. Agents a CombatFigureRenderer
     /// shows as fighting figures are skipped. Selected agents get a ring in their team colour. Positions are
     /// interpolated by the SimRunner.
     /// </summary>
@@ -56,6 +56,7 @@ namespace Shieldbreak.Presentation
             for (int i = 0; i < agents.Length; i++)
             {
                 var a = agents[i];
+                if (a.HasFled) continue;   // left the field
                 int team = Mathf.Clamp(a.Team, 0, Teams - 1);
                 Vector3 p = SimRunner.ToWorld(runner.InterpolatedPosition(i));
                 if (AgentSelection.IsSelected(i) && !a.IsDead)
