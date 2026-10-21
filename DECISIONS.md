@@ -229,6 +229,16 @@ Grundlage der Werte: 20 gegen 20, Linien, Bots L3, je 6–10 Seeds, ohne Unity m
 | Flankentreffer erschrecken nur wenig zusätzlich: 10 Mann von der Flanke statt von vorn kosten A mehr (B behält 14,7 statt 13,0 Kämpfer), das kommt aber vor allem aus dem Kampf selbst | Wert bleibt 0,3; mehr wäre eine Tuning-Entscheidung | – |
 | Moral ist pro Szenario an- oder abschaltbar (`MoraleDefinition` oder leer); das Duell bleibt ohne | Das Duell hat sein Fun-Gate bestanden; ein Bot, der im 1 gegen 3 nach dem ersten Toten flieht, ändert es | Moral überall |
 
+## 2026-10-21 — M2: Radialmenü und Kompanie-Szene
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Grundgerüst der Szene `M2_Company` (Held, zwei eigene Formationen, zwei vorrückende Bot-Formationen, Moral) aus Task 8 vor Task 6 gezogen (Tarik) | Das Radialmenü braucht einen Helden mit eigener Truppe; weder Duell noch Sandbox haben beides. Ergebnisbildschirm und Fun-Gate bleiben in Task 8 | Radialmenü zuerst nur in der Sandbox (Befehlslogik testbar, Gefühl im Kampf nicht) |
+| Radialmenü: Taste halten (F, Gamepad RB), mit Maus oder rechtem Stick zeigen, loslassen gibt den Befehl, Mitte bricht ab. Ziel per Mausrad (LB): alle eigenen Formationen oder eine. Acht Felder im Uhrzeigersinn ab oben: Vorrücken, Angriff, Folgen, Keil, Rückzug, Schildwall, Halten, Linie | Vorwärts oben, zurück unten, Formen links: merkbar und ohne Untermenü. F und RB liegen frei neben WASD bzw. am Zeigefinger; keine Kampftaste wird doppelt belegt. Kreis und lockere Ordnung (Kavallerie, Fernkampf) braucht es erst ab M3/M4, sie kommen über die Kommandoansicht | Untermenü „Form“ (zweiter Schritt kostet Zeit im Kampf), Zifferntasten (1–4 sind Waffen), Ziel über eigene Tasten |
+| Solange das Menü offen ist, läuft der Held weiter, schaut aber nicht herum und beginnt keine Aktion; ein gehaltener Block bleibt, Loslassen wirkt | CLAUDE.md Säule 2: „Hinschauen kostet Aufmerksamkeit und macht den Helden verwundbar“; die Maus wird fürs Zeigen gebraucht | Zeitlupe beim Radialmenü (nur für die Kommandoansicht vorgesehen) |
+| Feindliche Formationen der Kompanie bekommen ein Startverhalten (Vorrücken) als Szenario-Einstellung, nicht als Befehl | Ohne Commander-AI (M3) braucht der Feind einen Grund zu kommen; ein Startverhalten ist Szenario-Aufbau wie das Spawnen, auf allen Peers gleich | Feind steht still (kein Kampf ohne Spieler-Initiative) |
+| Der Held läuft wie im Duell mit 1,6-fachem Tempo der Liniensoldaten | Er ist ein Elite-Soldat (Säule 1) und muss seine Linie erreichen und verlassen können; das ist eine Held-Eigenschaft, kein AI-Cheat | Held so langsam wie die Linie |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

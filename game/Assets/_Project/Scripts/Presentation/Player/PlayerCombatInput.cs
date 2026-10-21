@@ -15,7 +15,8 @@ namespace Shieldbreak.Presentation.Player
     /// CombatAttack, CombatBlock press/release, CombatFeint, CombatStep, CombatSpecial, CombatSwitchWeapon. Two control schemes choose the attack direction:
     /// Simple (default): tap = light attack chaining right/left (thrust while walking forward), hold = heavy
     /// overhead, done by morphing the young windup. Directional: direction from the recent mouse movement.
-    /// The sim is the same for both; nothing here changes it directly.
+    /// The sim is the same for both; nothing here changes it directly. While the radial menu is open the hero keeps
+    /// walking but neither looks around nor starts an action (a held block can still be released).
     /// </summary>
     public class PlayerCombatInput : MonoBehaviour, IAdminStatus
     {
@@ -121,17 +122,22 @@ namespace Shieldbreak.Presentation.Player
 
             int agent = runner.PlayerAgent;
             float now = Time.unscaledTime;
+            // The radial menu takes the mouse (and the right stick): no looking around, no new actions
+            bool commanding = RadialMenu.IsOpen;
 
             // Look: mouse delta (counts) or stick (rate)
-            Vector2 delta = look.ReadValue<Vector2>();
-            bool stick = look.activeControl != null && look.activeControl.device is Gamepad;
-            Vector2 degrees = stick ? delta * (stickSensitivity * Time.unscaledDeltaTime) : delta * mouseSensitivity;
-            if (combatCamera != null)
+            if (!commanding)
             {
-                combatCamera.Yaw += degrees.x;
-                combatCamera.Pitch -= degrees.y;
+                Vector2 delta = look.ReadValue<Vector2>();
+                bool stick = look.activeControl != null && look.activeControl.device is Gamepad;
+                Vector2 degrees = stick ? delta * (stickSensitivity * Time.unscaledDeltaTime) : delta * mouseSensitivity;
+                if (combatCamera != null)
+                {
+                    combatCamera.Yaw += degrees.x;
+                    combatCamera.Pitch -= degrees.y;
+                }
+                recent.Enqueue((now, stick ? delta * 40f : delta));
             }
-            recent.Enqueue((now, stick ? delta * 40f : delta));
             while (recent.Count > 0 && now - recent.Peek().time > directionWindow) recent.Dequeue();
 
             // Walk relative to the camera, look along the camera
@@ -152,6 +158,13 @@ namespace Shieldbreak.Presentation.Player
                 lastSent = now;
             }
 
+            if (block.WasReleasedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatBlock, new int4(agent, 0, 0, 0));
+            if (commanding)
+            {
+                heavyPending = false;
+                return;
+            }
+
             if (scheme == Scheme.Simple) SimpleAttack(world, agent, m, now);
             else if (attack.WasPressedThisFrame())
             {
@@ -160,7 +173,6 @@ namespace Shieldbreak.Presentation.Player
             }
 
             if (block.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatBlock, new int4(agent, 1, 0, 0));
-            if (block.WasReleasedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatBlock, new int4(agent, 0, 0, 0));
             if (feint.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatFeint, new int4(agent, 0, 0, 0));
             if (special.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatSpecial, new int4(agent, 0, 0, 0));
             if (jump.WasPressedThisFrame()) world.Submit(LocalPlayer, InputCommandType.CombatJump, new int4(agent, 0, 0, 0));
@@ -180,8 +192,8 @@ namespace Shieldbreak.Presentation.Player
                     }
                 }
             }
-            weaponName = runner.scenario is DuelScenarioDefinition duel && own.WeaponId < duel.weapons.Length && duel.weapons[own.WeaponId] != null
-                ? duel.weapons[own.WeaponId].displayName : "";
+            var weapons = runner.scenario is DuelScenarioDefinition duel ? duel.weapons : runner.scenario is CompanyScenarioDefinition company ? company.weapons : null;
+            weaponName = weapons != null && own.WeaponId < weapons.Length && weapons[own.WeaponId] != null ? weapons[own.WeaponId].displayName : "";
             if (step.WasPressedThisFrame())
             {
                 // Step along the walk input relative to the view (the hero faces the camera direction); none = back

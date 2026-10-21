@@ -10,6 +10,10 @@
       "title": "Kampf"
     },
     {
+      "map": "Radial",
+      "title": "Befehle (Radialmenü)"
+    },
+    {
       "map": "Duel",
       "title": "Duell"
     },
@@ -306,6 +310,22 @@
     {
       "action": "Combat/Jump",
       "text": "Sprung: in der Luft nichts möglich, tiefe Hiebe verfehlen die Beine; kostet Ausdauer"
+    },
+    {
+      "action": "Radial/Open",
+      "text": "Gedrückt halten: Radialmenü für die eigenen Formationen (Halten, Vorrücken, Angriff, Folgen, Rückzug, Linie, Schildwall, Keil); loslassen gibt den Befehl, in der Mitte loslassen bricht ab. Die Zeit läuft weiter, der Held kann laufen, aber nicht schlagen"
+    },
+    {
+      "action": "Radial/Point",
+      "text": "Bei offenem Radialmenü: Befehl auswählen (Maus bewegen oder rechten Stick in die Richtung drücken)"
+    },
+    {
+      "action": "Radial/CycleTarget",
+      "text": "Bei offenem Radialmenü: Ziel wechseln (alle Formationen oder eine)"
+    },
+    {
+      "action": "Radial/NextTarget",
+      "text": "Bei offenem Radialmenü: nächstes Ziel (alle Formationen oder eine)"
     }
   ]
 }

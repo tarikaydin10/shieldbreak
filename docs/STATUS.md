@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-20**, Meilenstein **M2 Kompanie**, Task 5 von 8 fertig: Formationen haben Verhalten (Halten, Vorrücken, Angriff, Folgen, Rückzug), kämpfen aus der Formation, und Soldaten brechen (Panik-Feld, Moral, Rout und Flucht); die Sandbox ist ein Gefecht 20 gegen 20 (Task 4 und 5 in Unity noch nicht angesehen). **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-21**, Meilenstein **M2 Kompanie**, Task 6 von 8 fertig: Formationen haben Verhalten (Halten, Vorrücken, Angriff, Folgen, Rückzug), kämpfen aus der Formation, Soldaten brechen (Panik-Feld, Moral, Rout und Flucht), und der Held befiehlt seiner Kompanie über das **Radialmenü** aus dem Kampf heraus. Dafür ist das Grundgerüst der Szene `M2_Company` aus Task 8 vorgezogen. Die Sandbox ist ein Gefecht 20 gegen 20. (Task 4 bis 6 in Unity noch nicht angesehen.) **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
 
 ## Sofort spielen
 
@@ -9,7 +9,7 @@
 | Build | `.\sb.ps1 play` (baut, wenn nötig, und startet `builds\M1-duel\SHIELDBREAK.exe`; `-Fresh` baut immer neu). Startet im **Hauptmenü** |
 | Unity | `game/` im Unity Hub öffnen, Szene `Assets/_Project/Scenes/MainMenu` (oder direkt `M1_Duel`) öffnen, Play |
 
-**Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Sandbox, Prototypen, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
+**Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Kompanie (Vorschau), Sandbox, Prototypen, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
 **Im Duell:** Beim Start steht 4 s lang, was läuft (Preset · Gegner-Stufe · Anzahl · Waffe). Nach dem Kampf kommt ein Ergebnisbildschirm mit Statistik und drei Buttons: Nochmal, Anders einstellen, Hauptmenü. Leben = roter Bildrand (wächst mit dem Schaden), Ausdauer = dunkler Puls am Rand; Lebensbalken nur per F9.
 **Im Spiel:** **Esc** Pausemenü (Fortsetzen, Neu starten, Steuerung, Optionen, Hauptmenü), **F1** Status und Admin (alle Tasten, Szenenwechsel, FPS).
 
@@ -34,6 +34,19 @@
 
 ![Tutorial: geführtes Duell](screenshots/tutorial.jpg)
 ![Nach dem Kampf: Ergebnis, Statistik, Auswahl](screenshots/duel_result.jpg)
+
+## Kompanie mit Radialmenü (`M2_Company`, Vorschau)
+
+Hauptmenü → Kompanie. Der Held (Steuerung wie im Duell) steht zwischen seiner Linie (links) und seinem Schildwall (rechts), je 12 Bots Stufe 3. 36 m vor ihm stehen eine feindliche Linie und ein Keil, die sofort vorrücken; nach etwa einer halben Minute treffen sie aufeinander. Moral ist an: Wer bricht, flieht. Neustart über Esc → Neu starten.
+
+| Taste (Gamepad) | Aktion |
+|---|---|
+| F halten (RB) | **Radialmenü** öffnen. Die Zeit läuft weiter; der Held kann laufen, aber nicht schlagen, blocken oder sich umsehen |
+| Maus bewegen (rechter Stick) | Befehl wählen: oben Vorrücken, rechts oben Angriff, rechts Folgen (dem Helden), rechts unten Keil, unten Rückzug, links unten Schildwall, links Halten, links oben Linie |
+| F loslassen (RB) | Befehl geben; in der Mitte loslassen bricht ab |
+| Mausrad (LB) bei offenem Menü | Ziel wechseln: alle eigenen Formationen, Formation 1, Formation 2 |
+
+Der gegebene Befehl steht kurz oben im Bild; F1 zeigt Ziel, letzten Befehl und den Zustand beider Seiten. Noch nicht da (Task 7 und 8): Kommandoansicht, Ergebnisbildschirm, Commander-AI für den Feind (M3, er rückt nur vor).
 
 ## Formationen in der Sandbox (`M0_Sandbox`)
 
@@ -83,6 +96,8 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Formationen (M2) | Linie, Schildwall, Keil, Kreis, lockere Ordnung; Slots mit optimaler Zuordnung (kurze Wege, stabil), Marsch mit Zusammenhalt auf einem A*-Weg um Hindernisse (breite Fronten meiden enge Lücken), Schwenken und Umdrehen, Lücken schließen nach Verlusten; `FormationOrder` (Bewegen/Ausrichten, Form, Breite, Verhalten) über die `InputQueue`; Verhalten Halten, Vorrücken, Angriff, Folgen, Rückzug; Frontlinien-Planer für mehrere Formationen; in der Sandbox sichtbar und per Maus und Tasten befehligbar | `Scripts/Sim/Formations`, `Sim/Orders`, `Data/FormationDefinition`, `Debug/` |
 | Kampf in Formation (M2) | Leine um den Slot, Kampf nach vorn, Selbstverteidigung, Schildwall blockt statt auszuweichen, Angriff löst die Leine, Rückzug kämpft nicht; Bots spielen dabei unverändert ihre Stufe | [Sim/Combat/Context](../game/Assets/_Project/Scripts/Sim/Combat/README.md) |
 | Moral (M2) | Panik-Feld pro Team mit Diffusion (Zuversicht als negativer Wert), Quellen und Senken, Moral pro Soldat, Rout, Flucht bis zum Kartenrand; im Duell aus | `Scripts/Sim/Morale`, `Data/MoraleDefinition`, `Data/Morale/Morale_Default` |
+| Radialmenü (M2) | Schnellbefehle aus dem Kampf an alle eigenen Formationen oder eine: Halten, Vorrücken, Angriff, Folgen, Rückzug, Linie, Schildwall, Keil; als `FormationOrder` über die `InputQueue` | `Scripts/Presentation/Player/RadialMenu`, `Sim/Orders/QuickOrders` |
+| Kompanie (M2, Vorschau) | Held mit zwei eigenen Formationen gegen zwei vorrückende Bot-Formationen, mit Moral; Hitstop und Kamera-Kick wie im Duell | `Data/CompanyScenarioDefinition`, `Data/Scenarios/Company_M2`, `Scenes/M2_Company`, `Player/CompanyDirector` |
 | Bots | Stufen L1–L5 spielen dieselben Regeln, nur Reaktionszeit, Fehlerquote und Techniken unterscheiden sich; höchstens 2 greifen gleichzeitig an | `Scripts/Sim/AI` |
 | Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Leben als roter Rand und Ausdauer als dunkler Puls statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
 | Feel-Presets | Schwer, Mittel, Tödlich (alle Zahlen in ScriptableObjects) | `Data/Combat` |
@@ -96,10 +111,10 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (157, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (162, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2`. Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
-| Sim- und Kampf-Tests ohne Unity (Cloud, Linux) | `tools/simcheck/run.sh`: Sim, Definitionen und 149 Tests (alle Kampf-, Formations- und Moral-Tests) mit .NET 8, [Details](../tools/simcheck/README.md) |
+| Sim- und Kampf-Tests ohne Unity (Cloud, Linux) | `tools/simcheck/run.sh`: Sim, Definitionen und 154 Tests (alle Kampf-, Formations-, Moral- und Kompanie-Tests) mit .NET 8, [Details](../tools/simcheck/README.md) |
 
 **Von Hand prüfen (Rahmen):** Hauptmenü → Tutorial durchspielen (F12 überspringt), Esc-Menü öffnen, eine Taste umlegen und prüfen, dass sie nach Neustart gilt, Optionen ändern und im Duell merken.
 
@@ -108,6 +123,8 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 **Von Hand prüfen (Formationen, Sandbox):** eine Formation anklicken und rechts klicken (marschiert als Block, Linie bleibt Linie), eine Linie hinter die Truppe ziehen (dreht um, hinteres Glied wird Front), beide A-Formationen wählen und eine lange Linie ziehen (teilen sich die Linie, kein Kreuzen), 4–8 durchschalten (formt auf der Stelle um), eine Formation durch das Tor in der Mauer schicken (Weg im Overlay, alle kommen durch), eine breite Linie hinter den Fels ziehen (läuft außen herum).
 
 **Von Hand prüfen (Kampf, Sandbox):** 1 und R (Team A rückt vor, Team B hält): die Linien treffen sich, kämpfen, das zweite Glied rückt nach, die Formationen bleiben erkennbar. Dann 2 und C (Team B greift an): die blauen Soldaten lösen sich und stürmen. Eine Formation mitten im Kampf mit X zurückziehen: sie dreht ab, kämpft nicht mehr und steht 20 m weiter mit Front zum Feind. Läuft das flüssig (F1 zeigt FPS und Sim-Zeit)?
+
+**Von Hand prüfen (Radialmenü, Kompanie):** Hauptmenü → Kompanie. F halten, Maus nach oben, loslassen: beide Formationen rücken vor (Beschriftung oben im Bild). F halten, Mausrad, Maus nach links unten, loslassen: nur Formation 1 bildet einen Schildwall. Folgen geben und mit dem Helden weglaufen: die Truppe kommt nach. Mitten im Kampf F halten: Bleibt das Menü bedienbar, und fühlt es sich riskant an (der Held schlägt währenddessen nicht)? Ist F gut erreichbar, sind die Richtungen merkbar?
 
 **Von Hand prüfen (Moral, Sandbox):** 1 und R, dann 2 und R (beide rücken vor), M für das Moral-Overlay. Rote und lila Flecken entstehen, wo Soldaten fallen, grüne, wo sie siegen. Bricht eine Seite, bevor sie ausgelöscht ist? Laufen die Fliehenden sichtbar weg (oranger Ring) und verschwinden am Rand? Fühlt sich der Bruch verdient an, oder kommt er zu früh oder zu spät? Die Werte stehen in `Data/Morale/Morale_Default`.
 
@@ -126,7 +143,9 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - Kampf in der Sandbox: noch ohne Treffer-Effekte und Sounds (die gibt es im Duell), die Kamera bleibt die Draufsicht. Kommt mit Task 7 (Kommandoansicht) und 8 (`M2_Company`)
 - Rückzug ist ein einfacher Rückzug (Rücken zum Feind); kämpfender Rückzug steht in `IDEAS.md`
 - **Moral-Tuning (Tarik):** Wann bricht eine Seite? Startwerte und Messungen in `DECISIONS.md` 2026-10-20. Fliehende kommen in v1 nicht zurück (Sammeln steht in `IDEAS.md`). Flankentreffer erschrecken nur wenig zusätzlich (0,3); wer Flanken stärker spüren will, dreht dort
-- Moral wirkt nur in der Sandbox; Duell und Tutorial bleiben ohne
+- Moral wirkt in Sandbox und Kompanie; Duell und Tutorial bleiben ohne
+- **Radialmenü (Tarik):** Taste F und RB, Belegung der acht Richtungen und das Ziel per Mausrad sind ein erster Vorschlag (`DECISIONS.md` 2026-10-21). Kreis und lockere Ordnung fehlen im Ring (kommen über die Kommandoansicht)
+- Kompanie ist eine Vorschau: kein Ergebnisbildschirm, kein Menüpunkt „Nochmal“, der Feind hat keine Commander-AI (rückt nur vor). Die Szene ist von Hand aus Duell- und Sandbox-Szene zusammengesetzt; falls sie in Unity nicht lädt: Menü Shieldbreak → Build M2 Company Scene baut sie neu
 - Fliehende suchen keinen Weg um Mauern, sie weichen nur lokal aus und gleiten an der Wand entlang (wie alle Soldaten, CLAUDE.md 3.6)
 - Vorrücken und Angriff wählen die nächste feindliche Formation selbst; eine bestimmte Formation als Ziel kommt mit der Kommandoansicht
 - Formationen und Hindernisse: Beim Umformen laufen Soldaten geradeaus zum neuen Slot, ein Slot hinter einer Wand wird erst erreicht, wenn die Formation weiterzieht (nur lokales Steering, CLAUDE.md 3.6). Hindernisse sind nur im Overlay sichtbar (keine Meshes vor M4)
@@ -135,4 +154,4 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 ## Aktueller Meilenstein
 
-**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · ✅ 3 Formations-Pfad (A*) · ✅ 4 Verhalten + Kampf in Formation, 20 gegen 20 · ✅ 5 Moral und Rout · 6 Radialmenü · 7 Kommandoansicht · 8 Szene `M2_Company`, Build, Fun-Gate.
+**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · ✅ 3 Formations-Pfad (A*) · ✅ 4 Verhalten + Kampf in Formation, 20 gegen 20 · ✅ 5 Moral und Rout · ✅ 6 Radialmenü (mit vorgezogenem Grundgerüst von `M2_Company`) · 7 Kommandoansicht · 8 Szene `M2_Company` fertig (Ergebnisbildschirm), Build, Fun-Gate.

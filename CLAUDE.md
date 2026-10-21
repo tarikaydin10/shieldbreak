@@ -249,9 +249,9 @@ M0 und M1 sind abgeschlossen (Fun-Gates bestanden, M1 am 2026-10-19). Reihenfolg
 3. **Formations-Pfad** ✅ — `Nav/GridAStar` auf dem `WorldGrid` für den Anker (Formationsebene), Agenten bleiben beim lokalen Steering.
 4. **Formation-Behaviors v1 + Kampf in Formation** ✅ — Halten, Vorrücken, Angriff, Folgen, Rückzug als `FormationOrder`-Erweiterung; `Combat/Context/FormationCombatRules` (Slot halten an der Leine, frontal angreifen, Schildwall blockt statt auszuweichen; dauerhaft erhobener Schild verworfen, siehe `DECISIONS.md` 2026-10-20), 20 gegen 20 in der Sandbox. Tests: `FormationBehaviorTests`, `FormationCombatTests`.
 5. **Moral** ✅ — Panik-Feld pro Team im `WorldGrid` mit Diffusion (`P += D·ΔP − k·P + Quellen − Senken`; Quellen: eigene Tote, Treffer von Seite/hinten, Fliehende; Senken: Abklingen, Kills und Fliehen des Feindes, Held), Moral pro Agent (Formation dämpft), Rout und Flucht bis zum Kartenrand; Werte in `MoraleDefinition`; im Overlay sichtbar (M). Tests: `MoraleTests`.
-6. **Radialmenü** — einhändig aus dem Kampf heraus (Halten, Angriff, Folgen, Rückzug, Form), eigene Action-Map, sendet `FormationOrder`.
+6. **Radialmenü** ✅ — einhändig aus dem Kampf heraus (Halten, Vorrücken, Angriff, Folgen, Rückzug, Linie, Schildwall, Keil; Ziel: alle oder eine Formation), eigene Action-Map `Radial`, sendet `FormationOrder` (`Sim/Orders/QuickOrders`). Grundgerüst der Szene `M2_Company` dafür aus Task 8 vorgezogen (Tarik, 2026-10-21). Tests: `CompanyTests`.
 7. **Kommandoansicht** — Kamera hoch/zurück, Formationen farbig lesbar, Drag-Befehle (Position, Breite, Ausrichtung), Betreten/Verlassen als Sim-Input, Held wird `HeroUnattended`, SP-Zeitlupe über weniger Ticks.
-8. **Szene `M2_Company` + Build** — Held mit eigener Kompanie gegen eine Bot-Kompanie, Ergebnisbildschirm; danach Fun-Gate M2 (Tarik).
+8. **Szene `M2_Company` + Build** — Held mit eigener Kompanie gegen eine Bot-Kompanie (Szene, Szenario und Hauptmenü-Eintrag existieren seit Task 6), Ergebnisbildschirm; danach Fun-Gate M2 (Tarik).
 
 ## 7. Arbeitsregeln
 

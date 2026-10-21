@@ -13,6 +13,7 @@ ScriptableObject-Klassen. Jede wandelt ihre Werte in einen Sim-Struct um, damit 
 | `CombatTuningDefinition` | `CombatTuning` | Lebenspunkte, Stamina, Zeitfenster, Tödlichkeit (Feel-Preset) |
 | `BotRosterDefinition` | `BotProfile[]` | Bot-Stufen L1–L5 |
 | `CombatDatabase` | `CombatSetup` | baut alle Kampf-Tabellen aus den obigen |
+| `CompanyScenarioDefinition` | `SimWorld` | Kompanie: Held (Spieler 0) mit Loadout und Tempo, eigene und feindliche Formationen (Typ, Größe, Stufe, Waffe, Startverhalten), Waffen, Preset, Formations- und Moral-Tuning |
 | `DuelScenarioDefinition` | `SimWorld` | Duell: Held mit Loadout gegen 1–3 Bots, Presets, Bot-Stufe und -Waffe, Zuschauermodus |
 | `ISimScenario` | – | Schnittstelle: ein Szenario baut eine `SimWorld` (Sandbox, Duell) |
 | `SoldierVisualDefinition` | – (nur Darstellung) | Meshes und Befestigungspunkte pro Team, Kampf-Figuren-Teile |

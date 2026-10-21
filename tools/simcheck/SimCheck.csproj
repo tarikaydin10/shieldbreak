@@ -34,6 +34,7 @@
     <Compile Include="$(Game)_Project/Scripts/Data/DuelScenarioDefinition.cs" />
     <Compile Include="$(Game)_Project/Scripts/Data/SandboxScenarioDefinition.cs" />
     <Compile Include="$(Game)_Project/Scripts/Data/MoraleDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/CompanyScenarioDefinition.cs" />
     <!-- Tests (ScriptableObjects are plain objects here) -->
     <Compile Include="$(Game)Tests/EditMode/TestScenarios.cs" />
     <Compile Include="$(Game)Tests/EditMode/SimCoreTests.cs" />
@@ -45,6 +46,7 @@
     <Compile Include="$(Game)Tests/EditMode/FormationBehaviorTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/FormationCombatTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/MoraleTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/CompanyTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/TestCombat.cs" />
     <Compile Include="$(Game)Tests/EditMode/CombatTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/CombatVerbTests.cs" />

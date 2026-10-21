@@ -57,6 +57,7 @@ namespace Shieldbreak.Presentation.Menu
             if (MenuStyle.Big("Duell spielen")) page = Page.Duel;
             if (MenuStyle.Big("Tutorial · die Steuerung Schritt für Schritt")) Launch(tutorial: true);
             if (MenuStyle.Big("Zuschauen · Bot gegen Bot")) Launch(spectator: true);
+            if (MenuStyle.Big("Kompanie · Held mit eigener Truppe (Vorschau)")) Load("M2_Company");
             GUILayout.Space(8);
             GUILayout.Label("WERKZEUGE", MenuStyle.Heading);
             if (MenuStyle.Big("Sandbox · 20 gegen 20 aus der Draufsicht")) Load("M0_Sandbox");

@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ff7e369ea654627a744a2ca406e9b2c, type: 3}
+  m_Name: Company_M2
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.CompanyScenarioDefinition
+  seed: 1
+  inputDelayTicks: 1
+  mapSize: 96
+  agentRadius: 0.3
+  weapons:
+  - {fileID: 11400000, guid: 8a86d0d595f33364c9019681623497d4, type: 2}
+  - {fileID: 11400000, guid: f897d33dd8b3bad4fb9c058e406a1b7b, type: 2}
+  combatTuning: {fileID: 11400000, guid: 11d7b1dc0de997d49b4379fe4034cffc, type: 2}
+  roster: {fileID: 11400000, guid: 50d1c94144ec20f4da5d2d9a64a39b87, type: 2}
+  formation: {fileID: 11400000, guid: 3e7842487fbf4f639292949532d67ba7, type: 2}
+  morale: {fileID: 11400000, guid: 5b1b1f6f611648b899c8fd3d3241bf82, type: 2}
+  heroPosition: {x: 48, y: 30}
+  heroFacesTowards: {x: 48, y: 70}
+  heroLoadout: 0000000001000000
+  heroSpeedScale: 1.6
+  heroAccelScale: 4
+  units:
+  - name: Linie
+    team: 0
+    formationType: 0
+    count: 12
+    files: 6
+    botLevel: 3
+    weapon: 0
+    front: {x: 40, y: 30}
+    faceTowards: {x: 40, y: 70}
+    startBehavior: 0
+  - name: Schildwall
+    team: 0
+    formationType: 1
+    count: 12
+    files: 6
+    botLevel: 3
+    weapon: 0
+    front: {x: 56, y: 30}
+    faceTowards: {x: 56, y: 70}
+    startBehavior: 0
+  - name: Feind Linie
+    team: 1
+    formationType: 0
+    count: 12
+    files: 6
+    botLevel: 3
+    weapon: 0
+    front: {x: 41, y: 66}
+    faceTowards: {x: 41, y: 30}
+    startBehavior: 1
+  - name: Feind Keil
+    team: 1
+    formationType: 2
+    count: 12
+    files: 7
+    botLevel: 3
+    weapon: 0
+    front: {x: 55, y: 66}
+    faceTowards: {x: 55, y: 30}
+    startBehavior: 1
