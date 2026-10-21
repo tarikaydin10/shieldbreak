@@ -53,7 +53,11 @@
     },
     {
       "action": "Global/Pause",
-      "text": "Pause-Menü: Fortsetzen, Neu starten, Steuerung, Optionen, Hauptmenü (Sim steht still)"
+      "text": "Pause-Menü: Fortsetzen, Neu starten, Ziel und Prüfliste, Steuerung, Optionen, Hauptmenü (Sim steht still)"
+    },
+    {
+      "action": "Global/Help",
+      "text": "Hilfe zur Szene ein/aus: Ziel, Steuerung und Prüfliste (abhaken im Pause-Menü)"
     },
     {
       "action": "Sim/SlowMotion",

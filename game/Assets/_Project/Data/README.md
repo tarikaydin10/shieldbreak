@@ -13,3 +13,5 @@ Tunebare Werte als ScriptableObject-Assets. Im Inspector ändern, Play drücken;
 | `Visuals/` | `SoldierVisual_Default` |
 
 Szenen-Builder legen fehlende Assets an, überschreiben aber nie bestehende Werte.
+
+Der Szenen-Katalog (Ziel, Steuerung und Prüfliste pro Szene) liegt nicht hier, sondern in `../Resources/SceneCatalog.asset`, weil ihn jede Szene zur Laufzeit lädt.

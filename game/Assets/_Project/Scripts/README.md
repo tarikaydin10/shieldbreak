@@ -15,3 +15,5 @@ Editor  ──►  DebugTools  ──►  Presentation  ──►  Data  ──�
 | `Editor/` | `Shieldbreak.Editor` | Szenen-Builder (Menü Shieldbreak → Build …: Hauptmenü, Duell, Kompanie, Sandbox, Prototypen), Build, Import-Regeln | nur im Editor |
 
 Eingaben: jede Taste ist eine Action in `Resources/Input/Shieldbreak.inputactions` mit Beschreibung in `controls.de.json`. Kein `Keyboard.current` o. ä. (Test prüft das).
+
+Inhalte: jede Szene und jedes Szenario hat einen Eintrag im Szenen-Katalog `Resources/SceneCatalog.asset` (Ziel, Steuerung, Prüfliste); Hauptmenü → Testmodus listet alle. `SceneCatalogTests` prüft das.

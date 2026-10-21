@@ -59,6 +59,19 @@ namespace Shieldbreak.Presentation.Admin
 
         public static InputAction Action(string map, string action) => Map(map).FindAction(action, throwIfNotFound: true);
 
+        /// <summary>
+        /// The keyboard binding of an action as shown to the player (e.g. "F2"), else all its bindings. The asset has
+        /// no control schemes, so the keyboard binding is found by its (possibly overridden) path.
+        /// </summary>
+        public static string KeyboardBinding(InputAction action)
+        {
+            for (int i = 0; i < action.bindings.Count; i++)
+                if (action.bindings[i].effectivePath.StartsWith("<Keyboard>"))
+                    return action.GetBindingDisplayString(i);
+            string any = action.GetBindingDisplayString();
+            return string.IsNullOrEmpty(any) ? "–" : any;
+        }
+
         public static ControlsText ParseText(string json) => JsonUtility.FromJson<ControlsText>(json) ?? new ControlsText();
 
         public static string Describe(InputAction action)

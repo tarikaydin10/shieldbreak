@@ -16,6 +16,7 @@ ScriptableObject-Klassen. Jede wandelt ihre Werte in einen Sim-Struct um, damit 
 | `CompanyScenarioDefinition` | `SimWorld` | Kompanie: Held (Spieler 0) mit Loadout und Tempo, eigene und feindliche Formationen (Typ, Größe, Stufe, Waffe, Startverhalten), Waffen, Preset, Formations- und Moral-Tuning |
 | `DuelScenarioDefinition` | `SimWorld` | Duell: Held mit Loadout gegen 1–3 Bots, Presets, Bot-Stufe und -Waffe, Zuschauermodus |
 | `ISimScenario` | – | Schnittstelle: ein Szenario baut eine `SimWorld` (Sandbox, Duell) |
+| `SceneCatalogDefinition` | – (nur Menü) | Szenen-Katalog: pro Eintrag Szene, Startart (Szene, Duell, Tutorial, Zuschauen), optional ein Ersatz-Szenario, Ziel, Eingabe-Maps, Prüfliste; Asset in `Resources/SceneCatalog` |
 | `SoldierVisualDefinition` | – (nur Darstellung) | Meshes und Befestigungspunkte pro Team, Kampf-Figuren-Teile |
 
 Eine Klasse pro Datei mit gleichem Namen, sonst findet Unity die Assets nicht.

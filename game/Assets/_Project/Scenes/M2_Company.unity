@@ -2346,7 +2346,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Shieldbreak.Presentation::Shieldbreak.Presentation.Player.CompanyDirector
   runner: {fileID: 569493334}
   combatCamera: {fileID: 392270273}
-  bannerSeconds: 6
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

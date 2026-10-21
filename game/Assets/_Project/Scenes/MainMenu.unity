@@ -241,7 +241,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Shieldbreak.Presentation::Shieldbreak.Presentation.Menu.MainMenu
   duel: {fileID: 11400000, guid: dd5dca9328e86914f9cbd7ff50aa2d54, type: 2}
-  version: M1 Duell
+  version: M2 Kompanie
 --- !u!4 &2082505747
 Transform:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-21**, Meilenstein **M2 Kompanie**, Task 6 von 8 fertig: Formationen haben Verhalten (Halten, Vorrücken, Angriff, Folgen, Rückzug), kämpfen aus der Formation, Soldaten brechen (Panik-Feld, Moral, Rout und Flucht), und der Held befiehlt seiner Kompanie über das **Radialmenü** aus dem Kampf heraus. Dafür ist das Grundgerüst der Szene `M2_Company` aus Task 8 vorgezogen. Die Sandbox ist ein Gefecht 20 gegen 20. (Task 4 bis 6 in Unity noch nicht angesehen.) **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-21**, Meilenstein **M2 Kompanie**, Task 6 von 8 fertig: Formationen haben Verhalten (Halten, Vorrücken, Angriff, Folgen, Rückzug), kämpfen aus der Formation, Soldaten brechen (Panik-Feld, Moral, Rout und Flucht), und der Held befiehlt seiner Kompanie über das **Radialmenü** aus dem Kampf heraus. Dafür ist das Grundgerüst der Szene `M2_Company` aus Task 8 vorgezogen. Die Sandbox ist ein Gefecht 20 gegen 20. Neu: **Testmodus** im Hauptmenü, jede Szene mit Ziel, Steuerung und Prüfliste (F2), siehe unten. (Task 4 bis 6 in Unity noch nicht angesehen.) **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
 
 ## Sofort spielen
 
@@ -9,9 +9,23 @@
 | Build | `.\sb.ps1 play` (baut, wenn nötig, und startet `builds\M1-duel\SHIELDBREAK.exe`; `-Fresh` baut immer neu). Startet im **Hauptmenü** |
 | Unity | `game/` im Unity Hub öffnen, Szene `Assets/_Project/Scenes/MainMenu` (oder direkt `M1_Duel`) öffnen, Play |
 
-**Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Kompanie (Vorschau), Sandbox, Prototypen, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
+**Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Kompanie (Vorschau), **Testmodus** (alles mit Ziel, Steuerung, Prüfliste), Sandbox, Prototypen, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
 **Im Duell:** Beim Start steht 4 s lang, was läuft (Preset · Gegner-Stufe · Anzahl · Waffe). Nach dem Kampf kommt ein Ergebnisbildschirm mit Statistik und drei Buttons: Nochmal, Anders einstellen, Hauptmenü. Leben = roter Bildrand (wächst mit dem Schaden), Ausdauer = dunkler Puls am Rand; Lebensbalken nur per F9.
-**Im Spiel:** **Esc** Pausemenü (Fortsetzen, Neu starten, Steuerung, Optionen, Hauptmenü), **F1** Status und Admin (alle Tasten, Szenenwechsel, FPS).
+**Im Spiel:** **Esc** Pausemenü (Fortsetzen, Neu starten, Ziel und Prüfliste, Steuerung, Optionen, Hauptmenü), **F1** Status und Admin (alle Tasten, Szenenwechsel, FPS), **F2** Hilfe zur Szene (Ziel, Prüfliste, alle Tasten der Szene).
+
+## Alles testen: Testmodus
+
+Hauptmenü → **Testmodus**. Links alles, was es gibt, rechts für den gewählten Eintrag Ziel, Prüfliste (zum Abhaken) und Steuerung, oben „Starten“. In der Szene zeigt **F2** dasselbe, **Esc → Ziel und Prüfliste** hakt ab (bleibt pro Rechner gespeichert, „Geprüft: x von 36“ im Testmodus). Kompanie, Sandbox, Stresstest und Prototypen zeigen ihr Ziel beim Start 12 s lang oben rechts.
+
+| Eintrag | Szene | Prüfpunkte |
+|---|---|---|
+| Duell, Tutorial, Zuschauen | `M1_Duel` | 6, 3, 3 |
+| Kompanie (Vorschau) | `M2_Company` | 6 |
+| Sandbox: Formationen und Moral | `M0_Sandbox` | 9 |
+| Stresstest: 250 gegen 250 (vorher nicht erreichbar) | `M0_Sandbox` mit `Stress_250v250` | 3 |
+| Prototyp: Oben-Hieb, Prototyp: Look und Kameras | `Proto_Animation`, `Proto_Style` | 4, 2 |
+
+Vorschlag für jetzt (Task 4 bis 6 sind ungetestet): Sandbox, dann Kompanie, dann Stresstest; Duell und Tutorial kurz als Gegenprobe. Die Prüfpunkte stehen nur im Spiel (`game/Assets/_Project/Resources/SceneCatalog.asset`), nicht mehr hier; was dabei auffällt, einfach im Chat sagen.
 
 ## Steuerung im Duell (`M1_Duel`)
 
@@ -102,7 +116,8 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Leben als roter Rand und Ausdauer als dunkler Puls statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
 | Feel-Presets | Schwer, Mittel, Tödlich (alle Zahlen in ScriptableObjects) | `Data/Combat` |
 | Rahmen | Hauptmenü, Pausemenü, Steuerung mit Tastenänderung, Optionen, Tutorial, Ergebnisbildschirm mit Statistik | `Scripts/Presentation/Menu`, `Player/TutorialDirector` |
-| Weitere Szenen | `M0_Sandbox` (4 Formationen, 20 gegen 20 aus der Draufsicht, mit Kampf), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
+| Testmodus | Szenen-Katalog: jede Szene und jedes Szenario mit Ziel, Steuerung und Prüfliste; Testseite im Hauptmenü, Hilfe in der Szene (F2), Prüfliste im Pausemenü; Test, dass nichts unerreichbar ist | `Resources/SceneCatalog`, `Menu/TestPage`, `SceneBriefing`, `SceneLaunch` |
+| Weitere Szenen | `M0_Sandbox` (4 Formationen, 20 gegen 20 aus der Draufsicht, mit Kampf; als Stresstest 500 lose Soldaten), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
 | Asset-Pipeline | Low-Poly-Modelle aus JSON-Specs per Headless-Blender, Palette, Validator, Kontaktbogen | [art](../art/README.md), [tools/assetgen](../tools/assetgen/README.md) |
 
 Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 22. Zweihänder oben 69, Seite 47, Stich 39, Sprung-Hieb aus 2,6 m 92. Leben 100.
@@ -111,22 +126,15 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (162, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (167, inkl. Determinismus) | `.\sb.ps1 test` (Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2`. Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
+| Von Hand: alle Szenen | Hauptmenü → Testmodus (Prüflisten pro Szene, siehe oben) |
 | Sim- und Kampf-Tests ohne Unity (Cloud, Linux) | `tools/simcheck/run.sh`: Sim, Definitionen und 154 Tests (alle Kampf-, Formations-, Moral- und Kompanie-Tests) mit .NET 8, [Details](../tools/simcheck/README.md) |
 
-**Von Hand prüfen (Rahmen):** Hauptmenü → Tutorial durchspielen (F12 überspringt), Esc-Menü öffnen, eine Taste umlegen und prüfen, dass sie nach Neustart gilt, Optionen ändern und im Duell merken.
+**Von Hand prüfen:** steht pro Szene als Prüfliste im Testmodus (Hauptmenü → Testmodus, in der Szene F2 und Esc → Ziel und Prüfliste). Dazu der Rahmen: eine Taste umlegen und prüfen, dass sie nach Neustart gilt; Optionen ändern und im Duell merken.
 
 **Fun-Gate M1:** bestanden am 2026-10-19.
-
-**Von Hand prüfen (Formationen, Sandbox):** eine Formation anklicken und rechts klicken (marschiert als Block, Linie bleibt Linie), eine Linie hinter die Truppe ziehen (dreht um, hinteres Glied wird Front), beide A-Formationen wählen und eine lange Linie ziehen (teilen sich die Linie, kein Kreuzen), 4–8 durchschalten (formt auf der Stelle um), eine Formation durch das Tor in der Mauer schicken (Weg im Overlay, alle kommen durch), eine breite Linie hinter den Fels ziehen (läuft außen herum).
-
-**Von Hand prüfen (Kampf, Sandbox):** 1 und R (Team A rückt vor, Team B hält): die Linien treffen sich, kämpfen, das zweite Glied rückt nach, die Formationen bleiben erkennbar. Dann 2 und C (Team B greift an): die blauen Soldaten lösen sich und stürmen. Eine Formation mitten im Kampf mit X zurückziehen: sie dreht ab, kämpft nicht mehr und steht 20 m weiter mit Front zum Feind. Läuft das flüssig (F1 zeigt FPS und Sim-Zeit)?
-
-**Von Hand prüfen (Radialmenü, Kompanie):** Hauptmenü → Kompanie. F halten, Maus nach oben, loslassen: beide Formationen rücken vor (Beschriftung oben im Bild). F halten, Mausrad, Maus nach links unten, loslassen: nur Formation 1 bildet einen Schildwall. Folgen geben und mit dem Helden weglaufen: die Truppe kommt nach. Mitten im Kampf F halten: Bleibt das Menü bedienbar, und fühlt es sich riskant an (der Held schlägt währenddessen nicht)? Ist F gut erreichbar, sind die Richtungen merkbar?
-
-**Von Hand prüfen (Moral, Sandbox):** 1 und R, dann 2 und R (beide rücken vor), M für das Moral-Overlay. Rote und lila Flecken entstehen, wo Soldaten fallen, grüne, wo sie siegen. Bricht eine Seite, bevor sie ausgelöscht ist? Laufen die Fliehenden sichtbar weg (oranger Ring) und verschwinden am Rand? Fühlt sich der Bruch verdient an, oder kommt er zu früh oder zu spät? Die Werte stehen in `Data/Morale/Morale_Default`.
 
 ## Offen
 

@@ -28,7 +28,7 @@ namespace Shieldbreak.Presentation.Admin
         float nextStatusRefresh;
         readonly List<IAdminStatus> statusProviders = new List<IAdminStatus>();
 
-        InputAction toggleAction;
+        InputAction toggleAction, helpAction;
         GUIStyle panel, title, heading, text, muted, key, paused, hint;
         Texture2D panelTexture;
 
@@ -51,6 +51,7 @@ namespace Shieldbreak.Presentation.Admin
         void OnEnable()
         {
             toggleAction = GameInput.Action("Global", "ToggleAdminMenu");
+            helpAction = GameInput.Action("Global", "Help");
             toggleAction.performed += OnToggle;
             GameInput.Map("Global").Enable();
         }
@@ -96,7 +97,8 @@ namespace Shieldbreak.Presentation.Admin
                 panelScreenRect = Rect.zero;
                 if (showHint)
                 {
-                    string label = GamePause.IsPaused ? "PAUSIERT" : $"{Binding(toggleAction)}  Status & Admin · Esc Menü";
+                    string help = Menu.MainMenu.IsActive ? "" : $" · {GameInput.KeyboardBinding(helpAction)} Hilfe";
+                    string label = GamePause.IsPaused ? "PAUSIERT" : $"{Binding(toggleAction)}  Status & Admin{help} · Esc Menü";
                     Badge(label, 12, alignRight: false);
                 }
                 return;

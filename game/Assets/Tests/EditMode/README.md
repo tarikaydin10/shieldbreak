@@ -23,5 +23,6 @@ Vor jedem Commit grün: `.\sb.ps1 test` (Unity darf offen bleiben) oder Test Run
 | `SandboxScenarioTests` | Spawn-Gruppen als Formationen oder lose, mit Waffen als Bots ihrer Stufe und mit Moral, Szenario-Determinismus mit Befehlen |
 | `ArtPipelineTests` | Modelle unverändert aus der Pipeline, Palette-Material |
 | `ControlsDocumentationTests` | jede Eingabe beschrieben, kein direkter Gerätezugriff |
+| `SceneCatalogTests` | jede Build-Szene und jedes Szenario über den Szenen-Katalog erreichbar, jeder Eintrag mit Ziel, Steuerung und Prüfliste, Build Settings = `BuildTools.Scenes`, Auswahl des laufenden Eintrags |
 
 `TestScenarios`, `TestCombat` (Waffe 0 = Einhand + Schild, 1 = Zweihänder; `Weapons` liefert die Definitionen dahinter), `InputDriver`: gemeinsame Aufbauten für die Tests.

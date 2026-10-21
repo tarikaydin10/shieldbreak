@@ -1,7 +1,6 @@
 using Shieldbreak.Data;
 using Shieldbreak.Presentation.Admin;
 using Shieldbreak.Presentation.Cameras;
-using Shieldbreak.Presentation.Menu;
 using Shieldbreak.Sim.Combat.Grammar;
 using UnityEngine;
 
@@ -9,17 +8,13 @@ namespace Shieldbreak.Presentation.Player
 {
     /// <summary>
     /// Runs the M2 company battle (preview of M2 task 8): hitstop and camera kicks for the hero's impacts (same feel
-    /// as the duel), a start banner with the order controls, and the state of both sides in the F1 menu. The result
-    /// screen follows with task 8; restart through the pause menu.
+    /// as the duel) and the state of both sides in the F1 menu. Objective and controls come from the scene catalog
+    /// (SceneBriefing). The result screen follows with task 8; restart through the pause menu.
     /// </summary>
     public class CompanyDirector : MonoBehaviour, IAdminStatus
     {
         public SimRunner runner;
         public ThirdPersonCamera combatCamera;
-        [Tooltip("How long the start banner stays (s).")]
-        [Min(0f)] public float bannerSeconds = 6f;
-
-        float bannerUntil;
 
         public string AdminStatusLabel => "Kompanie";
         public string AdminStatus
@@ -47,18 +42,13 @@ namespace Shieldbreak.Presentation.Player
         {
             if (runner == null) return;
             runner.HitstopHook += OnTick;
-            runner.WorldRebuilt += ShowBanner;
-            ShowBanner();
         }
 
         void OnDisable()
         {
             if (runner == null) return;
             runner.HitstopHook -= OnTick;
-            runner.WorldRebuilt -= ShowBanner;
         }
-
-        void ShowBanner() => bannerUntil = Time.unscaledTime + bannerSeconds;
 
         /// <summary>After every tick: hitstop and camera kick for impacts on or by the hero (as in the duel).</summary>
         void OnTick(SimRunner r)
@@ -83,13 +73,5 @@ namespace Shieldbreak.Presentation.Player
             direction == AttackDirection.Left ? new Vector2(1f, 0f) :
             direction == AttackDirection.Right ? new Vector2(-1f, 0f) :
             direction == AttackDirection.Thrust ? new Vector2(0f, 0.5f) : new Vector2(0f, 1f);
-
-        void OnGUI()
-        {
-            if (Time.unscaledTime >= bannerUntil || AdminMenu.IsOpen || PauseMenu.IsOpen) return;
-            Vector2 screen = MenuStyle.BeginScaled();
-            const string text = "Kompanie (Vorschau) · Der Feind rückt vor. F halten (RB): Befehle, zielen, loslassen · Mausrad (LB): welche Formation · Esc: Neustart";
-            GUI.Label(new Rect(screen.x * 0.5f - 430f, screen.y - 110f, 860f, 56f), text, MenuStyle.Hint);
-        }
     }
 }

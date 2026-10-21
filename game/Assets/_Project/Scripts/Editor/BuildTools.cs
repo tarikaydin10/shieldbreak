@@ -15,7 +15,8 @@ namespace Shieldbreak.EditorTools
     {
         const string ExeName = "SHIELDBREAK.exe";
 
-        static readonly string[] Scenes =
+        /// <summary>Every scene of the build, main menu first; also the editor's build settings (scene loading in play mode).</summary>
+        public static readonly string[] Scenes =
         {
             MainMenuSceneBuilder.ScenePath,
             DuelSceneBuilder.ScenePath,

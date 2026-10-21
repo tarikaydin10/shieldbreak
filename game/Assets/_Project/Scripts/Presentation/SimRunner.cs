@@ -56,7 +56,24 @@ namespace Shieldbreak.Presentation
             $"Tick {World.Tick} · {averageStepMs:0.00} ms/Tick · {World.AgentCount} Agenten · Hash {LastHash:X16}" +
             (SlowMotion ? $" · Zeitlupe {slowMotionScale:0.0}x" : "");
 
-        void Awake() => Restart();
+        /// <summary>
+        /// Scenario for the next SimRunner that wakes up (set by SceneLaunch before loading a scene); replaces the
+        /// scene's own, then clears. Lets one scene serve several scenarios (sandbox and stress test).
+        /// </summary>
+        public static ScriptableObject PendingScenario;
+
+        void Awake()
+        {
+            if (PendingScenario != null)
+            {
+                scenario = PendingScenario;
+                PendingScenario = null;
+            }
+            Restart();
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() => PendingScenario = null;
 
         /// <summary>Rebuilds the world from the scenario (restart, preset or level change).</summary>
         public void Restart()

@@ -6,10 +6,22 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/_Project/Scenes/MainMenu.unity
+    guid: 9f34481806015354b96ef6bdde58f6bf
+  - enabled: 1
+    path: Assets/_Project/Scenes/M1_Duel.unity
+    guid: 63d6b47b94a6f824381f79dd77210454
+  - enabled: 1
+    path: Assets/_Project/Scenes/M2_Company.unity
+    guid: b39041ae38104e52902f75f0e0f5076b
+  - enabled: 1
     path: Assets/_Project/Scenes/M0_Sandbox.unity
     guid: dc139f8573815c8439670c4b13710493
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/_Project/Scenes/Proto_Animation.unity
+    guid: 98f09bad4941f8b40b1f51d95b509ee2
+  - enabled: 1
+    path: Assets/_Project/Scenes/Proto_Style.unity
+    guid: ca63fd657ef78724a92c98b0314bebe6
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

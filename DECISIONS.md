@@ -239,6 +239,16 @@ Grundlage der Werte: 20 gegen 20, Linien, Bots L3, je 6–10 Seeds, ohne Unity m
 | Feindliche Formationen der Kompanie bekommen ein Startverhalten (Vorrücken) als Szenario-Einstellung, nicht als Befehl | Ohne Commander-AI (M3) braucht der Feind einen Grund zu kommen; ein Startverhalten ist Szenario-Aufbau wie das Spawnen, auf allen Peers gleich | Feind steht still (kein Kampf ohne Spieler-Initiative) |
 | Der Held läuft wie im Duell mit 1,6-fachem Tempo der Liniensoldaten | Er ist ein Elite-Soldat (Säule 1) und muss seine Linie erreichen und verlassen können; das ist eine Held-Eigenschaft, kein AI-Cheat | Held so langsam wie die Linie |
 
+## 2026-10-21 — Testmodus: jeder Inhalt erreichbar und erklärt
+
+Anlass (Tarik): seit Task 4 nichts angespielt; am Ende soll sich alles vollständig testen lassen, ohne zu wissen, wo was steckt.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Ein **Szenen-Katalog** (`Resources/SceneCatalog.asset`) ist die eine Liste alles Spielbaren: Szene, Startart, optional Ersatz-Szenario, Ziel, Eingabe-Maps, Prüfliste. Hauptmenü → Testmodus listet ihn und startet jeden Eintrag; jede Szene zeigt ihren Eintrag (Ziel beim Start, F2 volle Hilfe), Esc → Prüfliste hakt ab | Eine Quelle für Menü, Hilfe und Prüfliste; die Steuerung kommt live aus den Action-Maps (umgelegte Tasten stimmen). `SceneCatalogTests` schlägt fehl, wenn eine Szene oder ein Szenario keinen Eintrag hat, so bleibt nichts unerreichbar (vorher: `Stress_250v250` war es) | Eigener Start-Text pro Szene (driftet, fehlt bei Werkzeugen), Prüflisten nur in `docs/STATUS.md` (beim Spielen nicht zur Hand), eigene Test-Szene mit allen Szenen (doppelt zum Menü) |
+| Die Prüflisten stehen **im Spiel** statt in `docs/STATUS.md`; STATUS verweist darauf. Abgehakt wird pro Rechner (PlayerPrefs); ein umformulierter Prüfpunkt ist wieder offen | Abhaken beim Spielen, nicht im Editor; Fortschritt pro Tester. Gemeinsamer Fortschritt bräuchte einen Server | Prüflisten-Datei im Repo, die das Spiel beschreibt (Build schreibt nicht ins Repo) |
+| Die committeten Build Settings listen alle Szenen aus `BuildTools.Scenes` (vorher nur Sandbox und `SampleScene`) | Im Editor lädt `SceneManager.LoadScene` nur Szenen aus den Build Settings; Hauptmenü → Kompanie ging im Editor nur nach einem Build aus dem Editor-Menü. Test prüft die Gleichheit | Build Settings nur beim Build setzen (wie bisher) |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

@@ -1,0 +1,151 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ad786239b454ff089b602ab69c6618b, type: 3}
+  m_Name: SceneCatalog
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.SceneCatalogDefinition
+  briefingSeconds: 12
+  entries:
+  - id: duel
+    title: "Duell"
+    section: "Spielen"
+    scene: M1_Duel
+    launch: 1
+    scenario: {fileID: 0}
+    briefingOnStart: 0
+    objective: "Held gegen 1 bis 3 Bots, mit den Einstellungen aus dem Hauptmenü (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen). Gewonnen, wenn alle Gegner fallen; danach kommt der Ergebnisbildschirm. Prüft das Kampfgefühl aus M1."
+    controlMaps:
+    - Combat
+    - Duel
+    checks:
+    - "Leichter Angriff (tippen) und schwerer Hieb (halten) treffen spürbar: Hitstop, Kamera-Kick, Sound"
+    - "Block halten fängt Hiebe von vorn ab; kurz vor dem Treffer gedrückt gibt einen Perfect Block (Gegner taumelt)"
+    - "Finte (Q), Ausweichschritt (Leertaste), Sprung (C) und Sprint (Shift) tun, was sie sollen"
+    - "Waffe wechseln (1 / 2): Zweihänder trifft härter, E macht den Sprung-Hieb, mit Schild den Schildstoß"
+    - "F6, F7, F10: Kampfgefühl, Gegner-Stufe und Gegnerzahl wechseln sichtbar"
+    - "Nach dem Kampf: Ergebnisbildschirm mit Nochmal, Anders einstellen, Hauptmenü"
+  - id: tutorial
+    title: "Tutorial"
+    section: "Spielen"
+    scene: M1_Duel
+    launch: 2
+    scenario: {fileID: 0}
+    briefingOnStart: 0
+    objective: "Geführtes Duell gegen einen geduldigen Gegner: 14 Schritte, jeder ist erledigt, sobald du ihn ausführst. Der Einstieg für neue Tester."
+    controlMaps:
+    - Combat
+    - Tutorial
+    checks:
+    - "Alle 14 Schritte lassen sich durch Tun abschließen (F12 nur, wenn einer hängt)"
+    - "Jeder Hinweis ist ohne weitere Erklärung verständlich"
+    - "Am Ende steht \"Tutorial abgeschlossen\""
+  - id: spectate
+    title: "Zuschauen"
+    section: "Spielen"
+    scene: M1_Duel
+    launch: 3
+    scenario: {fileID: 0}
+    briefingOnStart: 0
+    objective: "Bot gegen Bot, die Kamera kreist. Zeigt, ob die Bots dieselben Regeln sauber spielen wie du."
+    controlMaps:
+    - Duel
+    - Sim
+    checks:
+    - "Bots greifen an, blocken und finten sichtbar; keiner steht nur herum"
+    - "F7 (Gegner-Stufe): eine höhere Stufe kämpft erkennbar besser"
+    - "Z (Zeitlupe) macht Treffer und Blocks gut lesbar"
+  - id: company
+    title: "Kompanie (Vorschau)"
+    section: "Spielen"
+    scene: M2_Company
+    launch: 0
+    scenario: {fileID: 0}
+    briefingOnStart: 1
+    objective: "Du bist Held und Anführer zugleich: deine Linie (links) und dein Schildwall (rechts) gegen eine feindliche Linie und einen Keil, die sofort vorrücken. Befiehl über das Radialmenü und kämpfe selbst. Ziel: Der Feind bricht und flieht, bevor deine Leute es tun. Noch ohne Ergebnisbildschirm (Neustart über Esc)."
+    controlMaps:
+    - Radial
+    - Combat
+    checks:
+    - "F halten, Maus nach oben, loslassen: beide Formationen rücken vor (Bestätigung oben im Bild)"
+    - "F halten, Mausrad (Ziel: Formation 1), Maus nach links unten: nur Formation 1 bildet einen Schildwall"
+    - "Folgen geben und mit dem Helden weglaufen: die Truppe kommt nach"
+    - "Mitten im Kampf F halten: das Menü bleibt bedienbar, der Held schlägt währenddessen nicht; fühlt sich riskant, aber nicht lähmend an"
+    - "Eine Seite bricht und flieht, bevor sie ausgelöscht ist; Fliehende verlassen das Feld"
+    - "F ist gut erreichbar, die acht Richtungen sind gut zu merken"
+  - id: sandbox
+    title: "Sandbox: Formationen und Moral"
+    section: "Werkzeuge"
+    scene: M0_Sandbox
+    launch: 0
+    scenario: {fileID: 0}
+    briefingOnStart: 1
+    objective: "Draufsicht ohne Helden: vier Formationen zu je 10 Soldaten, rot gegen blau. Du befiehlst beide Seiten und siehst Slots, Wege und Moral im Overlay. Hier prüfst du Formationen, Kampf in Formation und Moral, ohne selbst zu kämpfen."
+    controlMaps:
+    - DebugOrders
+    - DebugOverlay
+    - DebugCamera
+    - Sim
+    checks:
+    - "Formation anklicken, rechts klicken: marschiert als Block, die Linie bleibt Linie"
+    - "Linie hinter die Truppe ziehen (rechte Maustaste ziehen): dreht um, das hintere Glied wird Front"
+    - "Beide roten Formationen wählen und eine lange Linie ziehen: teilen sich die Linie, niemand kreuzt"
+    - "4 bis 8 durchschalten: die Formation formt auf der Stelle um"
+    - "Durch das Tor in der Mauer schicken: Weg im Overlay (F), alle kommen durch; eine breite Linie hinter den Fels läuft außen herum"
+    - "1 und R, dann 2 und C: die Linien treffen sich, das zweite Glied rückt nach, Blau stürmt frei"
+    - "Mitten im Kampf X: die Formation dreht ab, kämpft nicht und steht 20 m weiter mit Front zum Feind"
+    - "M (Moral): Flecken, wo Soldaten fallen; eine Seite bricht vor der Auslöschung, Fliehende (oranger Ring) verschwinden am Rand"
+    - "Läuft flüssig (F1 zeigt FPS und Sim-Zeit)"
+  - id: stress
+    title: "Stresstest: 250 gegen 250"
+    section: "Werkzeuge"
+    scene: M0_Sandbox
+    launch: 0
+    scenario: {fileID: 11400000, guid: 578c37f82960f7548ae3c92fa71b9c8e, type: 2}
+    briefingOnStart: 1
+    objective: "Leistungstest aus M0 in der Sandbox-Szene: 500 lose Soldaten ohne Kampf und ohne Formationen. Ziel: die Sim braucht auch dann unter 2 ms pro Tick, wenn alle gleichzeitig marschieren."
+    controlMaps:
+    - DebugOrders
+    - DebugCamera
+    - DebugOverlay
+    - Sim
+    checks:
+    - "3 (alle) und rechts klicken: alle 500 marschieren und stellen sich in Reihen auf, ohne sich zu durchdringen"
+    - "Beide Blöcke durcheinander schicken (1, rechts klicken, 2, rechts klicken): sie weichen sich aus und kommen an"
+    - "F1: Sim-Zeit pro Tick bleibt unter 2 ms, das Bild bleibt flüssig"
+  - id: proto-animation
+    title: "Prototyp: Oben-Hieb"
+    section: "Werkzeuge"
+    scene: Proto_Animation
+    launch: 0
+    scenario: {fileID: 0}
+    briefingOnStart: 1
+    objective: "Animations-Prototyp aus M0: ein Hieb von oben aus vier Key-Posen mit IK; die Klingenbahn ist nach Phase eingefärbt, unten läuft eine Zeitleiste. Offene Frage an Tarik: Ist der prozedurale Hieb lesbar und nicht steril?"
+    controlMaps:
+    - ProtoAttack
+    - ProtoCamera
+    checks:
+    - "Leertaste spielt den Hieb ab; Ausholen, Treffen und Erholen sind unterscheidbar"
+    - "N geht tickweise weiter; die Zeitleiste zeigt Phasen und Key-Posen"
+    - "Ansicht 3 (Gegner-Sicht, 15 m): der Hieb ist als Hieb von oben erkennbar"
+    - "Urteil: prozeduraler Hieb reicht, oder Fallback auf gekaufte Clips"
+  - id: proto-style
+    title: "Prototyp: Look und Kameras"
+    section: "Werkzeuge"
+    scene: Proto_Style
+    launch: 0
+    scenario: {fileID: 0}
+    briefingOnStart: 1
+    objective: "Look-Probe mit Figuren aus der Asset-Pipeline: zwei kleine Formationen in den Abständen, in denen das Spiel funktionieren muss (Nahkampf 4 m, Kampf 15 m, Lesbarkeit 40 m, Kommandoansicht)."
+    controlMaps:
+    - ProtoCamera
+    checks:
+    - "Ansichten 1 bis 5 durchschalten: die Teams sind in jeder Ansicht klar unterscheidbar, auch aus 40 m"
+    - "O (Orbit): kein Flackern, Schatten und Kanten bleiben ruhig"

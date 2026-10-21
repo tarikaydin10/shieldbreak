@@ -8,7 +8,7 @@ namespace Shieldbreak.Presentation.Menu
     /// </summary>
     public static class MenuStyle
     {
-        public static GUIStyle Panel, Title, Subtitle, Heading, Text, Muted, Key, Button, BigButton, Hint;
+        public static GUIStyle Panel, Title, Subtitle, Heading, Text, Muted, Key, Button, BigButton, Hint, Toggle, ListItem, ListItemSelected, Large;
         static Texture2D panelTexture, buttonTexture, buttonHover;
         public static readonly Color Accent = new Color(0.88f, 0.4f, 0.29f);
         public static readonly Color Fg = new Color(0.91f, 0.9f, 0.87f);
@@ -92,6 +92,7 @@ namespace Shieldbreak.Presentation.Menu
             Heading = new GUIStyle(GUI.skin.label) { fontSize = 12, fontStyle = FontStyle.Bold, margin = new RectOffset(0, 0, 14, 4), normal = { textColor = Accent } };
             Text = new GUIStyle(GUI.skin.label) { fontSize = 14, wordWrap = true, normal = { textColor = Fg } };
             Muted = new GUIStyle(Text) { normal = { textColor = Dim } };
+            Large = new GUIStyle(Text) { fontSize = 22, fontStyle = FontStyle.Bold, wordWrap = false };
             Key = new GUIStyle(Text) { fontStyle = FontStyle.Bold };
             Button = new GUIStyle(GUI.skin.button)
             {
@@ -100,6 +101,13 @@ namespace Shieldbreak.Presentation.Menu
                 active = { background = buttonHover, textColor = Fg }, focused = { background = buttonTexture, textColor = Fg },
             };
             BigButton = new GUIStyle(Button) { fontSize = 18, alignment = TextAnchor.MiddleLeft, padding = new RectOffset(18, 18, 8, 8) };
+            Toggle = new GUIStyle(GUI.skin.toggle)
+            {
+                fontSize = 14, wordWrap = true, margin = new RectOffset(4, 4, 3, 3),
+                normal = { textColor = Fg }, hover = { textColor = Fg }, onNormal = { textColor = Dim }, onHover = { textColor = Fg },
+            };
+            ListItem = new GUIStyle(Button) { alignment = TextAnchor.MiddleLeft };
+            ListItemSelected = new GUIStyle(ListItem) { normal = { background = buttonHover, textColor = Color.white } };
             Hint = new GUIStyle(GUI.skin.label) { fontSize = 16, wordWrap = true, alignment = TextAnchor.MiddleCenter, padding = new RectOffset(16, 16, 10, 10), normal = { textColor = Fg, background = panelTexture } };
         }
 
