@@ -268,7 +268,7 @@ M0 und M1 sind abgeschlossen (Fun-Gates bestanden, M1 am 2026-10-19). Reihenfolg
 - Alle Unity-Pfade in diesem Dokument sind relativ zu `game/`. Claude Code wird im Repo-Root gestartet.
 - `Sim/` darf **niemals** `using UnityEngine;` enthalten. Bei Verstoß: ablehnen und Alternative über `Unity.Mathematics` vorschlagen.
 - Vor jedem Commit: `.\sb.ps1 test` (EditMode-Tests im Batchmode auf einer Kopie), Determinismus-Test muss grün sein.
-- **Ein Einstieg für Tarik:** Alles, was er ausführen soll, läuft über `.\sb.ps1 <befehl>`; jede Abschlussmeldung nennt den konkreten Befehl. Neue Fähigkeiten werden Unterkommandos von `sb.ps1`, nie neue Skripte zum direkten Aufruf. Innereien liegen in `tools/`.
+- **Ein Einstieg für Tarik:** Alles, was er ausführen soll, läuft über `.\sb.ps1 <befehl>` (auf dem Mac `./sb.ps1 <befehl>`, PowerShell 7); jede Abschlussmeldung nennt den konkreten Befehl. Skripte in `tools/` laufen auf Windows (PowerShell 5.1 und 7) und macOS; was sich unterscheidet, steht in `tools/common.ps1`. Neue Fähigkeiten werden Unterkommandos von `sb.ps1`, nie neue Skripte zum direkten Aufruf. Innereien liegen in `tools/`.
 - Neue Sim-Systeme als Burst-kompatible Jobs über NativeArrays schreiben. Keine Klassen-Allokationen im Tick.
 - Keine neuen Features außerhalb des aktuellen Meilensteins ohne Rückfrage. Ideen nach `IDEAS.md`.
 - Balancing-Werte nie hardcoden; ScriptableObject-Feld anlegen.
@@ -289,7 +289,9 @@ M0 und M1 sind abgeschlossen (Fun-Gates bestanden, M1 am 2026-10-19). Reihenfolg
 - Progression zwischen Schlachten (Skirmish-only vs. leichte Meta).
 - Befehlsreichweite: bleibt oder fliegt, entscheidet M3-Playtest.
 
-## 10. Setup (einmalig, Windows)
+## 10. Setup (einmalig)
+
+### Windows
 
 1. `.\sb.ps1 setup` in PowerShell ausführen (installiert uv, Blender-MCP-Addon, registriert Blender-MCP in Claude Code, initialisiert Git + LFS, ergänzt die Unity-Pakete).
 2. Unity Hub → New Project → Universal 3D → Location `C:\Users\tarik\projects\shieldbreak`, Project name `game`, Unity 6000.5.
@@ -297,6 +299,15 @@ M0 und M1 sind abgeschlossen (Fun-Gates bestanden, M1 am 2026-10-19). Reihenfolg
 4. In Unity: Window → MCP for Unity → Configure All Detected Clients.
 5. In Blender: Preferences → Add-ons → „MCP for Blender" aktivieren; im Viewport `N` → MCP-Tab → Connect to Claude.
 6. Im Repo-Root `claude` starten, `/mcp` prüfen: blender und unity müssen verbunden sein.
+
+### Mac (Apple Silicon, z. B. M4)
+
+Für Entwickeln, Testen und Singleplayer gleichwertig zu Windows (`DECISIONS.md` 2026-10-21). Die Windows-exe entsteht weiter auf dem PC, die Mac-App auf dem Mac.
+
+1. Homebrew (https://brew.sh), dann `brew install powershell git git-lfs` und `xcode-select --install` (Git und Burst brauchen die Command Line Tools).
+2. Repo klonen, im Repo-Root `./sb.ps1 setup` (uv, Git LFS samt Binärdateien, Blender-MCP-Addon, prüft Blender, Unity Hub und Unity-Version).
+3. Unity Hub (`brew install --cask unity-hub`) → Installs: die Version aus `game/ProjectSettings/ProjectVersion.txt` (Apple Silicon). → Projects → Add → Ordner `game`.
+4. Weiter wie unter Windows ab Schritt 4; danach `./sb.ps1 test` und `./sb.ps1 play` (startet `builds/M1-duel/SHIELDBREAK.app`).
 
 ## 11. Referenzen
 

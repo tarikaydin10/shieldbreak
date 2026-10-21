@@ -1,22 +1,19 @@
 ﻿# SHIELDBREAK — EditMode-Tests im Unity-Batchmode ausführen (Pflicht vor jedem Commit, siehe CLAUDE.md §8)
 # Unity-Editor mit diesem Projekt muss geschlossen sein, ausser mit -Shadow: dann laufen die Tests auf einer Kopie
 # unter .ci/game (ohne Library; der erste Lauf importiert alles neu und dauert einige Minuten).
-# Aufruf aus dem Repo-Root:  .\tools\run-tests.ps1  [-Shadow]
+# Aufruf aus dem Repo-Root:  .\tools\run-tests.ps1  [-Shadow]   (Windows und macOS, siehe common.ps1)
 param([switch]$Shadow)
 
 $ErrorActionPreference = "Stop"
-$RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+. (Join-Path $PSScriptRoot "common.ps1")
+$RepoRoot = Split-Path -Parent $PSScriptRoot
 $Project = Join-Path $RepoRoot "game"
 if ($Shadow) {
-    $Copy = Join-Path $RepoRoot ".ci\game"
-    Write-Host "Spiegle game/ nach .ci/game ..." -ForegroundColor Cyan
-    robocopy $Project $Copy /MIR /XD Library Temp Logs obj UserSettings .vs /NFL /NDL /NJH /NJS /NP | Out-Null
-    if ($LASTEXITCODE -ge 8) { throw "robocopy fehlgeschlagen ($LASTEXITCODE)" }
+    $Copy = Join-Path $RepoRoot ".ci/game"
+    Sync-ShadowProject $Project $Copy
     $Project = $Copy
 }
-$Version = ((Get-Content (Join-Path $Project "ProjectSettings\ProjectVersion.txt") | Select-String "m_EditorVersion:") -split ":\s*")[1].Trim()
-$Unity = "C:\Program Files\Unity\Hub\Editor\$Version\Editor\Unity.exe"
-if (-not (Test-Path $Unity)) { throw "Unity $Version nicht gefunden: $Unity" }
+$Unity = Get-UnityEditor $Project
 
 $OutDir = Join-Path $Project "Logs"
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
@@ -24,18 +21,15 @@ $Results = Join-Path $OutDir "editmode-results.xml"
 $Log = Join-Path $OutDir "editmode-tests.log"
 if (Test-Path $Results) { Remove-Item $Results }
 
-Write-Host "Unity $Version, EditMode-Tests laufen ..." -ForegroundColor Cyan
-# WaitForExit instead of Start-Process -Wait: -Wait also waits for Unity's child processes
-# (shader compiler, licensing client), which outlive the editor and hang the script
-$p = Start-Process -FilePath $Unity -PassThru -ArgumentList @(
+Write-Host "Unity $($Unity.Version), EditMode-Tests laufen ..." -ForegroundColor Cyan
+$ExitCode = Invoke-Unity $Unity.Path @(
     "-batchmode", "-projectPath", "`"$Project`"",
     "-runTests", "-testPlatform", "EditMode",
     "-testResults", "`"$Results`"", "-logFile", "`"$Log`"")
-$p.WaitForExit()
 
 if (-not (Test-Path $Results)) {
     Select-String -Path $Log -Pattern "error CS|Exception" | Select-Object -First 20 | ForEach-Object { Write-Host $_.Line -ForegroundColor Red }
-    throw "Keine Testergebnisse (Exit $($p.ExitCode)). Log: $Log"
+    throw "Keine Testergebnisse (Exit $ExitCode). Log: $Log"
 }
 
 [xml]$xml = Get-Content $Results
@@ -47,4 +41,4 @@ $xml.SelectNodes("//test-case") | ForEach-Object {
     if ($_.result -ne "Passed") { Write-Host ("      " + $_.failure.message.InnerText) -ForegroundColor Red }
     if ($_.output -and $_.output.InnerText.Trim()) { Write-Host ("      " + $_.output.InnerText.Trim()) -ForegroundColor Gray }
 }
-exit $p.ExitCode
+exit $ExitCode

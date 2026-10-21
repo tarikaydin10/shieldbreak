@@ -249,6 +249,17 @@ Anlass (Tarik): seit Task 4 nichts angespielt; am Ende soll sich alles vollstän
 | Die Prüflisten stehen **im Spiel** statt in `docs/STATUS.md`; STATUS verweist darauf. Abgehakt wird pro Rechner (PlayerPrefs); ein umformulierter Prüfpunkt ist wieder offen | Abhaken beim Spielen, nicht im Editor; Fortschritt pro Tester. Gemeinsamer Fortschritt bräuchte einen Server | Prüflisten-Datei im Repo, die das Spiel beschreibt (Build schreibt nicht ins Repo) |
 | Die committeten Build Settings listen alle Szenen aus `BuildTools.Scenes` (vorher nur Sandbox und `SampleScene`) | Im Editor lädt `SceneManager.LoadScene` nur Szenen aus den Build Settings; Hauptmenü → Kompanie ging im Editor nur nach einem Build aus dem Editor-Menü. Test prüft die Gleichheit | Build Settings nur beim Build setzen (wie bisher) |
 
+## 2026-10-21 — Mac als Entwicklungs- und Spielplattform
+
+Anlass (Tarik): Kann ich auf dem Mac (M4) entwickeln und das Spiel ausführen?
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| `sb.ps1` und `tools/` laufen auch auf macOS (PowerShell 7 aus Homebrew; `sb.ps1` hat eine Shebang-Zeile und ist ausführbar). Unterschiede nur in `tools/common.ps1`: Unity-Pfad (Hub-Standardpfad, `UNITY_EXE` überschreibt), Spiegeln mit `rsync` statt `robocopy`; Blender unter `/Applications`. Setup über `tools/setup-mac.ps1` | Ein Einstieg für Tarik bleibt `sb.ps1` (CLAUDE.md 8), egal auf welchem Rechner. Unity 6, Burst, Input System, Blender und Git LFS laufen nativ auf Apple Silicon; der Code nutzt nichts Windows-Eigenes | Zweites Skript-Set für die Shell (`sb.sh`): doppelte Pflege |
+| Build für das System, auf dem gebaut wird: PC → `SHIELDBREAK.exe`, Mac → `SHIELDBREAK.app` (`BuildTools.BuildMacBatch`, `StandaloneOSX`) | Burst kompiliert für den Mac mit den Xcode Command Line Tools des Macs; Cross-Builds zwischen den Systemen sparen nichts und brauchen weitere Unity-Module | exe auf dem Mac bauen (läuft dort nicht), Universal-Build-Einstellungen von Hand |
+| Die Nicht-Garantie aus CLAUDE.md 1 bleibt: kein Determinismus **zwischen** Mac und Windows. Auf einem Rechner sind Tests, Hash und Replays deterministisch; Singleplayer läuft überall. Ob Mac und PC im Multiplayer (M6) zusammen spielen, entscheidet ein Desync-Test dann | Burst rechnet mit `FloatMode.Deterministic` auf ARM und x64 vermutlich gleich, garantiert ist das ohne Messung nicht. Bis M6 kostet die Frage nichts | Cross-Plattform-Lockstep jetzt zusagen |
+| `assets -Check` vergleicht auf 1e-5 gerundete Geometrie. Weicht Blender auf ARM in einer Rundung ab, gilt der Stand des PCs, bis es einmal gemessen ist | Bisher nur auf Windows gebaut | – |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy)

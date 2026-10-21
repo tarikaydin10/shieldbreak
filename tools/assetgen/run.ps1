@@ -10,7 +10,9 @@ param(
 $ErrorActionPreference = "Stop"
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-if (-not $Blender) {
+if (-not $Blender -and $IsMacOS) {
+    $Blender = "/Applications/Blender.app/Contents/MacOS/Blender"
+} elseif (-not $Blender) {
     $Blender = Get-ChildItem "C:\Program Files\Blender Foundation\Blender *\blender.exe" -ErrorAction SilentlyContinue |
         Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
 }
