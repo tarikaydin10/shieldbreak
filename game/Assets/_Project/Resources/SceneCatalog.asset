@@ -69,9 +69,10 @@ MonoBehaviour:
     launch: 0
     scenario: {fileID: 0}
     briefingOnStart: 1
-    objective: "Du bist Held und Anführer zugleich: deine Linie (links) und dein Schildwall (rechts) gegen eine feindliche Linie und einen Keil, die sofort vorrücken. Befiehl über das Radialmenü und kämpfe selbst. Ziel: Der Feind bricht und flieht, bevor deine Leute es tun. Noch ohne Ergebnisbildschirm (Neustart über Esc)."
+    objective: "Du bist Held und Anführer zugleich: deine Linie (links) und dein Schildwall (rechts) gegen eine feindliche Linie und einen Keil, die sofort vorrücken. Befiehl schnell über das Radialmenü (F halten) oder mit Überblick aus der Kommandoansicht (V halten), und kämpfe selbst. Ziel: Der Feind bricht und flieht, bevor deine Leute es tun. Noch ohne Ergebnisbildschirm (Neustart über Esc)."
     controlMaps:
     - Radial
+    - CommandView
     - Combat
     checks:
     - "F halten, Maus nach oben, loslassen: beide Formationen rücken vor (Bestätigung oben im Bild)"
@@ -80,6 +81,12 @@ MonoBehaviour:
     - "Mitten im Kampf F halten: das Menü bleibt bedienbar, der Held schlägt währenddessen nicht; fühlt sich riskant, aber nicht lähmend an"
     - "Eine Seite bricht und flieht, bevor sie ausgelöscht ist; Fliehende verlassen das Feld"
     - "F ist gut erreichbar, die acht Richtungen sind gut zu merken"
+    - "V halten: Die Kamera fährt in etwa einer halben Sekunde hoch, die Zeit läuft langsamer weiter; jede Formation ist umrandet und mit Typ, Befehl und Moral beschriftet"
+    - "In der Kommandoansicht eine eigene Formation anklicken und rechts eine Frontlinie ziehen: Sie marschiert dorthin, so breit und so ausgerichtet wie gezogen"
+    - "Rechtsklick auf eine feindliche Formation: Die Auswahl rückt gegen genau diese vor (rote Linie zum Ziel), nicht gegen die nächste"
+    - "In der Kommandoansicht 4 drücken: Die Auswahl (ohne Auswahl: alle) bildet einen Kreis; 1 macht wieder eine Linie"
+    - "Solange die Kommandoansicht offen ist, zieht sich der Held hinter die eigene Linie zurück und wehrt sich, wenn ihn jemand angreift"
+    - "V loslassen: Die Kamera kommt zurück, die Steuerung ist sofort wieder da; Wechsel fühlt sich riskant, aber nicht lähmend an"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

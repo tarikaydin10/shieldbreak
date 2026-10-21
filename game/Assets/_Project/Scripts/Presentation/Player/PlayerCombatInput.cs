@@ -16,7 +16,9 @@ namespace Shieldbreak.Presentation.Player
     /// Simple (default): tap = light attack chaining right/left (thrust while walking forward), hold = heavy
     /// overhead, done by morphing the young windup. Directional: direction from the recent mouse movement.
     /// The sim is the same for both; nothing here changes it directly. While the radial menu is open the hero keeps
-    /// walking but neither looks around nor starts an action (a held block can still be released).
+    /// walking but neither looks around nor starts an action (a held block can still be released). While the command
+    /// view is open the hero is unattended (the sim ignores the player) and nothing is sent; on the way back from it or
+    /// from a menu the walk state and the block button are sent again at once.
     /// </summary>
     public class PlayerCombatInput : MonoBehaviour, IAdminStatus
     {
@@ -66,6 +68,7 @@ namespace Shieldbreak.Presentation.Player
         float lastLightTime = -10f;
         float pressTime;
         bool heavyPending;
+        bool resync;
 
         public string AdminStatusLabel => "Kampf";
         public string AdminStatus =>
@@ -110,7 +113,8 @@ namespace Shieldbreak.Presentation.Player
         void Update()
         {
             var world = runner != null ? runner.World : null;
-            bool active = world != null && runner.PlayerAgent >= 0 && !AdminMenu.IsOpen && !Menu.PauseMenu.IsOpen && !DuelDirector.ResultOpen && !GamePause.IsPaused;
+            bool active = world != null && runner.PlayerAgent >= 0 && !AdminMenu.IsOpen && !Menu.PauseMenu.IsOpen && !DuelDirector.ResultOpen &&
+                          !GamePause.IsPaused && !CommandView.IsOpen;
             Cursor.lockState = active ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !active;
             if (toggleScheme.WasPressedThisFrame())
@@ -118,10 +122,23 @@ namespace Shieldbreak.Presentation.Player
                 scheme = scheme == Scheme.Simple ? Scheme.Directional : Scheme.Simple;
                 PlayerPrefs.SetInt(SchemePref, (int)scheme);
             }
-            if (!active) return;
+            if (!active)
+            {
+                resync = true;
+                heavyPending = false;
+                return;
+            }
 
             int agent = runner.PlayerAgent;
             float now = Time.unscaledTime;
+            if (resync)
+            {
+                // Back from a menu or the command view: the block may have been pressed or let go meanwhile, and the
+                // sim lowers it when the hero comes back from the command view
+                resync = false;
+                lastSent = float.NegativeInfinity;
+                world.Submit(LocalPlayer, InputCommandType.CombatBlock, new int4(agent, block.IsPressed() ? 1 : 0, 0, 0));
+            }
             // The radial menu takes the mouse (and the right stick): no looking around, no new actions
             bool commanding = RadialMenu.IsOpen;
 

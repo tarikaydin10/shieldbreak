@@ -513,6 +513,7 @@ namespace Shieldbreak.Tests
                 Facing = new float2(0f, -1f),
                 Behavior = FormationBehavior.Follow,
                 FollowAgent = 1234,
+                TargetFormation = 77,
             };
             order.ToArgs(out int4 i, out float4 f);
             var back = FormationOrder.FromCommand(new InputCommand { Type = InputCommandType.FormationOrder, IntArgs = i, FloatArgs = f });
@@ -524,11 +525,13 @@ namespace Shieldbreak.Tests
             Assert.That(back.Facing, Is.EqualTo(order.Facing));
             Assert.That(back.Behavior, Is.EqualTo(FormationBehavior.Follow));
             Assert.That(back.FollowAgent, Is.EqualTo(1234));
+            Assert.That(back.TargetFormation, Is.EqualTo(77));
 
             FormationOrder.Retreat(2).ToArgs(out i, out f);
             back = FormationOrder.FromCommand(new InputCommand { Type = InputCommandType.FormationOrder, IntArgs = i, FloatArgs = f });
             Assert.That(back.Behavior, Is.EqualTo(FormationBehavior.Retreat));
             Assert.That(back.FollowAgent, Is.EqualTo(-1));
+            Assert.That(back.TargetFormation, Is.EqualTo(-1));
         }
     }
 }

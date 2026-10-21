@@ -61,7 +61,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
 
     /// <summary>
     /// Combat state of one agent, parallel to AgentData (same index). Hashed raw: the ulong comes first and every other
-    /// field is 4 bytes, 152 bytes in total without padding (checked by a test).
+    /// field is 4 bytes, 160 bytes in total without padding (checked by a test).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CombatData

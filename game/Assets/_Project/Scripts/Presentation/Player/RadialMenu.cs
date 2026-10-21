@@ -14,7 +14,8 @@ namespace Shieldbreak.Presentation.Player
     /// mouse or the right stick, let go to give the order; letting go in the centre gives none. The mouse wheel (LB)
     /// picks the target: all own formations or one of them. Time keeps running and the hero keeps walking, but he
     /// neither looks around nor fights while the menu is open: commanding costs attention. Orders are QuickOrders,
-    /// sent through the InputQueue like every player order.
+    /// sent through the InputQueue like every player order. In the command view, with formations selected there, the
+    /// orders go to that selection instead.
     /// </summary>
     public class RadialMenu : MonoBehaviour, IAdminStatus
     {
@@ -158,8 +159,11 @@ namespace Shieldbreak.Presentation.Player
             target = ((target + 1 + step) % states + states) % states - 1;
         }
 
+        static bool CommandViewSelection => CommandView.IsOpen && CommandView.Selection.Count > 0;
+
         string TargetName(SimWorld world)
         {
+            if (CommandViewSelection) return $"Auswahl ({CommandView.Selection.Count})";
             if (commandedCount == 0) return "keine eigenen Formationen";
             if (target < 0) return commandedCount == 1 ? "die Formation" : $"alle {commandedCount} Formationen";
             var f = world.Formations[commanded[target]];
@@ -171,11 +175,19 @@ namespace Shieldbreak.Presentation.Player
         void Issue(SimWorld world, QuickCommand command)
         {
             if (!Available(command)) return;
-            int first = target < 0 ? 0 : target;
-            int last = target < 0 ? commandedCount - 1 : target;
-            for (int k = first; k <= last; k++)
-                if (QuickOrders.TryBuild(command, commanded[k], runner.PlayerAgent, out var order))
-                    world.SubmitFormationOrder(LocalPlayer, order);
+            if (CommandViewSelection)
+            {
+                foreach (int f in CommandView.Selection)
+                    if (QuickOrders.TryBuild(command, f, runner.PlayerAgent, out var selected)) world.SubmitFormationOrder(LocalPlayer, selected);
+            }
+            else
+            {
+                int first = target < 0 ? 0 : target;
+                int last = target < 0 ? commandedCount - 1 : target;
+                for (int k = first; k <= last; k++)
+                    if (QuickOrders.TryBuild(command, commanded[k], runner.PlayerAgent, out var order))
+                        world.SubmitFormationOrder(LocalPlayer, order);
+            }
             lastOrder = CommandNames[(int)command];
             toast = $"{TargetName(world)}: {lastOrder}";
             toastUntil = Time.unscaledTime + toastSeconds;

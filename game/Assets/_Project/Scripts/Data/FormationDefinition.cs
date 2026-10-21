@@ -65,6 +65,12 @@ namespace Shieldbreak.Data
         [Tooltip("The march is only re-ordered when the target point moved further than this (m).")]
         [Min(0f)] public float retargetDistance = 2f;
 
+        [Header("Hero in the command view (HeroUnattended)")]
+        [Tooltip("Bot level (L1–L5) the hero fights at while the player is in the command view; 0 = no command view.")]
+        [Range(0, 5)] public int heroUnattendedLevel = 2;
+        [Tooltip("The unattended hero falls back this far behind the rear rank of the nearest own formation (m).")]
+        [Min(0f)] public float heroRetreatGap = 1.5f;
+
         static FormationSpacing Spacing(Vector2 v) => new FormationSpacing { Lateral = v.x, Depth = v.y };
 
         public FormationSettings ToSettings() => new FormationSettings
@@ -94,6 +100,8 @@ namespace Shieldbreak.Data
             FollowDistance = followDistance,
             BehaviorIntervalTicks = Mathf.Max(1, Mathf.RoundToInt(behaviorIntervalMs * SimConstants.TickRate / 1000f)),
             RetargetDistance = retargetDistance,
+            HeroUnattendedLevel = heroUnattendedLevel,
+            HeroRetreatGap = heroRetreatGap,
         };
     }
 }

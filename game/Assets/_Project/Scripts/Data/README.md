@@ -5,7 +5,7 @@ ScriptableObject-Klassen. Jede wandelt ihre Werte in einen Sim-Struct um, damit 
 | Klasse | Wird zu | Inhalt |
 |---|---|---|
 | `AgentMovementDefinition` | `AgentMoveSettings` | Tempo, Beschleunigung, Abstand, Wand-Ausweichen, Drehrate |
-| `FormationDefinition` | `FormationSettings` | Abstände pro Formationstyp, Marschtempo, Zusammenhalt, Umform-Intervall nach Verlusten, Weg-Abstand zu Wänden, Schwenken und Umformen beim Drehen, Kampf in Formation (Leine, Frontbogen, Selbstverteidigung), Verhalten (Kontaktabstand beim Vorrücken, Rückzugsweite, Folgeabstand, wie oft das Ziel geprüft wird) |
+| `FormationDefinition` | `FormationSettings` | Abstände pro Formationstyp, Marschtempo, Zusammenhalt, Umform-Intervall nach Verlusten, Weg-Abstand zu Wänden, Schwenken und Umformen beim Drehen, Kampf in Formation (Leine, Frontbogen, Selbstverteidigung), Verhalten (Kontaktabstand beim Vorrücken, Rückzugsweite, Folgeabstand, wie oft das Ziel geprüft wird), Held in der Kommandoansicht (Bot-Stufe, Abstand hinter der Linie; Stufe 0 = keine Kommandoansicht) |
 | `SandboxScenarioDefinition` | `SimConfig` + Spawns | Karte, Seed, Spawn-Gruppen (als Formation mit Typ oder lose, Bot-Stufe und Waffe), Hindernisse (gesperrt oder teuer), Formations-Tuning; mit Waffen und Kampf-Preset kämpfen die Soldaten, mit Moral brechen sie |
 | `MoraleDefinition` | `MoraleSettings` | Panik-Feld (Diffusion, Abklingen), Quellen und Senken (Tote, Flankentreffer, Kills, Fliehende, Held), Moral pro Soldat (Verlust, Formation dämpft, Erholung, Rout-Schwelle), Flucht |
 | `AttackDefinition` | `AttackData` + Keys | Phasen in ms, Waffenbahn-Keyframes, Klinge, Ziele pro Hieb, Ausfallschritt; Startwerte Einhand, Zweihand, Sprung-Hieb |

@@ -87,6 +87,11 @@ namespace Shieldbreak.Sim.Formations
         public int FollowAgent;
         /// <summary>Next tick the behavior looks at its target (Advance, Charge, Follow; Retreat once, then never).</summary>
         public int NextBehaviorTick;
+        /// <summary>
+        /// Enemy formation an Advance or Charge goes for, -1 = the nearest; a beaten target falls back to the nearest.
+        /// Kept by a later Advance or Charge without a target of its own, cleared by every other behavior.
+        /// </summary>
+        public int TargetFormation;
 
         public const int ReformNone = 0, ReformKeepAnchor = 1, ReformAroundMembers = 2;
 
@@ -177,6 +182,14 @@ namespace Shieldbreak.Sim.Formations
         /// <summary>...and only re-order the march when the target point moved further than this (m).</summary>
         public float RetargetDistance;
 
+        /// <summary>
+        /// Bot level (profile index) the hero fights at while the player is in the command view (HeroUnattended);
+        /// 0 = the scenario has no command view and the input is ignored.
+        /// </summary>
+        public int HeroUnattendedLevel;
+        /// <summary>An unattended hero falls back this far (m) behind the rear rank of the nearest own formation.</summary>
+        public float HeroRetreatGap;
+
         public FormationSpacing Spacing(FormationType type) => type switch
         {
             FormationType.ShieldWall => ShieldWall,
@@ -207,6 +220,7 @@ namespace Shieldbreak.Sim.Formations
             if (FrontArcCos < -1f || FrontArcCos > 1f) throw new ArgumentException("FrontArcCos must be in [-1, 1].");
             if (AdvanceContactGap < 0f || RetreatDistance <= 0f || FollowDistance < 0f) throw new ArgumentException("Require AdvanceContactGap >= 0, RetreatDistance > 0, FollowDistance >= 0.");
             if (BehaviorIntervalTicks < 1 || RetargetDistance < 0f) throw new ArgumentException("Require BehaviorIntervalTicks >= 1 and RetargetDistance >= 0.");
+            if (HeroUnattendedLevel < 0 || HeroRetreatGap < 0f) throw new ArgumentException("Require HeroUnattendedLevel >= 0 and HeroRetreatGap >= 0.");
         }
     }
 }

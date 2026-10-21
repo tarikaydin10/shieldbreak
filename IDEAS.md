@@ -34,6 +34,7 @@ Regel: Neue Ideen landen hier, nicht im Sprint. Bewertung (Wert / Risiko / Aufwa
 - **Sammeln nach der Flucht** (aus M2 Task 5): Fliehende, die weit genug vom Feind weg sind und wieder Mut fassen, sammeln sich und kehren zurück (am Banner oder beim Helden). v1: wer flieht, verlässt das Feld
 - **Moral pro Truppentyp**: Veteranen oder Elite brechen später (eigener Faktor auf den Moral-Verlust); hängt an der Progressions-Entscheidung
 - **Kämpfender Rückzug**: Formation weicht rückwärts mit Front zum Feind (aus M2 Task 4, heute dreht der Rückzug dem Feind den Rücken zu)
+- **Kommandoansicht verschieben** (aus M2 Task 7): Kamera mit WASD oder am Bildrand über das Feld schieben statt immer über dem Helden; Gruppen speichern und per Taste wählen
 
 ## Meta (frühestens nach Setting-Entscheidung)
 

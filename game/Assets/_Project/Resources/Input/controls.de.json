@@ -14,6 +14,10 @@
       "title": "Befehle (Radialmenü)"
     },
     {
+      "map": "CommandView",
+      "title": "Kommandoansicht"
+    },
+    {
       "map": "Duel",
       "title": "Duell"
     },
@@ -330,6 +334,54 @@
     {
       "action": "Radial/NextTarget",
       "text": "Bei offenem Radialmenü: nächstes Ziel (alle Formationen oder eine)"
+    },
+    {
+      "action": "CommandView/Hold",
+      "text": "Gedrückt halten: Kommandoansicht. Die Kamera fährt über das Feld, die Zeit läuft weiter (in Zeitlupe, siehe Optionen); der Held zieht sich hinter die eigene Linie zurück und wehrt sich selbst. Loslassen: zurück in den Kampf"
+    },
+    {
+      "action": "CommandView/Point",
+      "text": "Mauszeiger (Ziel für Auswahl und Befehle)"
+    },
+    {
+      "action": "CommandView/Select",
+      "text": "Klicken: eigene Formation wählen, Rahmen ziehen: mehrere; ins Leere klicken hebt die Auswahl auf"
+    },
+    {
+      "action": "CommandView/Command",
+      "text": "Klicken: Auswahl (ohne Auswahl: alle) marschiert hierher. Ziehen: Frontlinie zeichnen (Position, Breite, Blickrichtung). Auf eine feindliche Formation: Vorrücken gegen genau diese"
+    },
+    {
+      "action": "CommandView/Additive",
+      "text": "Gedrückt halten: zur Auswahl hinzufügen oder abwählen"
+    },
+    {
+      "action": "CommandView/Zoom",
+      "text": "Kamera höher oder tiefer"
+    },
+    {
+      "action": "CommandView/Cursor",
+      "text": "Gamepad: Zeiger bewegen (A wählt, RT befiehlt, RT ziehen zeichnet die Frontlinie)"
+    },
+    {
+      "action": "CommandView/ShapeLine",
+      "text": "Form: Linie für die Auswahl (ohne Auswahl: alle)"
+    },
+    {
+      "action": "CommandView/ShapeShieldWall",
+      "text": "Form: Schildwall für die Auswahl (ohne Auswahl: alle)"
+    },
+    {
+      "action": "CommandView/ShapeWedge",
+      "text": "Form: Keil für die Auswahl (ohne Auswahl: alle)"
+    },
+    {
+      "action": "CommandView/ShapeCircle",
+      "text": "Form: Kreis (Rundumverteidigung) für die Auswahl (ohne Auswahl: alle)"
+    },
+    {
+      "action": "CommandView/ShapeLoose",
+      "text": "Form: lockere Ordnung für die Auswahl (ohne Auswahl: alle)"
     }
   ]
 }

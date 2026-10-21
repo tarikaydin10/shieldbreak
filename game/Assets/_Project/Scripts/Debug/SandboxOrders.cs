@@ -312,9 +312,9 @@ namespace Shieldbreak.DebugTools
             FormationLinePlanner.PlanLine(world.Formations, fids, fids.Length, commandStart, end, true, formationGap, world.FormationSettings, orders);
 
             const float lift = 0.06f;
-            DebugLines.Begin();
-            DebugLines.Color(lineColor);
-            DebugLines.Line(SimRunner.ToWorld(commandStart, lift), SimRunner.ToWorld(end, lift));
+            GroundLines.Begin();
+            GroundLines.Color(lineColor);
+            GroundLines.Line(SimRunner.ToWorld(commandStart, lift), SimRunner.ToWorld(end, lift));
             for (int k = 0; k < orders.Length; k++)
             {
                 var o = orders[k];
@@ -322,10 +322,10 @@ namespace Shieldbreak.DebugTools
                 float half = FormationLinePlanner.FrontWidth(f.Type, o.Files, f.MemberCount, world.FormationSettings) * 0.5f;
                 float2 along = new float2(o.Facing.y, -o.Facing.x);
                 float2 front = f.Type == FormationType.Circle ? o.Destination + o.Facing * half : o.Destination;
-                DebugLines.Line(SimRunner.ToWorld(front - along * half, lift), SimRunner.ToWorld(front + along * half, lift));
-                DebugLines.Arrow(SimRunner.ToWorld(front, lift), new Vector3(o.Facing.x, 0f, o.Facing.y) * 2f, 0.5f);
+                GroundLines.Line(SimRunner.ToWorld(front - along * half, lift), SimRunner.ToWorld(front + along * half, lift));
+                GroundLines.Arrow(SimRunner.ToWorld(front, lift), new Vector3(o.Facing.x, 0f, o.Facing.y) * 2f, 0.5f);
             }
-            DebugLines.End();
+            GroundLines.End();
         }
 
         void OnGUI()

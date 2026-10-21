@@ -56,6 +56,39 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void Advance_AgainstAChosenFormation_SkipsTheNearerOne_ThenFallsBackToTheNearest()
+        {
+            using var world = World(80);
+            int a = Line(world, 0, new float2(20f, 48f), East);
+            int far = Line(world, 1, new float2(20f, 90f), new float2(0f, -1f));   // 42 m north
+            Line(world, 1, new float2(60f, 48f), West);                             // 40 m east, nearer
+            int own = Line(world, 0, new float2(80f, 10f), East);
+            world.SubmitFormationOrder(PlayerA, FormationOrder.Against(a, FormationBehavior.Advance, far));
+            Run(world, world.Config.InputDelayTicks + 1);
+            Assert.That(world.Formations[a].TargetFormation, Is.EqualTo(far));
+            Run(world, 600);
+            float2 heading = math.normalize(world.Formations[a].Destination - new float2(20f, 48f));
+            Assert.That(heading.y, Is.GreaterThan(0.9f), "marches north on the chosen formation, not east on the nearer one");
+
+            // Charging without a target of its own keeps the chosen one
+            world.SubmitFormationOrder(PlayerA, FormationOrder.Charge(a));
+            Run(world, world.Config.InputDelayTicks + 1);
+            Assert.That(world.Formations[a].TargetFormation, Is.EqualTo(far), "advance on X, then charge: charge X");
+
+            // An own formation is no target: the order falls back to the nearest enemy
+            world.SubmitFormationOrder(PlayerA, FormationOrder.Against(a, FormationBehavior.Charge, own));
+            Run(world, world.Config.InputDelayTicks + 1);
+            Assert.That(world.Formations[a].TargetFormation, Is.EqualTo(-1));
+            Assert.That(world.Formations[a].Behavior, Is.EqualTo(FormationBehavior.Charge));
+            // A plain move clears the target
+            world.SubmitFormationOrder(PlayerA, FormationOrder.Against(a, FormationBehavior.Advance, far));
+            world.SubmitFormationOrder(PlayerA, FormationOrder.MoveTo(a, new float2(20f, 40f)));
+            Run(world, world.Config.InputDelayTicks + 1);
+            Assert.That(world.Formations[a].TargetFormation, Is.EqualTo(-1));
+            Assert.That(world.Formations[a].Behavior, Is.EqualTo(FormationBehavior.Hold));
+        }
+
+        [Test]
         public void Advance_FollowsTheEnemy_WhenItMoves()
         {
             using var world = World(40);

@@ -34,6 +34,11 @@ namespace Shieldbreak.Presentation
         /// <summary>0 = previous tick, 1 = current tick.</summary>
         public float Alpha { get; private set; }
         public bool SlowMotion { get; private set; }
+        /// <summary>
+        /// Time scale while the command view is open (singleplayer, CLAUDE.md 3.9); 1 = real time. Fewer ticks per
+        /// real second, DT never changes. Set by the command view, reset on restart.
+        /// </summary>
+        public float CommandTimeScale { get; set; } = 1f;
         public double LastStepMs { get; private set; }
         public ulong LastHash { get; private set; }
         /// <summary>Combat events of every tick run this frame (cleared at the start of the next frame).</summary>
@@ -54,7 +59,7 @@ namespace Shieldbreak.Presentation
         public string AdminStatusLabel => "Sim";
         public string AdminStatus => World == null ? "nicht gestartet" :
             $"Tick {World.Tick} · {averageStepMs:0.00} ms/Tick · {World.AgentCount} Agenten · Hash {LastHash:X16}" +
-            (SlowMotion ? $" · Zeitlupe {slowMotionScale:0.0}x" : "");
+            (SlowMotion ? $" · Zeitlupe {slowMotionScale:0.0}x" : "") + (CommandTimeScale < 1f ? $" · Kommandoansicht {CommandTimeScale:0.0}x" : "");
 
         /// <summary>
         /// Scenario for the next SimRunner that wakes up (set by SceneLaunch before loading a scene); replaces the
@@ -93,6 +98,7 @@ namespace Shieldbreak.Presentation
             accumulator = 0f;
             hitstopRemaining = 0f;
             slowMoRemaining = 0f;
+            CommandTimeScale = 1f;
             FrameEvents.Clear();
             WorldRebuilt?.Invoke();
         }
@@ -157,7 +163,7 @@ namespace Shieldbreak.Presentation
                 return;
             }
 
-            float scale = SlowMotion ? slowMotionScale : 1f;
+            float scale = math.min(SlowMotion ? slowMotionScale : 1f, math.clamp(CommandTimeScale, 0.05f, 1f));
             if (slowMoRemaining > 0f)
             {
                 scale = math.min(scale, slowMoScale);

@@ -14,7 +14,7 @@ namespace Shieldbreak.EditorTools
 {
     /// <summary>
     /// Builds Scenes/M2_Company.unity (preview of M2 task 8): the hero with his own company against a bot company on
-    /// the 96 m sandbox ground, combat camera, fight figures, radial menu. Needs the duel and sandbox assets (run those
+    /// the 96 m sandbox ground, combat camera, fight figures, radial menu, command view. Needs the duel and sandbox assets (run those
     /// builders first). Existing assets are kept so tuning survives a rebuild; the scene is only overwritten after asking.
     /// </summary>
     public static class CompanySceneBuilder
@@ -87,12 +87,15 @@ namespace Shieldbreak.EditorTools
             camData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
             var thirdPerson = camGo.AddComponent<ThirdPersonCamera>();
             camGo.AddComponent<AudioListener>();
+            var commandCamera = camGo.AddComponent<CommandViewCamera>();
+            commandCamera.combatCamera = thirdPerson;
 
             var sim = new GameObject("Sim");
             var runner = sim.AddComponent<SimRunner>();
             runner.scenario = company;
             runner.movement = movement;
             thirdPerson.runner = runner;
+            commandCamera.runner = runner;
             var figures = sim.AddComponent<CombatFigureRenderer>();
             figures.runner = runner;
             figures.visual = visual;
@@ -111,6 +114,10 @@ namespace Shieldbreak.EditorTools
             instanced.visual = visual;
             instanced.figures = figures;
             sim.AddComponent<RadialMenu>().runner = runner;
+            var commandView = sim.AddComponent<CommandView>();
+            commandView.runner = runner;
+            commandView.viewCamera = cam;
+            commandView.commandCamera = commandCamera;
             var director = sim.AddComponent<CompanyDirector>();
             director.runner = runner;
             director.combatCamera = thirdPerson;

@@ -93,7 +93,7 @@ namespace Shieldbreak.DebugTools
             var world = runner != null ? runner.World : null;
             if (world == null || cam != viewCamera) return;
             if (showMorale && world.HasMorale) DrawPanic(world, cam);
-            DebugLines.Begin();
+            GroundLines.Begin();
 
             const float lift = 0.03f;
             var layout = world.Grid.Layout;
@@ -141,7 +141,7 @@ namespace Shieldbreak.DebugTools
 
             if (showFormations) DrawFormations(world, lift);
             if (showMorale && world.HasMorale) DrawMorale(world, lift);
-            DebugLines.End();
+            GroundLines.End();
         }
 
         /// <summary>Panic per team as tinted cells around the view centre; confidence (negative panic) in green.</summary>
@@ -154,7 +154,7 @@ namespace Shieldbreak.DebugTools
             int x0 = Mathf.Max(0, cx - gridHalfExtent), x1 = Mathf.Min(layout.Width - 1, cx + gridHalfExtent);
             int z0 = Mathf.Max(0, cz - gridHalfExtent), z1 = Mathf.Min(layout.Height - 1, cz + gridHalfExtent);
             const float lift = 0.02f;
-            DebugLines.BeginQuads();
+            GroundLines.BeginQuads();
             for (int team = 0; team < SimConstants.MaxTeams; team++)
             {
                 Color tint = panicColors != null && panicColors.Length > team ? panicColors[team] : Color.red;
@@ -168,10 +168,10 @@ namespace Shieldbreak.DebugTools
                     c.a = strength * heatMaxAlpha;
                     GL.Color(c);
                     Vector3 o = new Vector3(layout.Origin.x + x, lift, layout.Origin.y + z);
-                    DebugLines.Quad(o, o + new Vector3(0f, 0f, 1f), o + new Vector3(1f, 0f, 1f), o + new Vector3(1f, 0f, 0f));
+                    GroundLines.Quad(o, o + new Vector3(0f, 0f, 1f), o + new Vector3(1f, 0f, 1f), o + new Vector3(1f, 0f, 0f));
                 }
             }
-            DebugLines.End();
+            GroundLines.End();
         }
 
         /// <summary>A morale bar beside every fighting soldier (green to red); fleeing soldiers get an orange ring.</summary>
@@ -250,7 +250,7 @@ namespace Shieldbreak.DebugTools
                 if (m.Formation < 0 || m.Slot < 0) continue;
                 var f = formations[m.Formation];
                 GL.Color(FormationColor(f, AgentSelection.IsSelected(i)));
-                DebugLines.Cross(SimRunner.ToWorld(f.ToWorld(m.Local), lift), slotMarkerSize);
+                GroundLines.Cross(SimRunner.ToWorld(f.ToWorld(m.Local), lift), slotMarkerSize);
             }
             for (int id = 0; id < formations.Length; id++)
             {
@@ -259,7 +259,7 @@ namespace Shieldbreak.DebugTools
                 GL.Color(FormationColor(f, true));
                 Vector3 anchor = SimRunner.ToWorld(f.Position, lift);
                 Vector3 facing = new Vector3(f.Facing.x, 0f, f.Facing.y);
-                DebugLines.Arrow(anchor, facing * 2.5f, 0.6f);
+                GroundLines.Arrow(anchor, facing * 2.5f, 0.6f);
                 if (math.distancesq(f.Destination, f.Position) > 0.09f)
                 {
                     Vector3 dest = SimRunner.ToWorld(f.Destination, lift);
@@ -270,8 +270,8 @@ namespace Shieldbreak.DebugTools
                     for (int k = 0; k < path.Length; k++)
                     {
                         Vector3 to = SimRunner.ToWorld(path[k], lift);
-                        DebugLines.Line(from, to);
-                        DebugLines.Cross(to, 0.25f);
+                        GroundLines.Line(from, to);
+                        GroundLines.Cross(to, 0.25f);
                         from = to;
                     }
                     GL.Color(FormationColor(f, true));
@@ -279,8 +279,8 @@ namespace Shieldbreak.DebugTools
                     Vector3 final = new Vector3(f.TargetFacing.x, 0f, f.TargetFacing.y);
                     Vector3 along = new Vector3(f.TargetFacing.y, 0f, -f.TargetFacing.x) * half;
                     Vector3 front = f.Type == FormationType.Circle ? dest + final * half : dest;
-                    DebugLines.Line(front - along, front + along);
-                    DebugLines.Arrow(front, final * 1.5f, 0.4f);
+                    GroundLines.Line(front - along, front + along);
+                    GroundLines.Arrow(front, final * 1.5f, 0.4f);
                 }
             }
         }
@@ -334,7 +334,7 @@ namespace Shieldbreak.DebugTools
             return n > 0 ? sum / n : 0f;
         }
 
-        static void Line(Vector3 a, Vector3 b) => DebugLines.Line(a, b);
+        static void Line(Vector3 a, Vector3 b) => GroundLines.Line(a, b);
 
         static Vector3 ViewCentre(Camera cam)
         {

@@ -50,6 +50,8 @@ namespace Shieldbreak.Sim.Core
         /// <summary>Walk direction per player (sim state: re-applied every tick, so a late command never stalls the hero).</summary>
         NativeArray<float2> playerMoveIntent;
         NativeArray<int> playerSprint;
+        /// <summary>1 while the player is in the command view and the hero's bot brain fights (HeroUnattended).</summary>
+        NativeArray<int> playerUnattended;
         NativeArray<int> attackerScratch;
         // Running hash of every applied command; diverging input streams show up in the world hash
         // immediately, before they cause visible divergence.
@@ -84,6 +86,7 @@ namespace Shieldbreak.Sim.Core
             for (int p = 0; p < playerAgent.Length; p++) playerAgent[p] = -1;
             playerMoveIntent = new NativeArray<float2>(SimConstants.MaxPlayers, Allocator.Persistent);
             playerSprint = new NativeArray<int>(SimConstants.MaxPlayers, Allocator.Persistent);
+            playerUnattended = new NativeArray<int>(SimConstants.MaxPlayers, Allocator.Persistent);
             appliedInputHash = SimHash.Create().Value;
 
             agents = new NativeArray<AgentData>(config.MaxAgents, Allocator.Persistent);
@@ -305,6 +308,13 @@ namespace Shieldbreak.Sim.Core
 
         public int PlayerAgent(ushort playerId) => playerId < SimConstants.MaxPlayers ? playerAgent[playerId] : -1;
 
+        /// <summary>True while the player's hero is unattended (the player is in the command view).</summary>
+        public bool IsUnattended(ushort playerId) => playerId < SimConstants.MaxPlayers && playerUnattended[playerId] == 1;
+
+        /// <summary>The scenario allows leaving the hero for the command view (combat and a configured bot level).</summary>
+        public bool HasCommandView => HasCombat && formations.Settings.HeroUnattendedLevel > 0 &&
+                                      formations.Settings.HeroUnattendedLevel < combatSetup.BotProfiles.Length;
+
         /// <summary>Enqueues an already stamped command (from a remote peer or a replayed input log).</summary>
         public void Enqueue(in InputCommand command)
         {
@@ -340,6 +350,7 @@ namespace Shieldbreak.Sim.Core
 
             formations.Step(Tick, agents, combat, AgentCount, HasCombat);
             ApplyMoveIntents();
+            PostUnattendedHeroes();
             AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement, Grid.NavCost);
             CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch,
                 formations.FormationBuffer, formations.MemberBuffer, formations.Settings);
@@ -391,6 +402,96 @@ namespace Shieldbreak.Sim.Core
                 case InputCommandType.FormationOrder:
                     formations.Apply(FormationOrder.FromCommand(command), command.PlayerId);
                     break;
+                case InputCommandType.HeroUnattended:
+                    ApplyHeroUnattended(command);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// The player leaves the hero for the command view (or takes it back). The hero then fights with the bot brain
+        /// at FormationSettings.HeroUnattendedLevel and ignores the player's move and combat commands until taken back.
+        /// </summary>
+        void ApplyHeroUnattended(in InputCommand command)
+        {
+            ushort p = command.PlayerId;
+            int id = command.IntArgs.x;
+            if (p >= SimConstants.MaxPlayers || playerAgent[p] != id || id < 0 || id >= AgentCount || !HasCommandView) return;
+            bool leave = command.IntArgs.y != 0;
+            if (leave == (playerUnattended[p] == 1)) return;
+            var a = agents[id];
+            var c = combat[id];
+            playerUnattended[p] = leave ? 1 : 0;
+            playerMoveIntent[p] = float2.zero;
+            playerSprint[p] = 0;
+            c.BotTarget = -1;
+            c.BotPlannedBlockTick = -1;
+            c.BotNextDecisionTick = Tick;
+            c.Sprinting = 0;
+            if (leave)
+            {
+                a.Flags |= AgentFlags.Unattended;
+                c.BotProfile = formations.Settings.HeroUnattendedLevel;
+                c.OrderTarget = a.Position;
+                c.OrderFacing = a.Facing;
+            }
+            else
+            {
+                // Back to the player: nothing of the bot stays, the block comes down (the player raises it again)
+                a.Flags &= ~AgentFlags.Unattended;
+                a.Target = a.Position;
+                c.BotProfile = 0;
+                c.OrderFacing = float2.zero;
+                if (c.BlockHeld == 1 && !a.IsDead)
+                {
+                    var weapon = combatSetup.Weapons[c.WeaponId];
+                    CombatSystem.SetBlock(ref c, false, Tick, combatSetup.Attacks[weapon.AttackIndex(c.Direction)], combatSetup.Tuning, events, id);
+                }
+            }
+            agents[id] = a;
+            combat[id] = c;
+        }
+
+        /// <summary>
+        /// Post of every unattended hero: behind the rear rank of the nearest formation of its player, facing that
+        /// formation's front (inside the ring of a circle). Without such a formation (none left, or all follow the
+        /// hero) the hero holds where it was left.
+        /// </summary>
+        void PostUnattendedHeroes()
+        {
+            for (int p = 0; p < SimConstants.MaxPlayers; p++)
+            {
+                if (playerUnattended[p] == 0) continue;
+                int id = playerAgent[p];
+                var a = agents[id];
+                if (a.IsDead) continue;
+                var all = formations.Formations;
+                var members = formations.Members(AgentCount);
+                int best = -1;
+                float bestSq = float.MaxValue;
+                for (int f = 0; f < all.Length; f++)
+                {
+                    var fd = all[f];
+                    // A formation following the hero would back away with it: the hero holds instead
+                    if (fd.Owner != p || fd.Team != a.Team || fd.MemberCount == 0) continue;
+                    if (fd.Behavior == FormationBehavior.Follow && fd.FollowAgent == id) continue;
+                    float dsq = math.distancesq(fd.Position, a.Position);
+                    if (dsq < bestSq) { bestSq = dsq; best = f; }
+                }
+                if (best < 0) continue;
+                var line = all[best];
+                float2 post = line.Position;
+                if (line.Type != FormationType.Circle)
+                {
+                    float rear = 0f;
+                    for (int m = 0; m < members.Length; m++)
+                        if (members[m].Formation == best && !agents[m].IsDead) rear = math.min(rear, members[m].Local.y);
+                    post = line.ToWorld(new float2(0f, rear - formations.Settings.HeroRetreatGap));
+                }
+                var c = combat[id];
+                c.OrderTarget = post;
+                c.OrderFacing = line.Facing;
+                combat[id] = c;
             }
         }
 
@@ -399,6 +500,7 @@ namespace Shieldbreak.Sim.Core
         {
             int id = command.IntArgs.x;
             if (command.PlayerId >= SimConstants.MaxPlayers || playerAgent[command.PlayerId] != id || id < 0 || id >= AgentCount) return;
+            if (playerUnattended[command.PlayerId] == 1) return;
             float2 move = command.FloatArgs.xy;
             float2 look = command.FloatArgs.zw;
             if (!math.all(math.isfinite(move)) || !math.all(math.isfinite(look))) return;
@@ -423,7 +525,7 @@ namespace Shieldbreak.Sim.Core
             for (int p = 0; p < SimConstants.MaxPlayers; p++)
             {
                 int id = playerAgent[p];
-                if (id < 0 || id >= AgentCount) continue;
+                if (id < 0 || id >= AgentCount || playerUnattended[p] == 1) continue;
                 var a = agents[id];
                 if (a.IsDead) continue;
                 float2 move = playerMoveIntent[p];
@@ -441,6 +543,7 @@ namespace Shieldbreak.Sim.Core
             int id = command.IntArgs.x;
             // Only the player's own agent obeys; anything else is ignored (never thrown) to keep lockstep robust
             if (!HasCombat || command.PlayerId >= SimConstants.MaxPlayers || playerAgent[command.PlayerId] != id || id < 0 || id >= AgentCount) return;
+            if (playerUnattended[command.PlayerId] == 1) return;
             var c = combat[id];
             var weapon = combatSetup.Weapons[c.WeaponId];
             var attack = combatSetup.Attacks[weapon.AttackIndex(c.Direction)];
@@ -485,6 +588,7 @@ namespace Shieldbreak.Sim.Core
             h.Add(playerAgent);
             h.Add(playerMoveIntent);
             h.Add(playerSprint);
+            h.Add(playerUnattended);
             h.Add(formations.Count);
             formations.AddToHash(ref h, AgentCount);
             h.Add(Grid.Panic);
@@ -505,6 +609,7 @@ namespace Shieldbreak.Sim.Core
             if (playerAgent.IsCreated) playerAgent.Dispose();
             if (playerMoveIntent.IsCreated) playerMoveIntent.Dispose();
             if (playerSprint.IsCreated) playerSprint.Dispose();
+            if (playerUnattended.IsCreated) playerUnattended.Dispose();
             if (attackerScratch.IsCreated) attackerScratch.Dispose();
             if (agents.IsCreated) agents.Dispose();
             if (combat.IsCreated) combat.Dispose();

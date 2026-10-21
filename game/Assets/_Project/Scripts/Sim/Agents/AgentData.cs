@@ -13,6 +13,8 @@ namespace Shieldbreak.Sim.Agents
         public const int Routing = 1 << 1;
         /// <summary>Left the field at the map edge while routing; also Dead, so every system ignores it.</summary>
         public const int Fled = 1 << 2;
+        /// <summary>A player's hero while the player is in the command view: its bot brain fights (HeroUnattended).</summary>
+        public const int Unattended = 1 << 3;
     }
 
     /// <summary>
@@ -47,6 +49,7 @@ namespace Shieldbreak.Sim.Agents
         public bool IsDead => (Flags & AgentFlags.Dead) != 0;
         public bool IsRouting => (Flags & AgentFlags.Routing) != 0;
         public bool HasFled => (Flags & AgentFlags.Fled) != 0;
+        public bool IsUnattended => (Flags & AgentFlags.Unattended) != 0;
     }
 
     /// <summary>

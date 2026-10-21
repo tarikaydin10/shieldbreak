@@ -12,6 +12,8 @@ namespace Shieldbreak.Sim.AI
     /// after a seeded delay, may fail, and uses only the same Try* rules a player uses. Levels differ in reaction
     /// time, error rates and allowed techniques, never in stats. Runs inside the CombatJob, so it is deterministic.
     /// In a formation the context rules (FormationCombatRules) decide whom it may fight and how far it may leave its slot.
+    /// A player's hero runs here too while the player is in the command view (HeroUnattended): bound to its post behind
+    /// the own line like a soldier to its slot, the block held while an enemy is near.
     /// </summary>
     internal static class BotBrain
     {
@@ -26,7 +28,9 @@ namespace Shieldbreak.Sim.AI
             int tick = job.CurrentTick;
             var rules = job.Rules;
             var me = job.Agent(i);
-            var ctx = job.FormationContext(i);
+            bool unattended = me.IsUnattended;
+            var ctx = unattended ? FormationCombatRules.ForUnattendedHero(c.OrderTarget, c.OrderFacing, me.Facing) : job.FormationContext(i);
+            bool holdBlock = p.HoldBlock == 1 || unattended;
             var formationRules = job.FormationRules;
 
             // Routing (Sim/Morale): no target, no block, no attack; run (sprint while stamina lasts). The morale
@@ -61,7 +65,8 @@ namespace Shieldbreak.Sim.AI
                     me.FaceAgent = -1;
                 }
                 job.SetAgent(i, me);
-                if (c.BlockHeld == 1 && p.HoldBlock == 0) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
+                // Without an enemy near, an unattended hero walks back with the shield down (blocking slows)
+                if (c.BlockHeld == 1 && (p.HoldBlock == 0 || unattended)) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
                 c.RngState = rng.State;
                 return;
             }
@@ -124,7 +129,7 @@ namespace Shieldbreak.Sim.AI
             else
             {
                 c.BotPlannedBlockTick = -1;
-                if (p.HoldBlock == 1)
+                if (holdBlock)
                 {
                     if (c.State == CombatState.Idle && c.BlockHeld == 0) CombatSystem.SetBlock(ref c, true, tick, job.Attack(c), rules, job.EventList, i);
                 }

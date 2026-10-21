@@ -92,7 +92,7 @@ namespace Shieldbreak.Presentation.Menu
         void OnGUI()
         {
             if (mode == Mode.Hidden || Current == null) return;
-            if (AdminMenu.IsOpen || PauseMenu.IsOpen || DuelDirector.ResultOpen || RadialMenu.IsOpen) return;
+            if (AdminMenu.IsOpen || PauseMenu.IsOpen || DuelDirector.ResultOpen || RadialMenu.IsOpen || CommandView.IsOpen) return;
             Vector2 screen = MenuStyle.BeginScaled();
             if (mode == Mode.Card) DrawCard(screen);
             else DrawFull(screen);

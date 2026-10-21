@@ -44,6 +44,13 @@ namespace Shieldbreak.Sim.Combat.Context
         }
 
         /// <summary>
+        /// An unattended hero (command view, CLAUDE.md 3.9) is bound like a soldier holding a slot: its post behind
+        /// the own line, facing the line's front. It fights only what comes within its leash or too close.
+        /// </summary>
+        public static FormationCombatContext ForUnattendedHero(float2 post, float2 front, float2 fallbackFront) =>
+            new FormationCombatContext { Bound = 1, Slot = post, Front = math.normalizesafe(front, fallbackFront) };
+
+        /// <summary>
         /// May the soldier at <paramref name="self"/> pick (or keep) the enemy at <paramref name="enemy"/>?
         /// <paramref name="reach"/> is how far it fights from where it stands (its engage range, plus a margin to keep a target).
         /// </summary>

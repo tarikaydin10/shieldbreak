@@ -239,6 +239,18 @@ Grundlage der Werte: 20 gegen 20, Linien, Bots L3, je 6–10 Seeds, ohne Unity m
 | Feindliche Formationen der Kompanie bekommen ein Startverhalten (Vorrücken) als Szenario-Einstellung, nicht als Befehl | Ohne Commander-AI (M3) braucht der Feind einen Grund zu kommen; ein Startverhalten ist Szenario-Aufbau wie das Spawnen, auf allen Peers gleich | Feind steht still (kein Kampf ohne Spieler-Initiative) |
 | Der Held läuft wie im Duell mit 1,6-fachem Tempo der Liniensoldaten | Er ist ein Elite-Soldat (Säule 1) und muss seine Linie erreichen und verlassen können; das ist eine Held-Eigenschaft, kein AI-Cheat | Held so langsam wie die Linie |
 
+## 2026-10-21 — M2: Kommandoansicht
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Taste halten: **V** (Gamepad **LB**); loslassen kehrt zurück. Die Kamera fährt in 0,5 s auf 35 m Höhe (Mausrad 18–60 m), 58° schräg, Blick in die Richtung der Kampfkamera, 12 m vor den Helden; der Nebel weicht mit der Höhe zurück | CLAUDE.md 3.9 (halten, ~0,5 s, 30–40 m). V liegt neben WASD und ist im Kampf frei; LB ist frei, solange das Radialmenü zu ist. Gleiche Blickrichtung wie vorher, damit oben links immer noch links ist | Umschalten statt Halten (vergessenes Umschalten lässt den Helden stehen), Draufsicht senkrecht (Formationen schwer zu lesen) |
+| `HeroUnattended` ist ein Sim-Input; der Held wird so lange vom Bot-Gehirn gesteuert (Stufe 2 aus `FormationDefinition`) und ignoriert Bewegungs- und Kampfbefehle des Spielers. Posten: 1,5 m hinter dem hintersten Glied der nächsten eigenen Formation (beim Kreis die Mitte), dort gebunden wie ein Soldat an seinen Slot (Leine, Frontbogen, Selbstverteidigung) | CLAUDE.md 3.9 („Block halten, in die eigene Linie zurückziehen, L2“), deterministisch auf allen Peers. Gemessen: Der Rückzug ist schneller, als ein verfolgender L3-Gegner zuschlägt; der Verfolger läuft in die eigene Linie | Held bleibt stehen (unbeaufsichtigt mitten im Feind), Held kämpft frei (läuft Gegnern hinterher) |
+| Schild oben nur, solange ein Feind in Reichweite ist; auf dem Weg zurück unten | Blocken verlangsamt; mit dem Schild oben holte ihn der Verfolger ein | Schild immer oben (wörtlich „Block halten“) |
+| Folgt die nächste Formation dem Helden, hält er, wo er ist | Sonst schieben sich Held und Formation gegenseitig nach hinten | – |
+| Rechtsklick ohne Auswahl befiehlt **alle** eigenen Formationen; ein Klick auf eine feindliche Formation befiehlt Vorrücken gegen genau diese (neues Feld `TargetFormation` in `FormationOrder` und `FormationData`; ein Ziel ohne Soldaten fällt auf das nächste zurück; Vorrücken oder Angriff ohne eigenes Ziel behalten es, also „vorrücken gegen X, dann Angriff“ stürmt X; jedes andere Verhalten und ein Marschbefehl löschen es) | Schnell im Gefecht; das Ziel war in STATUS als „kommt mit der Kommandoansicht“ zugesagt. Das Radialmenü befiehlt in der Kommandoansicht die Auswahl | Nichts tun ohne Auswahl; Angriff (Charge) statt Vorrücken auf Rechtsklick (löst die Formation sofort auf) |
+| Zeitlupe in der Kommandoansicht als Option, Standard 0,3× (1,0× = aus); nur weniger Ticks pro Sekunde, DT bleibt | CLAUDE.md 3.9 (Einsteigerhilfe, Singleplayer). Multiplayer (M6) ignoriert sie | Pause in der Kommandoansicht (widerspricht „Zeit läuft weiter“) |
+| `GroundLines` (vorher `DebugLines`) liegt jetzt in `Presentation/` | Die Kommandoansicht ist Spiel, nicht Debug; das Debug-Assembly darf die Darstellung nutzen, nicht umgekehrt | Linien doppelt |
+
 ## 2026-10-21 — Testmodus: jeder Inhalt erreichbar und erklärt
 
 Anlass (Tarik): seit Task 4 nichts angespielt; am Ende soll sich alles vollständig testen lassen, ohne zu wissen, wo was steckt.

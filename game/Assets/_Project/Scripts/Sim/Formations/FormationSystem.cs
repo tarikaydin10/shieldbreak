@@ -105,6 +105,7 @@ namespace Shieldbreak.Sim.Formations
                 Destination = position,
                 Behavior = FormationBehavior.Hold,
                 FollowAgent = -1,
+                TargetFormation = -1,
             };
             return id;
         }
@@ -150,6 +151,11 @@ namespace Shieldbreak.Sim.Formations
             {
                 f.Behavior = order.Behavior;
                 f.FollowAgent = order.Behavior == FormationBehavior.Follow ? order.FollowAgent : -1;
+                // Advance and Charge take the order's target; without one they keep the target they have (advance
+                // on X, then charge: charge X). Any other behavior, or an invalid target, goes back to the nearest.
+                bool attacks = order.Behavior == FormationBehavior.Advance || order.Behavior == FormationBehavior.Charge;
+                if (!attacks || (order.TargetFormation >= 0 && !IsEnemyFormation(order.TargetFormation, f.Team))) f.TargetFormation = -1;
+                else if (order.TargetFormation >= 0) f.TargetFormation = order.TargetFormation;
                 // Look at the target on the next tick; a retreat to a given point has nothing to look for
                 f.NextBehaviorTick = order.Behavior == FormationBehavior.Retreat && move ? int.MaxValue : 0;
                 if (order.Behavior == FormationBehavior.Hold && !move) Stop(ref f);
@@ -160,6 +166,7 @@ namespace Shieldbreak.Sim.Formations
                 // A plain move order means: go there and hold
                 f.Behavior = FormationBehavior.Hold;
                 f.FollowAgent = -1;
+                f.TargetFormation = -1;
             }
             if ((order.Flags & FormationOrderFlags.Shape) != 0 && (uint)order.Type < FormationLimits.TypeCount && order.Type != f.Type)
             {
@@ -301,7 +308,7 @@ namespace Shieldbreak.Sim.Formations
 
         /// <summary>
         /// Behaviors choose where the formation marches; the march, path and turn are the same as for a move order.
-        /// Advance and Charge head for the nearest enemy formation (Advance stops a contact gap short, Charge goes in),
+        /// Advance and Charge head for their target or the nearest enemy formation (Advance stops a contact gap short, Charge goes in),
         /// Follow trails its agent, Retreat falls back once and then holds. Targets are looked at every
         /// BehaviorIntervalTicks and the march is only re-ordered when the target point moved noticeably.
         /// </summary>
@@ -382,9 +389,12 @@ namespace Shieldbreak.Sim.Formations
             f.NeedsPath = 1;
         }
 
+        bool IsEnemyFormation(int id, int team) => id >= 0 && id < formationCount && formations[id].Team != team;
+
         /// <summary>
-        /// The enemy this formation goes for: the formation with the nearest anchor (lowest id on ties), else the
-        /// nearest enemy soldier outside formations that still fights (not routing). <paramref name="aim"/> is where to head (the enemy's centre),
+        /// The enemy this formation goes for: its ordered target formation while that still has soldiers, else the
+        /// formation with the nearest anchor (lowest id on ties), else the nearest enemy soldier outside formations
+        /// that still fights (not routing). <paramref name="aim"/> is where to head (the enemy's centre),
         /// <paramref name="contact"/> how far along that direction its nearest soldier stands from the anchor.
         /// </summary>
         bool FindEnemy(in FormationData f, NativeArray<AgentData> agents, int agentCount, out float2 aim, out float contact)
@@ -402,6 +412,7 @@ namespace Shieldbreak.Sim.Formations
                     target = g;
                 }
             }
+            if (IsEnemyFormation(f.TargetFormation, f.Team) && formations[f.TargetFormation].MemberCount > 0) target = f.TargetFormation;
 
             aim = f.Position;
             contact = 0f;

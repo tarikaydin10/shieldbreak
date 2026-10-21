@@ -50,6 +50,8 @@ namespace Shieldbreak.Tests
             FollowDistance = 4f,
             BehaviorIntervalTicks = 30,
             RetargetDistance = 2f,
+            HeroUnattendedLevel = 2,
+            HeroRetreatGap = 1.5f,
         };
 
         /// <summary>Mirrors the MoraleDefinition defaults (Morale_Default).</summary>

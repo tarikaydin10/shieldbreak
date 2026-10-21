@@ -57,6 +57,7 @@ Regeln über der Grammatik, nie in ihr: Bots in einer Formation reagieren, block
 | Angriff | frei wie im Duell (keine Leine, sprinten) |
 | Rückzug | kämpfen nicht, suchen kein Ziel |
 | Typ Schildwall | antwortet auf einen gesehenen Angriff mit dem Schild statt mit einem Ausweichschritt aus der Wand |
+| Held, unbeaufsichtigt (Spieler in der Kommandoansicht) | Bot-Stufe aus `FormationDefinition` (L2); gebunden wie an einen Slot an seinen Posten 1,5 m hinter dem hintersten Glied der nächsten eigenen Formation (im Kreis: in der Mitte), Front wie diese Formation; Block oben, solange ein Feind in Reichweite ist, sonst Schild unten, damit er schnell zurückkommt. Folgt ihm die Formation, hält er, wo er ist |
 
 Ein dauerhaft erhobener Schild im Schildwall wurde ausprobiert und verworfen: Der Schildstoß bricht jeden erhobenen Block, und unter erhobenem Schild lädt die Ausdauer nicht nach (Ergebnisse in `DECISIONS.md`, 2026-10-20). Alle Werte stehen im `FormationDefinition`.
 
@@ -67,7 +68,7 @@ Ein dauerhaft erhobener Schild im Schildwall wurde ausprobiert und verworfen: De
 | `Grammar/` | Zustände, Ereignisse, Regeln (`CombatTuning`), Bot-Profile, Phasen-Timing |
 | `Archetypes/` | `WeaponData`, `AttackData`, `CombatSetup` (alle Tabellen) |
 | `Resolvers/` | `WeaponPath` (Waffenbahn aus Keyframes), `SwingTrace` (Geometrie, Durchdringung) |
-| `Context/` | `FormationCombatRules`: Leine, Frontbogen, Selbstverteidigung, Schildwall, Angriff, Rückzug |
+| `Context/` | `FormationCombatRules`: Leine, Frontbogen, Selbstverteidigung, Schildwall, Angriff, Rückzug, unbeaufsichtigter Held |
 | `CombatSystem.cs` | der Kampf-Job, ein Tick in Agenten-Reihenfolge |
 
 Werte (Schaden, Fenster, Stamina, Bot-Stufen) kommen aus ScriptableObjects in `Scripts/Data`. Tests: `CombatTests`, `CombatVerbTests`, `TwoHandTests`, `AttackTests`, `FormationCombatTests`. Papier-Test gegen Bogen und Lanze: [docs/combat](../../../../../../docs/combat/papier-test-bogen-lanze.md).

@@ -40,6 +40,8 @@ namespace Shieldbreak.Sim.Orders
         public FormationBehavior Behavior;
         /// <summary>Agent of the own team to follow (Behavior Follow), -1 = none.</summary>
         public int FollowAgent;
+        /// <summary>Enemy formation to go for (Behavior Advance or Charge), -1 = keep the current target, or the nearest.</summary>
+        public int TargetFormation;
 
         public static FormationOrder MoveTo(int formation, float2 destination, float2 facing = default) => new FormationOrder
         {
@@ -57,7 +59,15 @@ namespace Shieldbreak.Sim.Orders
 
         /// <summary>Behavior order without a destination (Hold: stop here, Retreat: fall back from the enemy).</summary>
         public static FormationOrder SetBehavior(int formation, FormationBehavior behavior) =>
-            new FormationOrder { Formation = formation, Flags = FormationOrderFlags.Behavior, Behavior = behavior, FollowAgent = -1 };
+            new FormationOrder { Formation = formation, Flags = FormationOrderFlags.Behavior, Behavior = behavior, FollowAgent = -1, TargetFormation = -1 };
+
+        /// <summary>Advance or Charge against one chosen enemy formation (the command view: right-click on it).</summary>
+        public static FormationOrder Against(int formation, FormationBehavior behavior, int enemyFormation)
+        {
+            var order = SetBehavior(formation, behavior);
+            order.TargetFormation = enemyFormation;
+            return order;
+        }
 
         public static FormationOrder Hold(int formation) => SetBehavior(formation, FormationBehavior.Hold);
         public static FormationOrder Advance(int formation) => SetBehavior(formation, FormationBehavior.Advance);
@@ -70,6 +80,7 @@ namespace Shieldbreak.Sim.Orders
             Flags = FormationOrderFlags.Behavior,
             Behavior = FormationBehavior.Follow,
             FollowAgent = agent,
+            TargetFormation = -1,
         };
 
         /// <summary>Fall back to a chosen point without fighting and face <paramref name="facing"/> there.</summary>
@@ -81,15 +92,17 @@ namespace Shieldbreak.Sim.Orders
             Facing = facing,
             Behavior = FormationBehavior.Retreat,
             FollowAgent = -1,
+            TargetFormation = -1,
         };
 
         /// <summary>
-        /// IntArgs = (formation, flags, type | files &lt;&lt; 8, behavior | (followAgent + 1) &lt;&lt; 8),
-        /// FloatArgs = (destination, facing).
+        /// IntArgs = (formation, flags, type | files &lt;&lt; 8 | (targetFormation + 1) &lt;&lt; 20,
+        /// behavior | (followAgent + 1) &lt;&lt; 8), FloatArgs = (destination, facing). Files and target take 12 bits each.
         /// </summary>
         public void ToArgs(out int4 intArgs, out float4 floatArgs)
         {
-            intArgs = new int4(Formation, (int)Flags, ((int)Type & 0xFF) | (math.clamp(Files, 0, 0xFFFFFF) << 8),
+            intArgs = new int4(Formation, (int)Flags,
+                ((int)Type & 0xFF) | (math.clamp(Files, 0, 0xFFF) << 8) | (math.clamp(TargetFormation + 1, 0, 0xFFF) << 20),
                 ((int)Behavior & 0xFF) | (math.clamp(FollowAgent + 1, 0, 0xFFFFFF) << 8));
             floatArgs = new float4(Destination, Facing);
         }
@@ -99,7 +112,8 @@ namespace Shieldbreak.Sim.Orders
             Formation = command.IntArgs.x,
             Flags = (FormationOrderFlags)command.IntArgs.y,
             Type = (FormationType)(command.IntArgs.z & 0xFF),
-            Files = (int)((uint)command.IntArgs.z >> 8),
+            Files = (int)(((uint)command.IntArgs.z >> 8) & 0xFFF),
+            TargetFormation = (int)((uint)command.IntArgs.z >> 20) - 1,
             Destination = command.FloatArgs.xy,
             Facing = command.FloatArgs.zw,
             Behavior = (FormationBehavior)(command.IntArgs.w & 0xFF),

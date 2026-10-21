@@ -27,6 +27,11 @@ namespace Shieldbreak.Sim.Core
         CombatJump = 9,
         /// <summary>A FormationOrder (Sim/Orders): IntArgs = (formation, flags, type | files &lt;&lt; 8, 0), FloatArgs = (destination, facing).</summary>
         FormationOrder = 10,
+        /// <summary>
+        /// IntArgs.x = own agent id, IntArgs.y = 1 the player leaves the hero for the command view, 0 takes it back.
+        /// While unattended the hero's bot brain fights (Hold block, back into the own line, FormationSettings level).
+        /// </summary>
+        HeroUnattended = 11,
     }
 
     /// <summary>

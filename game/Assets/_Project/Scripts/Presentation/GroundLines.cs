@@ -1,14 +1,14 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Shieldbreak.DebugTools
+namespace Shieldbreak.Presentation
 {
     /// <summary>
-    /// Immediate-mode GL lines on the ground for debug views. Call Begin, then Line/Cross/Arrow, then End, from a
-    /// RenderPipelineManager.endCameraRendering callback (BeginQuads, Quad, End for filled cells). Drawn on top of
-    /// everything (bumpy ground never hides them).
+    /// Immediate-mode GL lines on the ground for overlays (debug views, command view). Call Begin, then
+    /// Line/Cross/Arrow, then End, from a RenderPipelineManager.endCameraRendering callback (BeginQuads, Quad, End for
+    /// filled cells). Drawn on top of everything (bumpy ground never hides them).
     /// </summary>
-    public static class DebugLines
+    public static class GroundLines
     {
         static Material material;
 
