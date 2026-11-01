@@ -506,7 +506,7 @@ namespace Shieldbreak.Tests
             var order = new FormationOrder
             {
                 Formation = 3,
-                Flags = FormationOrderFlags.Move | FormationOrderFlags.Shape | FormationOrderFlags.Width | FormationOrderFlags.Behavior,
+                Flags = FormationOrderFlags.Move | FormationOrderFlags.Shape | FormationOrderFlags.Width | FormationOrderFlags.Behavior | FormationOrderFlags.Stance,
                 Type = FormationType.Loose,
                 Files = 37,
                 Destination = new float2(1.5f, -2f),
@@ -514,6 +514,7 @@ namespace Shieldbreak.Tests
                 Behavior = FormationBehavior.Follow,
                 FollowAgent = 1234,
                 TargetFormation = 77,
+                Stance = FormationStance.Aggressive,
             };
             order.ToArgs(out int4 i, out float4 f);
             var back = FormationOrder.FromCommand(new InputCommand { Type = InputCommandType.FormationOrder, IntArgs = i, FloatArgs = f });
@@ -526,6 +527,7 @@ namespace Shieldbreak.Tests
             Assert.That(back.Behavior, Is.EqualTo(FormationBehavior.Follow));
             Assert.That(back.FollowAgent, Is.EqualTo(1234));
             Assert.That(back.TargetFormation, Is.EqualTo(77));
+            Assert.That(back.Stance, Is.EqualTo(FormationStance.Aggressive));
 
             FormationOrder.Retreat(2).ToArgs(out i, out f);
             back = FormationOrder.FromCommand(new InputCommand { Type = InputCommandType.FormationOrder, IntArgs = i, FloatArgs = f });

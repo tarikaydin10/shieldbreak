@@ -294,6 +294,18 @@ Anlass (Tarik, nach dem Anspielen): „in die Richtung von Mount & Blade II Bann
 | Neuer Meilenstein **M4b Kriegszug** (~80 h) nach M4 und vor M5 Polish; das Budget steigt von ~650 h auf ~730 h. M2 und M3 bleiben unverändert | M4 liefert Pferde, Maps und Modelle, die Läden brauchen etwas zum Verkaufen. Ein 20-gegen-20 ohne Commander-AI trägt noch keinen Kriegszug; die Schlacht muss zuerst tragen | Kriegszug direkt nach M2; M-Nummern neu zählen (zu viele Verweise auf M5 und M6) |
 | Vor der Story muss das Setting entschieden sein (historisch oder Low-Fantasy, CLAUDE.md 9) | Story, Gegnertypen und Städte hängen daran | – |
 
+## 2026-11-01 — Fun-Gate M2 bestanden; M3 Task 1: Haltung
+
+Fun-Gate M2 (Tarik): „joa, ist gut … alles in allem cool“. Befund: Formationen, die man hinter den Feind stellt, greifen nicht an; Wunsch, Einheiten auch angreifen lassen zu können.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Ursache: Nach einem Marschbefehl hält eine Formation und kämpft nur innerhalb ihrer Leine (2 m) im Frontbogen. Zieht der Feind weiter, steht sie. Den Angriff auf eine bestimmte Formation gab es schon (Rechtsklick auf den Feind), aber nur als Zeile in der Hinweisleiste | – | – |
+| **Haltung** pro Formation (M3 „Standing Orders, 3 Presets“, vorgezogen als Task 1): Stellung halten, **Reagieren** (Standard; rückt gegen eine feindliche Formation vor, deren Soldaten bis 10 m an die eigenen herankommen, und hält wieder, wenn sie gebrochen ist), Aggressiv (ab 30 m, danach weiter zum nächsten). Nur wenn die Formation hält **und angekommen ist**: Ein Marsch hinter den Feind wird unterwegs nicht abgelenkt, am Ziel greift sie seinen Rücken an | Standing Orders sind ein Formation-Behavior (CLAUDE.md 3.6), die Commander-AI nutzt später dieselben. Säule 2: die Armee wird ohne Spieler nicht dumm | Halten reagiert immer (dann gibt es kein echtes Halten mehr); Vorrücken nach jedem Marsch (zieht Linien aus Stellungen, die der Spieler bewusst gewählt hat) |
+| „Halten“ aus dem Radialmenü (und H in der Sandbox) setzt zusätzlich „Stellung halten“ | Wer im Gefecht „Halten“ befiehlt, will stehen bleiben; sonst schickt Reagieren die Linie sofort wieder los | Halten ändert die Haltung nicht (Befehl wirkungslos in Kontakt) |
+| Haltung wechseln in der Kommandoansicht mit R (Gamepad Y), für die Auswahl oder alle; die Beschriftung jeder eigenen Formation zeigt sie, ein von selbst begonnener Angriff steht als „(von selbst)“ da. Eine feindliche Formation unter dem Mauszeiger leuchtet auf und zeigt „Rechtsklick: angreifen“ | Befund aus dem Fun-Gate: Der vorhandene Angriffsbefehl wurde nicht gefunden | Neuer Ring-Eintrag im Radialmenü (alle acht Plätze belegt) |
+| Folge für die Balance: Mit Reagieren läuft eine haltende Linie einem anrückenden Feind 10 m entgegen und verschenkt den Vorteil des Haltens (Test: schmale gegen breite Linie wird dann ausgeglichen). Wer den Vorteil will, stellt „Stellung halten“ ein. Die Kompanie-Schlacht ohne Befehle bleibt ein Sieg (52 s statt 40 s). Ob Reagieren der richtige Standard ist, entscheidet Tarik beim Spielen | Tuning ist Tariks Sache; die Werte stehen in `Formation_Default` | – |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

@@ -1807,6 +1807,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "CycleStance",
+                    "type": "Button",
+                    "id": "85ec0d3b-7a8b-4bc2-8605-b724e125d28b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1972,6 +1981,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "ShapeLoose",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3db797b0-f419-4061-9296-527f6d64cb06",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CycleStance",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "789b3273-1405-4501-a019-071d957cdb1a",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CycleStance",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

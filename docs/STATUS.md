@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-01**, Meilenstein **M2 Kompanie**, alle 8 Tasks gebaut, **offen ist das Fun-Gate M2**. Neu: Die Kompanie-Schlacht endet, wenn eine Seite bricht oder der Held fÃ¤llt, mit Ergebnisbildschirm (Task 8). Bisher: Formationen haben Verhalten (Halten, Vorrücken, Angriff, Folgen, Rückzug), kämpfen aus der Formation, Soldaten brechen (Panik-Feld, Moral, Rout und Flucht), der Held befiehlt seiner Kompanie über das **Radialmenü** aus dem Kampf heraus und mit Überblick aus der **Kommandoansicht** (V halten). Dafür ist das Grundgerüst der Szene `M2_Company` aus Task 8 vorgezogen. Die Sandbox ist ein Gefecht 20 gegen 20. Neu: **Testmodus** im Hauptmenü, jede Szene mit Ziel, Steuerung und Prüfliste (F2), siehe unten. (Task 4 bis 7 in Unity noch nicht angesehen.) **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-01**, Meilenstein **M3 Feldherr**, Task 1 von 7 fertig: **Haltung** (Stellung halten, Reagieren, Aggressiv). Formationen greifen jetzt von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst. **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
 
 ## Sofort spielen
 
@@ -21,7 +21,7 @@ Hauptmenü → **Testmodus**. Links alles, was es gibt, rechts für den gewählt
 | Eintrag | Szene | Prüfpunkte |
 |---|---|---|
 | Duell, Tutorial, Zuschauen | `M1_Duel` | 6, 3, 3 |
-| Kompanie, mit Kommandoansicht und Ergebnis | `M2_Company` | 15 |
+| Kompanie, mit Kommandoansicht, Haltung und Ergebnis | `M2_Company` | 18 |
 | Sandbox: Formationen und Moral | `M0_Sandbox` | 9 |
 | Stresstest: 250 gegen 250 (vorher nicht erreichbar) | `M0_Sandbox` mit `Stress_250v250` | 3 |
 | Prototyp: Oben-Hieb, Prototyp: Look und Kameras | `Proto_Animation`, `Proto_Style` | 4, 2 |
@@ -73,6 +73,8 @@ Der gegebene Befehl steht kurz oben im Bild; F1 zeigt Ziel, letzten Befehl und d
 | Rechts ziehen (RT halten und Stick) | Frontlinie zeichnen: Position, Breite, Blickrichtung |
 | Rechtsklick auf eine feindliche Formation | Auswahl rückt gegen genau diese vor (rote Linie zum Ziel) |
 | 1–5 | Form: Linie, Schildwall, Keil, Kreis, locker |
+| R (Y) | **Haltung** der Auswahl (ohne Auswahl: alle) wechseln: Stellung halten → Reagieren → Aggressiv, steht in der Beschriftung |
+| Mauszeiger auf einer feindlichen Formation | sie leuchtet auf, „Rechtsklick: angreifen“ |
 | F halten (RB) | Radialmenü, befiehlt jetzt die Auswahl |
 | Mausrad | Kamera höher oder tiefer (18–60 m) |
 | linker Stick | Gamepad: Zeiger bewegen |
@@ -129,6 +131,7 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Moral (M2) | Panik-Feld pro Team mit Diffusion (Zuversicht als negativer Wert), Quellen und Senken, Moral pro Soldat, Rout, Flucht bis zum Kartenrand; im Duell aus | `Scripts/Sim/Morale`, `Data/MoraleDefinition`, `Data/Morale/Morale_Default` |
 | Radialmenü (M2) | Schnellbefehle aus dem Kampf an alle eigenen Formationen oder eine: Halten, Vorrücken, Angriff, Folgen, Rückzug, Linie, Schildwall, Keil; als `FormationOrder` über die `InputQueue` | `Scripts/Presentation/Player/RadialMenu`, `Sim/Orders/QuickOrders` |
 | Kommandoansicht (M2) | V halten: Kamera hoch, Formationen lesbar (Umriss, Front, Befehl, Moral), Auswahl, Marsch und Frontlinie per Maus, Ziel per Rechtsklick auf den Feind, Formen 1–5, Radialmenü auf die Auswahl, Zeitlupe; der Held kämpft solange als Bot hinter der eigenen Linie (`HeroUnattended`, Sim-Input) | `Scripts/Presentation/Player/CommandView`, `Cameras/CommandViewCamera`, `Sim/Core/SimWorld` |
+| Haltung (M3) | Standing Order pro Formation: Stellung halten, Reagieren (Standard: rückt gegen Feinde vor, die bis 10 m herankommen, hält danach wieder), Aggressiv (ab 30 m, danach weiter); nur wenn die Formation hält und angekommen ist; „Halten“ im Radialmenü heißt auch Stellung halten; Werte in `Data/Formations/Formation_Default` | `Sim/Formations` (`FormationStance`, `React`), `Sim/Orders/FormationOrder`, `Player/CommandView` |
 | Kompanie (M2) | Held mit zwei eigenen Formationen gegen zwei vorrückende Bot-Formationen, mit Moral; Hitstop und Kamera-Kick wie im Duell; Ende der Schlacht (`Sim/Morale/BattleOutcome`: eine Seite bricht oder der Held fällt) und Ergebnisbildschirm | `Data/CompanyScenarioDefinition`, `Data/Scenarios/Company_M2`, `Scenes/M2_Company`, `Player/CompanyDirector` |
 | Bots | Stufen L1–L5 spielen dieselben Regeln, nur Reaktionszeit, Fehlerquote und Techniken unterscheiden sich; höchstens 2 greifen gleichzeitig an | `Scripts/Sim/AI` |
 | Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Leben als roter Rand und Ausdauer als dunkler Puls statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
@@ -144,7 +147,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (176, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (179, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2` (Mac: `SHIELDBREAK.app/Contents/MacOS/SHIELDBREAK -shot …`). Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
 | Von Hand: alle Szenen | Hauptmenü → Testmodus (Prüflisten pro Szene, siehe oben) |
@@ -152,7 +155,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 **Von Hand prüfen:** steht pro Szene als Prüfliste im Testmodus (Hauptmenü → Testmodus, in der Szene F2 und Esc → Ziel und Prüfliste). Dazu der Rahmen: eine Taste umlegen und prüfen, dass sie nach Neustart gilt; Optionen ändern und im Duell merken.
 
-**Fun-Gate M1:** bestanden am 2026-10-19.
+**Fun-Gate M1:** bestanden am 2026-10-19. **Fun-Gate M2:** bestanden am 2026-11-01.
 
 ## Offen
 
@@ -175,12 +178,13 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - Fliehende suchen keinen Weg um Mauern, sie weichen nur lokal aus und gleiten an der Wand entlang (wie alle Soldaten, CLAUDE.md 3.6)
 - Vorrücken und Angriff wählen die nächste feindliche Formation selbst, außer man zeigt in der Kommandoansicht per Rechtsklick auf eine. Freier Angriff auf ein bestimmtes Ziel: erst Rechtsklick auf den Feind, dann Radialmenü → Angriff (das Ziel bleibt)
 - **Kommandoansicht (Tarik):** Taste V/LB, Höhe 35 m, Blickwinkel, Zeitlupe 0,3× und „ohne Auswahl = alle“ sind ein erster Vorschlag (`DECISIONS.md` 2026-10-21). Die Kamera folgt dem Helden; Verschieben über das Feld steht in `IDEAS.md`
+- **Haltung (Tarik):** Reagieren ist Standard. Dann läuft eine haltende Linie einem anrückenden Feind 10 m entgegen und verliert den Vorteil des Haltens; wer ihn will, stellt R auf Stellung halten. Ob Reagieren der richtige Standard ist und ob 10 m und 30 m passen, beim Spielen entscheiden (`DECISIONS.md` 2026-11-01). Die Sandbox hat noch keine Taste für die Haltung (H setzt Stellung halten)
 - Formationen und Hindernisse: Beim Umformen laufen Soldaten geradeaus zum neuen Slot, ein Slot hinter einer Wand wird erst erreicht, wenn die Formation weiterzieht (nur lokales Steering, CLAUDE.md 3.6). Hindernisse sind nur im Overlay sichtbar (keine Meshes vor M4)
 - Sounds sind Platzhalter (M5), Figuren sind Gliederpuppen aus der Pipeline (Synty-Vergleich offen, `DECISIONS.md`)
 - Bogen und Lanze: zwei Grammatik-Erweiterungen geplant, siehe [Papier-Test](combat/papier-test-bogen-lanze.md)
 
 ## Aktueller Meilenstein
 
-**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · ✅ 3 Formations-Pfad (A*) · ✅ 4 Verhalten + Kampf in Formation, 20 gegen 20 · ✅ 5 Moral und Rout · ✅ 6 Radialmenü (mit vorgezogenem Grundgerüst von `M2_Company`) · ✅ 7 Kommandoansicht · ✅ 8 Szene `M2_Company` fertig (Ende der Schlacht, Ergebnisbildschirm) · **Fun-Gate M2 (Tarik):** Formation reagiert sichtbar und sofort auf Befehl; Rout fühlt sich verdient an; Wechsel Kampf ↔ Kommandoansicht fühlt sich riskant, aber nicht lähmend an.
+**M3 Feldherr** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Haltung (Standing Orders) · 2 Formation-AI: Bedrohungen · 3 Commander-Utility-AI · 4 Lanchester · 5 Fernkampf (Bogen) · 6 50 gegen 50, Befehlsreichweite · 7 Fun-Gate M3 (inkl. Feldherr-Test). M2 Kompanie: alle 8 Tasks fertig, Fun-Gate bestanden.
 
 **Neu im Plan (2026-11-01):** Nach M4 kommt **M4b Kriegszug**, eine leichte Meta in Richtung Bannerlord: Story-Einführung, Städte zum Kaufen und Verkaufen (Rüstung, Waffen, Pferde, Rekruten), Schlachten gegen Banditen und Rivalen. Es gibt keine Weltkarte. Begründung in `DECISIONS.md` 2026-11-01, Plan in CLAUDE.md 6. Davor bleiben M2 und M3 unverändert.

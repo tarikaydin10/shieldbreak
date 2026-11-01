@@ -48,7 +48,12 @@ namespace Shieldbreak.Sim.Orders
         {
             switch (command)
             {
-                case QuickCommand.Hold: order = FormationOrder.Hold(formation); return true;
+                case QuickCommand.Hold:
+                    // "Hold" means stand here: also the Hold Ground stance, so a react stance does not walk off again
+                    order = FormationOrder.Hold(formation);
+                    order.Flags |= FormationOrderFlags.Stance;
+                    order.Stance = FormationStance.HoldGround;
+                    return true;
                 case QuickCommand.Advance: order = FormationOrder.Advance(formation); return true;
                 case QuickCommand.Charge: order = FormationOrder.Charge(formation); return true;
                 case QuickCommand.Retreat: order = FormationOrder.Retreat(formation); return true;

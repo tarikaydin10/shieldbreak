@@ -52,6 +52,9 @@ namespace Shieldbreak.Tests
             RetargetDistance = 2f,
             HeroUnattendedLevel = 2,
             HeroRetreatGap = 1.5f,
+            DefaultStance = FormationStance.React,
+            ReactDistance = 10f,
+            AggressiveDistance = 30f,
         };
 
         /// <summary>Mirrors the MoraleDefinition defaults (Morale_Default).</summary>

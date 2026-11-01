@@ -65,6 +65,14 @@ namespace Shieldbreak.Data
         [Tooltip("The march is only re-ordered when the target point moved further than this (m).")]
         [Min(0f)] public float retargetDistance = 2f;
 
+        [Header("Standing orders (stance)")]
+        [Tooltip("Stance of every formation at the start: Hold Ground stays put, React advances on enemies that come close, Aggressive goes for enemies from further away.")]
+        public FormationStance defaultStance = FormationStance.React;
+        [Tooltip("React: a holding formation advances on an enemy formation whose soldiers come this close to its own (m).")]
+        [Min(0f)] public float reactDistance = 10f;
+        [Tooltip("Aggressive: the same from this far (m); afterwards it goes for the next enemy.")]
+        [Min(0f)] public float aggressiveDistance = 30f;
+
         [Header("Hero in the command view (HeroUnattended)")]
         [Tooltip("Bot level (L1–L5) the hero fights at while the player is in the command view; 0 = no command view.")]
         [Range(0, 5)] public int heroUnattendedLevel = 2;
@@ -102,6 +110,9 @@ namespace Shieldbreak.Data
             RetargetDistance = retargetDistance,
             HeroUnattendedLevel = heroUnattendedLevel,
             HeroRetreatGap = heroRetreatGap,
+            DefaultStance = defaultStance,
+            ReactDistance = reactDistance,
+            AggressiveDistance = aggressiveDistance,
         };
     }
 }

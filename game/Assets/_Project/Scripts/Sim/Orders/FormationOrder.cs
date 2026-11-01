@@ -20,6 +20,8 @@ namespace Shieldbreak.Sim.Orders
         /// destination; Hold without Move stops where the formation stands; Retreat with Move falls back to Destination.
         /// </summary>
         Behavior = 1 << 3,
+        /// <summary>Set the standing order (stance) the formation follows while it holds.</summary>
+        Stance = 1 << 4,
     }
 
     /// <summary>
@@ -42,6 +44,7 @@ namespace Shieldbreak.Sim.Orders
         public int FollowAgent;
         /// <summary>Enemy formation to go for (Behavior Advance or Charge), -1 = keep the current target, or the nearest.</summary>
         public int TargetFormation;
+        public FormationStance Stance;
 
         public static FormationOrder MoveTo(int formation, float2 destination, float2 facing = default) => new FormationOrder
         {
@@ -56,6 +59,9 @@ namespace Shieldbreak.Sim.Orders
 
         public static FormationOrder SetWidth(int formation, int files) =>
             new FormationOrder { Formation = formation, Flags = FormationOrderFlags.Width, Files = files };
+
+        public static FormationOrder SetStance(int formation, FormationStance stance) =>
+            new FormationOrder { Formation = formation, Flags = FormationOrderFlags.Stance, Stance = stance };
 
         /// <summary>Behavior order without a destination (Hold: stop here, Retreat: fall back from the enemy).</summary>
         public static FormationOrder SetBehavior(int formation, FormationBehavior behavior) =>
@@ -97,13 +103,14 @@ namespace Shieldbreak.Sim.Orders
 
         /// <summary>
         /// IntArgs = (formation, flags, type | files &lt;&lt; 8 | (targetFormation + 1) &lt;&lt; 20,
-        /// behavior | (followAgent + 1) &lt;&lt; 8), FloatArgs = (destination, facing). Files and target take 12 bits each.
+        /// behavior | stance &lt;&lt; 4 | (followAgent + 1) &lt;&lt; 8), FloatArgs = (destination, facing). Files and target
+        /// take 12 bits each, behavior and stance 4 bits each.
         /// </summary>
         public void ToArgs(out int4 intArgs, out float4 floatArgs)
         {
             intArgs = new int4(Formation, (int)Flags,
                 ((int)Type & 0xFF) | (math.clamp(Files, 0, 0xFFF) << 8) | (math.clamp(TargetFormation + 1, 0, 0xFFF) << 20),
-                ((int)Behavior & 0xFF) | (math.clamp(FollowAgent + 1, 0, 0xFFFFFF) << 8));
+                ((int)Behavior & 0xF) | (((int)Stance & 0xF) << 4) | (math.clamp(FollowAgent + 1, 0, 0xFFFFFF) << 8));
             floatArgs = new float4(Destination, Facing);
         }
 
@@ -116,7 +123,8 @@ namespace Shieldbreak.Sim.Orders
             TargetFormation = (int)((uint)command.IntArgs.z >> 20) - 1,
             Destination = command.FloatArgs.xy,
             Facing = command.FloatArgs.zw,
-            Behavior = (FormationBehavior)(command.IntArgs.w & 0xFF),
+            Behavior = (FormationBehavior)(command.IntArgs.w & 0xF),
+            Stance = (FormationStance)((command.IntArgs.w >> 4) & 0xF),
             FollowAgent = (int)((uint)command.IntArgs.w >> 8) - 1,
         };
     }

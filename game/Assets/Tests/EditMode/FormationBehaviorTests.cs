@@ -41,6 +41,7 @@ namespace Shieldbreak.Tests
             int a = Line(world, 0, new float2(20f, 48f), East);
             Line(world, 1, new float2(80f, 30f), West);   // further away
             int b = Line(world, 1, new float2(60f, 48f), West);
+            world.SubmitFormationOrder(PlayerB, FormationOrder.SetStance(b, FormationStance.HoldGround));   // b waits, it does not come to meet a
             world.SubmitFormationOrder(PlayerA, FormationOrder.Advance(a));
             Run(world, 3000);
 
@@ -262,6 +263,96 @@ namespace Shieldbreak.Tests
             }
             Assert.That(Battle(true), Is.EqualTo(Battle(true)));
             Assert.That(Battle(true), Is.Not.EqualTo(Battle(false)));
+        }
+
+        // ---- Stances (standing orders) ----
+
+        static void SetStance(SimWorld world, ushort player, int formation, FormationStance stance) =>
+            world.SubmitFormationOrder(player, FormationOrder.SetStance(formation, stance));
+
+        [Test]
+        public void Stance_React_GoesForAnEnemyThatComesNear_HoldGroundStays()
+        {
+            using var world = World(90);
+            int react = Line(world, 0, new float2(20f, 60f), East);
+            int stay = Line(world, 0, new float2(20f, 30f), East);
+            int near = Line(world, 1, new float2(70f, 60f), West);
+            int other = Line(world, 1, new float2(70f, 30f), West);
+            Assert.That(world.Formations[react].Stance, Is.EqualTo(FormationStance.React), "the default stance");
+            SetStance(world, PlayerA, stay, FormationStance.HoldGround);
+            SetStance(world, PlayerB, near, FormationStance.HoldGround);
+            SetStance(world, PlayerB, other, FormationStance.HoldGround);
+            // Both enemies stop 7 m in front of the own lines
+            world.SubmitFormationOrder(PlayerB, FormationOrder.MoveTo(near, new float2(27f, 60f), West));
+            world.SubmitFormationOrder(PlayerB, FormationOrder.MoveTo(other, new float2(27f, 30f), West));
+            Run(world, 3000);
+
+            var r = world.Formations[react];
+            Assert.That(r.Behavior, Is.EqualTo(FormationBehavior.Advance), "React advances on its own");
+            Assert.That(r.TargetFormation, Is.EqualTo(near), "on the enemy that came near");
+            Assert.That(r.Reacting, Is.EqualTo((int)FormationStance.React));
+            Assert.That(r.Position.x, Is.GreaterThan(22f), "and closes in");
+            var s = world.Formations[stay];
+            Assert.That(s.Behavior, Is.EqualTo(FormationBehavior.Hold), "Hold Ground does not move");
+            Assert.That(s.Position, Is.EqualTo(new float2(20f, 30f)));
+        }
+
+        [Test]
+        public void Stance_React_WaitsUntilArrived_ThenAttacksTheEnemyFromBehind()
+        {
+            using var world = World(60);
+            int a = Line(world, 0, new float2(52f, 72f), new float2(0f, -1f));
+            int b = Line(world, 1, new float2(50f, 40f), West);
+            SetStance(world, PlayerB, b, FormationStance.HoldGround);
+            // From the north past the enemy's flank to 8 m behind it, facing its back; the march passes it closer than 10 m
+            world.SubmitFormationOrder(PlayerA, FormationOrder.MoveTo(a, new float2(59f, 40f), West));
+            bool reactedOnTheWay = false;
+            int arrivedAt = -1;
+            for (int t = 0; t < 4800 && arrivedAt < 0; t++)
+            {
+                world.Step();
+                var f = world.Formations[a];
+                bool marching = f.NeedsPath != 0 || f.PathIndex < f.PathCount || math.distancesq(f.Destination, f.Position) >= 0.25f;
+                if (marching && f.Behavior != FormationBehavior.Hold) reactedOnTheWay = true;
+                if (!marching && t > 60) arrivedAt = t;
+            }
+            Assert.That(arrivedAt, Is.GreaterThan(0), "the march arrives");
+            Assert.That(reactedOnTheWay, Is.False, "a march is not hijacked by enemies it passes");
+            Run(world, 600);
+            var after = world.Formations[a];
+            Assert.That(after.Behavior, Is.EqualTo(FormationBehavior.Advance));
+            Assert.That(after.TargetFormation, Is.EqualTo(b));
+            Assert.That(after.Position.x, Is.LessThan(58f), "it closes in on the enemy's back");
+            Assert.That(math.dot(after.Facing, West), Is.GreaterThan(0.9f), "facing the enemy's back");
+        }
+
+        [Test]
+        public void Stance_AnOrderEndsTheReaction_AndRadialHoldMeansHoldGround()
+        {
+            using var world = World(60);
+            int a = Line(world, 0, new float2(20f, 48f), East);
+            int b = Line(world, 1, new float2(70f, 48f), West);
+            SetStance(world, PlayerB, b, FormationStance.HoldGround);
+            world.SubmitFormationOrder(PlayerB, FormationOrder.MoveTo(b, new float2(28f, 48f), West));
+            Run(world, 3000);
+            Assert.That(world.Formations[a].Reacting, Is.EqualTo((int)FormationStance.React), "reacted to the enemy");
+
+            Assert.That(QuickOrders.TryBuild(QuickCommand.Hold, a, -1, out var hold));
+            world.SubmitFormationOrder(PlayerA, hold);
+            Run(world, world.Config.InputDelayTicks + 1);
+            float2 stoppedAt = world.Formations[a].Position;
+            Run(world, 600);
+            var f = world.Formations[a];
+            Assert.That(f.Behavior, Is.EqualTo(FormationBehavior.Hold));
+            Assert.That(f.Stance, Is.EqualTo(FormationStance.HoldGround), "Hold from the radial menu also holds the ground");
+            Assert.That(f.Reacting, Is.EqualTo(0));
+            Assert.That(math.distance(f.Position, stoppedAt), Is.LessThan(0.5f), "and it stays, though the enemy is near");
+
+            // Stance orders from another player, or out of range, are ignored
+            SetStance(world, PlayerB, a, FormationStance.Aggressive);
+            world.SubmitFormationOrder(PlayerA, FormationOrder.SetStance(a, (FormationStance)7));
+            Run(world, world.Config.InputDelayTicks + 1);
+            Assert.That(world.Formations[a].Stance, Is.EqualTo(FormationStance.HoldGround));
         }
     }
 }

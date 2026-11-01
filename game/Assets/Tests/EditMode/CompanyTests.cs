@@ -66,7 +66,7 @@ namespace Shieldbreak.Tests
         {
             var expected = new (QuickCommand command, FormationOrderFlags flags, FormationBehavior behavior, FormationType type)[]
             {
-                (QuickCommand.Hold, FormationOrderFlags.Behavior, FormationBehavior.Hold, default),
+                (QuickCommand.Hold, FormationOrderFlags.Behavior | FormationOrderFlags.Stance, FormationBehavior.Hold, default),
                 (QuickCommand.Advance, FormationOrderFlags.Behavior, FormationBehavior.Advance, default),
                 (QuickCommand.Charge, FormationOrderFlags.Behavior, FormationBehavior.Charge, default),
                 (QuickCommand.Follow, FormationOrderFlags.Behavior, FormationBehavior.Follow, default),
@@ -81,9 +81,11 @@ namespace Shieldbreak.Tests
                 Assert.That(QuickOrders.TryBuild(e.command, 3, 7, out var order), e.command.ToString());
                 Assert.That(order.Formation, Is.EqualTo(3));
                 Assert.That(order.Flags, Is.EqualTo(e.flags), e.command.ToString());
-                if (e.flags == FormationOrderFlags.Behavior) Assert.That(order.Behavior, Is.EqualTo(e.behavior));
+                if ((e.flags & FormationOrderFlags.Behavior) != 0) Assert.That(order.Behavior, Is.EqualTo(e.behavior));
                 else Assert.That(order.Type, Is.EqualTo(e.type));
             }
+            QuickOrders.TryBuild(QuickCommand.Hold, 3, 7, out var hold);
+            Assert.That(hold.Stance, Is.EqualTo(FormationStance.HoldGround), "Hold also holds the ground");
             QuickOrders.TryBuild(QuickCommand.Follow, 3, 7, out var follow);
             Assert.That(follow.FollowAgent, Is.EqualTo(7));
             Assert.That(QuickOrders.TryBuild(QuickCommand.Follow, 3, -1, out _), Is.False, "nobody to follow without a hero");

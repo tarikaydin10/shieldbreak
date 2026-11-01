@@ -241,11 +241,18 @@ namespace Shieldbreak.DebugTools
             foreach (int f in formationIds) world.SubmitFormationOrder(LocalPlayer, FormationOrder.Reshape(f, type));
         }
 
-        /// <summary>Hold stops where the formation stands; advance, charge and retreat pick their enemy in the sim.</summary>
+        /// <summary>
+        /// Hold stops where the formation stands (and holds its ground, as the radial menu's Hold does); advance,
+        /// charge and retreat pick their enemy in the sim.
+        /// </summary>
         void IssueBehavior(SimWorld world, FormationBehavior behavior)
         {
             SplitSelection();
-            foreach (int f in formationIds) world.SubmitFormationOrder(LocalPlayer, FormationOrder.SetBehavior(f, behavior));
+            foreach (int f in formationIds)
+            {
+                if (behavior == FormationBehavior.Hold && QuickOrders.TryBuild(QuickCommand.Hold, f, -1, out var hold)) world.SubmitFormationOrder(LocalPlayer, hold);
+                else world.SubmitFormationOrder(LocalPlayer, FormationOrder.SetBehavior(f, behavior));
+            }
         }
 
         /// <summary>Loose soldiers (M0 behaviour): march to the point and line up in ranks facing away from where they came from.</summary>

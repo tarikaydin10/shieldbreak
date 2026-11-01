@@ -32,10 +32,25 @@ namespace Shieldbreak.Sim.Formations
         Retreat = 4,
     }
 
+    /// <summary>
+    /// Standing order (CLAUDE.md 3.6, M3): what a holding formation does on its own when an enemy comes near. Only read
+    /// while the formation holds and has arrived; any order of the player or the commander AI comes first.
+    /// </summary>
+    public enum FormationStance
+    {
+        /// <summary>Stays put; soldiers fight only what comes within their leash.</summary>
+        HoldGround = 0,
+        /// <summary>Advances on an enemy formation that comes within ReactDistance, holds again once it is beaten.</summary>
+        React = 1,
+        /// <summary>Advances on any enemy formation within AggressiveDistance and keeps going for the next one.</summary>
+        Aggressive = 2,
+    }
+
     public static class FormationLimits
     {
         public const int TypeCount = 5;
         public const int BehaviorCount = 5;
+        public const int StanceCount = 3;
         /// <summary>Upper bound per formation; slot assignment is O(n³) and runs only on reforms.</summary>
         public const int MaxMembers = 256;
         /// <summary>Waypoints stored per formation; a longer path is replanned when the anchor reaches the last one.</summary>
@@ -92,6 +107,13 @@ namespace Shieldbreak.Sim.Formations
         /// Kept by a later Advance or Charge without a target of its own, cleared by every other behavior.
         /// </summary>
         public int TargetFormation;
+        /// <summary>Standing order consulted while holding.</summary>
+        public FormationStance Stance;
+        /// <summary>
+        /// The stance that set off this Advance (0 = an order did). React (1): once its target is beaten the formation
+        /// holds again; Aggressive (2): it goes for the next enemy like an ordered advance.
+        /// </summary>
+        public int Reacting;
 
         public const int ReformNone = 0, ReformKeepAnchor = 1, ReformAroundMembers = 2;
 
@@ -189,6 +211,12 @@ namespace Shieldbreak.Sim.Formations
         public int HeroUnattendedLevel;
         /// <summary>An unattended hero falls back this far (m) behind the rear rank of the nearest own formation.</summary>
         public float HeroRetreatGap;
+        /// <summary>Stance of new formations.</summary>
+        public FormationStance DefaultStance;
+        /// <summary>React: an enemy soldier (in a formation, still fighting) this close (m) to any own soldier sets off the advance.</summary>
+        public float ReactDistance;
+        /// <summary>Aggressive: the same, from this far (m).</summary>
+        public float AggressiveDistance;
 
         public FormationSpacing Spacing(FormationType type) => type switch
         {
@@ -221,6 +249,7 @@ namespace Shieldbreak.Sim.Formations
             if (AdvanceContactGap < 0f || RetreatDistance <= 0f || FollowDistance < 0f) throw new ArgumentException("Require AdvanceContactGap >= 0, RetreatDistance > 0, FollowDistance >= 0.");
             if (BehaviorIntervalTicks < 1 || RetargetDistance < 0f) throw new ArgumentException("Require BehaviorIntervalTicks >= 1 and RetargetDistance >= 0.");
             if (HeroUnattendedLevel < 0 || HeroRetreatGap < 0f) throw new ArgumentException("Require HeroUnattendedLevel >= 0 and HeroRetreatGap >= 0.");
+            if ((uint)DefaultStance >= FormationLimits.StanceCount || ReactDistance < 0f || AggressiveDistance < 0f) throw new ArgumentException("Require a valid DefaultStance and ReactDistance, AggressiveDistance >= 0.");
         }
     }
 }

@@ -90,6 +90,9 @@ MonoBehaviour:
     - "Schlacht gewinnen: Kurz nachdem der Feind bricht, erscheint der Ergebnisbildschirm mit Sieg, Verlusten beider Seiten und deiner Statistik"
     - "Schlacht verlieren (Held stirbt oder die eigene Truppe bricht): Ergebnisbildschirm mit Gefallen bzw. Niederlage; Nochmal startet dieselbe Schlacht von vorn"
     - "Der Sieg fühlt sich verdient an: Du weißt, warum der Feind gebrochen ist"
+    - "In der Kommandoansicht eine Formation hinter den Feind stellen: Unterwegs lässt sie sich nicht ablenken, am Ziel greift sie seinen Rücken von selbst an (Beschriftung: von selbst)"
+    - "Mauszeiger auf eine feindliche Formation: Sie leuchtet auf, daneben steht Rechtsklick: angreifen"
+    - "R in der Kommandoansicht: Die Haltung wechselt (Stellung halten, Reagieren, Aggressiv) und steht in der Beschriftung; mit Stellung halten bleibt die Formation stehen, auch wenn der Feind nahe ist"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

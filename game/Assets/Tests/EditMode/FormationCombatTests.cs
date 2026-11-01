@@ -118,6 +118,7 @@ namespace Shieldbreak.Tests
             using var world = World();
             int a = Company(world, 0, FormationType.Line, 10, new float2(20f, 32f), East, L3);
             int b = Company(world, 1, FormationType.Line, 10, new float2(36f, 32f), West, L3);
+            world.SubmitFormationOrder(PlayerA, FormationOrder.SetStance(a, FormationStance.HoldGround));
             world.SubmitFormationOrder(PlayerB, FormationOrder.Charge(b));
             var log = new List<CombatEvent>();
             float limit = TestScenarios.Formations.EngageLeash + 1.5f;
@@ -208,7 +209,9 @@ namespace Shieldbreak.Tests
                 for (ulong seed = 1; seed <= 4; seed++)
                 {
                     using var world = World(seed);
-                    Company(world, 0, typeA, filesA, new float2(17f, 32f), East, L3);
+                    // A holds its ground (as ordered with Hold from the radial menu): the width decides, not who steps forward
+                    int a = Company(world, 0, typeA, filesA, new float2(17f, 32f), East, L3);
+                    world.SubmitFormationOrder(PlayerA, FormationOrder.SetStance(a, FormationStance.HoldGround));
                     int b = Company(world, 1, FormationType.Line, 10, new float2(47f, 32f), West, L3);
                     world.SubmitFormationOrder(PlayerB, FormationOrder.Advance(b));
                     sum += Fight(world, 150 * 60);

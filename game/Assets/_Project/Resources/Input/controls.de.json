@@ -382,6 +382,10 @@
     {
       "action": "CommandView/ShapeLoose",
       "text": "Form: lockere Ordnung für die Auswahl (ohne Auswahl: alle)"
+    },
+    {
+      "action": "CommandView/CycleStance",
+      "text": "Haltung der Auswahl wechseln (ohne Auswahl: alle): Stellung halten → Reagieren (greift Feinde an, die bis 10 m herankommen) → Aggressiv (bis 30 m, dann weiter zum nächsten)"
     }
   ]
 }

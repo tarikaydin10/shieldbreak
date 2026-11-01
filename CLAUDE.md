@@ -242,18 +242,17 @@ Budget: ~10 h/Woche, ~730 h gesamt (650 + 80 für den Kriegszug). Ein Meilenstei
 ### Phase 2 (nach M6, Reihenfolge offen)
 Doktrinen-UI · Feldherr-Modus (nur Kommandoansicht, kein Held) · Sandtisch-Aufstellung · First-Person-Kamera · Gebäude-Destruction · SDF-Formationen · PBD-Kohäsion/Druck · GPU-Hit-Detection · MCTS-Commander · Ranked/Relay
 
-### M2 Taskliste (aktueller Meilenstein)
+### M3 Taskliste (aktueller Meilenstein)
 
-M0 und M1 sind abgeschlossen (Fun-Gates bestanden, M1 am 2026-10-19). Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebnis und einem Commit.
+M0, M1 und M2 sind abgeschlossen (Fun-Gates bestanden, M2 am 2026-11-01; die M2-Tasks stehen in `docs/STATUS.md` und `DECISIONS.md`). Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebnis und einem Commit.
 
-1. **Sim/Formations + Sim/Orders** ✅ — `FormationData`, `SlotGenerator` (Linie, Schildwall, Keil, Kreis, lockere Ordnung), `SlotAssignment` (exakt, Distanz²), `FormationSystem` (Marsch des Ankers mit Kohäsion, Lücken schließen nach Verlusten, Slot als Steering-Ziel), `FormationOrder` (Bewegen/Ausrichten, Form, Breite) über die `InputQueue`; AI nutzt dieselbe Order direkt. `FormationDefinition` (ScriptableObject). Tests: `FormationTests`.
-2. **Sichtbar machen** ✅ — Sandbox-Szenario mit Formationen statt Spawn-Blöcken, Debug-Overlay (Slots, Anker, Ziel, Formationstyp), Befehle aus der Debug-Draufsicht (Klick/Drag = `FormationOrder`, `FormationLinePlanner`).
-3. **Formations-Pfad** ✅ — `Nav/GridAStar` auf dem `WorldGrid` für den Anker (Formationsebene), Agenten bleiben beim lokalen Steering.
-4. **Formation-Behaviors v1 + Kampf in Formation** ✅ — Halten, Vorrücken, Angriff, Folgen, Rückzug als `FormationOrder`-Erweiterung; `Combat/Context/FormationCombatRules` (Slot halten an der Leine, frontal angreifen, Schildwall blockt statt auszuweichen; dauerhaft erhobener Schild verworfen, siehe `DECISIONS.md` 2026-10-20), 20 gegen 20 in der Sandbox. Tests: `FormationBehaviorTests`, `FormationCombatTests`.
-5. **Moral** ✅ — Panik-Feld pro Team im `WorldGrid` mit Diffusion (`P += D·ΔP − k·P + Quellen − Senken`; Quellen: eigene Tote, Treffer von Seite/hinten, Fliehende; Senken: Abklingen, Kills und Fliehen des Feindes, Held), Moral pro Agent (Formation dämpft), Rout und Flucht bis zum Kartenrand; Werte in `MoraleDefinition`; im Overlay sichtbar (M). Tests: `MoraleTests`.
-6. **Radialmenü** ✅ — einhändig aus dem Kampf heraus (Halten, Vorrücken, Angriff, Folgen, Rückzug, Linie, Schildwall, Keil; Ziel: alle oder eine Formation), eigene Action-Map `Radial`, sendet `FormationOrder` (`Sim/Orders/QuickOrders`). Grundgerüst der Szene `M2_Company` dafür aus Task 8 vorgezogen (Tarik, 2026-10-21). Tests: `CompanyTests`.
-7. **Kommandoansicht** ✅ — V/LB halten: `CommandViewCamera` fährt in 0,5 s hoch und zurück, Formationen umrandet und beschriftet (Typ, Größe, Befehl, Moral-Balken), Auswahl per Klick/Rahmen, Drag-Befehle über `FormationLinePlanner` (ohne Auswahl: alle), Rechtsklick auf eine feindliche Formation = Vorrücken gegen genau diese (`FormationOrder.TargetFormation`), Radialmenü befiehlt die Auswahl. Betreten/Verlassen als Sim-Input `HeroUnattended`: Held kämpft als Bot (Stufe in `FormationDefinition`, L2) von seinem Posten hinter der eigenen Linie. SP-Zeitlupe über weniger Ticks (Option, 0,3×). Tests: `HeroUnattendedTests`.
-8. **Szene `M2_Company` + Build** ✅ (Fun-Gate offen) — Held mit eigener Kompanie gegen eine Bot-Kompanie, Ende der Schlacht über `Sim/Morale/BattleOutcome` (eine Seite bricht oder der Held fällt), Ergebnisbildschirm im `CompanyDirector`. Tests: `CompanyTests`. Danach Fun-Gate M2 (Tarik).
+1. **Haltung (Standing Orders, 3 Presets)** ✅ — `FormationStance` pro Formation: Stellung halten, Reagieren (haltende Formation rückt gegen Feinde vor, die bis `reactDistance` herankommen, und hält danach wieder), Aggressiv (ab `aggressiveDistance`, danach weiter zum nächsten). Gilt nur, wenn die Formation hält und angekommen ist; jeder Befehl geht vor, „Halten“ aus dem Radialmenü heißt auch Stellung halten. Über `FormationOrder` (Flag `Stance`), in der Kommandoansicht R/Y. Werte in `FormationDefinition`. Anlass: Fun-Gate M2 (Formationen hinter dem Feind greifen nicht an). Tests: `FormationBehaviorTests`.
+2. **Formation-AI: Bedrohungen** — Formationen reagieren auf Ereignisse (Feind in Flanke oder Rücken: Front drehen; Fernkampf-Beschuss: Schildwall), über dieselben Behaviors. Debug-Overlay zeigt den Auslöser.
+3. **Commander-Utility-AI** — `Sim/AI/CommanderUtility`: alle 2–3 s Utility-Scoring über Taktik-Kandidaten (Halten auf Höhe, Frontalangriff, Flanke links/rechts, Rückzug) mit Hysterese; Features: Stärkeverhältnis, Moral, Breite der Fronten; Befehle nur über `FormationOrder`. Scores im Overlay. Der Feind in der Kompanie bekommt einen Kommandanten.
+4. **Lanchester-Evaluator** — `Sim/AI/Lanchester`: Prognose Nahkampf (linear) für Formationspaare, Feature für den Commander, im Overlay.
+5. **Fernkampf** (Archetyp-Tabelle 3.5) — Bogen als Archetyp mit `Projectile`-Resolver, lockere Ordnung schießt, Schild blockt Pfeile; Fernkampf-Screening als Behavior.
+6. **50 gegen 50** — Szenario mit 4–6 Formationen pro Seite, Performance-Messung, Experiment Befehlsreichweite (Parameter).
+7. **Fun-Gate M3** (Tarik) — (a) nach Niederlage „ich hätte woanders stehen müssen“, AI-Entscheidungen im Overlay nachvollziehbar; (b) Feldherr-Test: 50 gegen 50 nur aus der Kommandoansicht ist spannend.
 
 ## 7. Arbeitsregeln
 

@@ -106,6 +106,7 @@ namespace Shieldbreak.Sim.Formations
                 Behavior = FormationBehavior.Hold,
                 FollowAgent = -1,
                 TargetFormation = -1,
+                Stance = settings.DefaultStance,
             };
             return id;
         }
@@ -147,6 +148,8 @@ namespace Shieldbreak.Sim.Formations
             }
             bool behavior = (order.Flags & FormationOrderFlags.Behavior) != 0 && (uint)order.Behavior < FormationLimits.BehaviorCount &&
                             (order.Behavior != FormationBehavior.Follow || (order.FollowAgent >= 0 && order.FollowAgent < members.Length));
+            // Every order of the player or the commander AI ends a reaction of the stance
+            if (behavior || move) f.Reacting = 0;
             if (behavior)
             {
                 f.Behavior = order.Behavior;
@@ -167,6 +170,21 @@ namespace Shieldbreak.Sim.Formations
                 f.Behavior = FormationBehavior.Hold;
                 f.FollowAgent = -1;
                 f.TargetFormation = -1;
+            }
+            if ((order.Flags & FormationOrderFlags.Stance) != 0 && (uint)order.Stance < FormationLimits.StanceCount && order.Stance != f.Stance)
+            {
+                f.Stance = order.Stance;
+                // A running reaction follows the new stance: Hold Ground stops it, the others carry it on their way
+                if (f.Reacting != 0 && f.Stance == FormationStance.HoldGround)
+                {
+                    f.Behavior = FormationBehavior.Hold;
+                    f.TargetFormation = -1;
+                    Stop(ref f);
+                    f.Reacting = 0;
+                }
+                else if (f.Reacting != 0) f.Reacting = (int)f.Stance;
+                f.NextBehaviorTick = 0;
+                changed = true;
             }
             if ((order.Flags & FormationOrderFlags.Shape) != 0 && (uint)order.Type < FormationLimits.TypeCount && order.Type != f.Type)
             {
@@ -314,7 +332,11 @@ namespace Shieldbreak.Sim.Formations
         /// </summary>
         void UpdateBehavior(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
         {
-            if (f.Behavior == FormationBehavior.Hold) return;
+            if (f.Behavior == FormationBehavior.Hold)
+            {
+                React(ref f, tick, agents, agentCount);
+                return;
+            }
             if (f.Behavior == FormationBehavior.Retreat)
             {
                 if (tick >= f.NextBehaviorTick)
@@ -359,6 +381,16 @@ namespace Shieldbreak.Sim.Formations
             }
             else
             {
+                // A reaction of the React stance ends with its target: hold again where the fight left the formation
+                bool targetStands = IsEnemyFormation(f.TargetFormation, f.Team) && formations[f.TargetFormation].MemberCount > 0;
+                if (f.Reacting == (int)FormationStance.React && !targetStands)
+                {
+                    f.Behavior = FormationBehavior.Hold;
+                    f.TargetFormation = -1;
+                    f.Reacting = 0;
+                    Stop(ref f);
+                    return;
+                }
                 if (!FindEnemy(f, agents, agentCount, out float2 aim, out float contact))
                 {
                     f.Behavior = FormationBehavior.Hold;
@@ -379,6 +411,43 @@ namespace Shieldbreak.Sim.Formations
                 f.TargetFacing = facing;
                 f.NeedsPath = 1;
             }
+        }
+
+        /// <summary>
+        /// Standing order of a holding formation that has arrived (CLAUDE.md 3.6): an enemy soldier of a formation that
+        /// still fights, within the stance's distance of any own soldier, sets off an Advance on that formation (so a
+        /// unit placed behind the enemy goes for its back). Looked at every BehaviorIntervalTicks; Hold Ground never reacts.
+        /// </summary>
+        void React(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
+        {
+            if (f.Stance == FormationStance.HoldGround || tick < f.NextBehaviorTick) return;
+            f.NextBehaviorTick = tick + settings.BehaviorIntervalTicks;
+            bool arrived = f.NeedsPath == 0 && f.PathIndex >= f.PathCount && math.distancesq(f.Destination, f.Position) < 0.25f;
+            if (!arrived) return;
+            float range = f.Stance == FormationStance.React ? settings.ReactDistance : settings.AggressiveDistance;
+            float bestSq = range * range;
+            int target = -1;
+            for (int i = 0; i < agentCount; i++)
+            {
+                if (members[i].Formation != f.Id || agents[i].IsDead) continue;
+                float2 own = agents[i].Position;
+                for (int j = 0; j < agentCount; j++)
+                {
+                    var enemy = agents[j];
+                    if (enemy.Team == f.Team || enemy.IsDead || enemy.IsRouting || !IsEnemyFormation(members[j].Formation, f.Team)) continue;
+                    float dsq = math.distancesq(enemy.Position, own);
+                    if (dsq < bestSq)
+                    {
+                        bestSq = dsq;
+                        target = members[j].Formation;
+                    }
+                }
+            }
+            if (target < 0) return;
+            f.Behavior = FormationBehavior.Advance;
+            f.TargetFormation = target;
+            f.Reacting = (int)f.Stance;
+            f.NextBehaviorTick = tick;
         }
 
         /// <summary>Halts where the anchor stands, keeping the current facing.</summary>
