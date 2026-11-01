@@ -168,7 +168,7 @@ Kameras sind reine Presentation; die Sim ist perspektivenunabhängig. Kamerazust
 | Input | Unity Input System, Controller-Support von Anfang an |
 | Kamera | Cinemachine (Third-Person, Schulter-Offset, Zielpunkt per Kamera-Raycast) |
 | Daten | ScriptableObjects für Einheiten, Waffen, Formationen, Taktiken, Maps. Kein Balancing im Code. |
-| Assets | Kapseln + Debug-Gizmos bis M2. Ab M4 Synty POLYGON oder eigener Pipeline-Style (offen, siehe `DECISIONS.md`). Alle eigenen Assets über `tools/assetgen` (headless Blender, Palette, Validator). |
+| Assets | Kapseln + Debug-Gizmos bis M2. Ab M4 Synty POLYGON oder eigener Pipeline-Style (offen, siehe `DECISIONS.md`). Alle eigenen Assets über [assetforge](https://github.com/tarikaydin10/assetforge) (Submodul `tools/assetgen`: headless Blender, Palette, Validator; Specs und Generatoren in `art/`). |
 | Animation | **Pose-basiert prozedural** (Overgrowth-Methode): Angriffe = 3–4 Key-Posen + Easing-Kurven + Laufzeit-IK (Unity Animation Rigging) + prozedurale Secondary Motion. Angriffs-Definition ist ein ScriptableObject, aus dem Grammatik (Phasendauern) und SwingTrace (Waffenbahn) dieselben Daten lesen. Posen werden in Blender gesetzt (Blender MCP für Batch/Varianten), optional Cascadeur für physikalisch plausible Referenzposen. Mixamo nur für Locomotion/Idles. Gekaufte Clips nur als Fallback, falls der M0-Prototyp scheitert. |
 | Tooling | Blender MCP (ahujasid/blender-mcp) und Unity MCP (Open Source, Stand prüfen) als Claude-Anbindung für Posen, Prefabs, ScriptableObjects. |
 | Netz | Facepunch.Steamworks (M6) |
@@ -187,9 +187,10 @@ shieldbreak/                 # Repo-Root (dieses Dokument liegt hier)
   art/
     style/                   # palette.json, style.json, style-bible.md (Quelle der Wahrheit für den Look)
     specs/                   # eine JSON-Spec pro Asset
+    generators/              # ein Python-Generator pro Form (Schwert, Speer, Schild, …)
     contact-sheet.png        # alle Assets nebeneinander, von der Pipeline gerendert
   tools/                     # Setup-Skripte
-    assetgen/                # headless-Blender-Pipeline: Generatoren, Validator, run.ps1
+    assetgen/                # Git-Submodul assetforge: headless-Blender-Pipeline (build.py, forge.ps1, lib/)
   game/                      # Unity-Projekt (von Unity Hub erzeugt, URP-Template)
 ```
 
@@ -280,7 +281,7 @@ M0, M1 und M2 sind abgeschlossen (Fun-Gates bestanden, M2 am 2026-11-01; die M2-
 - **Doku wächst mit:** Jedes wichtige Verzeichnis hat ein kurzes README (was liegt hier, wie hängt es zusammen, welche Regeln gelten). Wer Inhalt oder Struktur eines Verzeichnisses ändert, aktualisiert dessen README im selben Commit. Stil: schlicht, Tabellen und Befehle, Screenshots wo sinnvoll.
 - **Jede Eingabe ist dokumentiert** (Admin-Menü, F1): Jede Taste, Maus- oder Gamepad-Eingabe ist eine Action in `game/Assets/_Project/Resources/Input/Shieldbreak.inputactions` mit einer deutschen Beschreibung in `controls.de.json` daneben, eine Action-Map pro Feature, die das Feature beim Aktivieren einschaltet. Kein direktes Abfragen von Geräten (`Keyboard.current`, `Input.GetKey` usw.); `ControlsDocumentationTests` prüft beides. Neue Features mit sichtbarem Zustand implementieren `IAdminStatus`, damit sie im Menü eine Statuszeile bekommen. Esc = Pause (nur Singleplayer, über `GamePause`; die Sim läuft dann null Ticks).
 - **Jeder Inhalt ist erreichbar und erklärt:** Jede Szene, jeder Modus und jedes Szenario hat einen Eintrag im Szenen-Katalog (`game/Assets/_Project/Resources/SceneCatalog.asset`) mit Ziel, Eingabe-Maps und Prüfliste (was tun, was sehen). Hauptmenü → Testmodus listet alle, F2 zeigt in jeder Szene ihren Eintrag, Esc → Prüfliste hakt ab. Neue Szenen stehen in `BuildTools.Scenes` und in den Build Settings. `SceneCatalogTests` prüft das. Was Tarik am Ende einer Iteration prüfen soll, steht als Prüfpunkt im Katalog, nicht nur in `docs/STATUS.md`.
-- **Assets nur über die Pipeline** (`art/style/style-bible.md`): Finale Modelle entstehen ausschließlich aus einer Spec in `art/specs/` über `tools/assetgen/run.ps1` und landen in `game/Assets/_Project/Art/Generated/`. Nie FBX von Hand ablegen oder nachbearbeiten, nie Farben als Hex in Specs. Passt ein Asset nicht, Generator oder `style.json` ändern, nicht das Asset. Blender MCP und KI-Text-zu-3D nur zum Erkunden bzw. als Rohmaterial für einen Normalize-Generator. Vor jedem Commit mit Änderungen an `art/` oder `tools/assetgen/`: `.\sb.ps1 assets` (baut, Kontaktbogen ansehen, prüft).
+- **Assets nur über die Pipeline** (`art/style/style-bible.md`): Finale Modelle entstehen ausschließlich aus einer Spec in `art/specs/` über `.\sb.ps1 assets` (assetforge) und landen in `game/Assets/_Project/Art/Generated/`. Nie FBX von Hand ablegen oder nachbearbeiten, nie Farben als Hex in Specs. Passt ein Asset nicht, Generator oder `style.json` ändern, nicht das Asset. Blender MCP und KI-Text-zu-3D nur zum Erkunden bzw. als Rohmaterial für einen Normalize-Generator. Vor jedem Commit mit Änderungen an `art/` oder am Submodul-Stand `tools/assetgen`: `.\sb.ps1 assets` (baut, Kontaktbogen ansehen, prüft).
 - **MCP-Regeln (Blender MCP, Unity MCP):** Vor jeder Batch-Operation über MCP ein Git-Commit; in Blender vorher speichern. Keine Lösch- oder Überschreib-Operationen in Blender/Unity ohne explizite Bestätigung. Server bleiben auf localhost; nur eine Client-Instanz pro Server. Unity-MCP-Package auf feste Version gepinnt (`#v10.0.0`), Upgrade nur bewusst mit Eintrag in `DECISIONS.md`. Konfiguration liegt in `.mcp.json` im Repo.
 
 ## 9. Offene Entscheidungen (bis M3 erlaubt)

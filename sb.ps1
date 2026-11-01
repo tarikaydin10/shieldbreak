@@ -4,8 +4,8 @@
 #   .\sb.ps1 play       Spiel starten (baut vorher, falls kein Build da ist)
 #   .\sb.ps1 build      spielbaren Build erzeugen (Windows: builds\M1-duel\SHIELDBREAK.exe, Mac: builds/M1-duel/SHIELDBREAK.app)
 #   .\sb.ps1 test       alle Tests (179, inkl. Determinismus); Unity darf offen bleiben
-#   .\sb.ps1 assets     Low-Poly-Modelle aus art/specs neu bauen und prüfen
-#   .\sb.ps1 setup      einmalig nach dem Klonen: Werkzeuge, Unity-Pakete
+#   .\sb.ps1 assets     Low-Poly-Modelle aus art/specs neu bauen und prüfen (assetforge, Submodul tools/assetgen)
+#   .\sb.ps1 setup      einmalig nach dem Klonen: Submodul, Werkzeuge, Unity-Pakete
 # Die Skripte in tools\ sind die Innereien; du brauchst sie nicht direkt.
 param(
     [ValidateSet("help", "play", "build", "test", "assets", "setup")]
@@ -21,6 +21,7 @@ $OnMac = [bool]$IsMacOS
 $Me = if ($OnMac) { "./sb.ps1" } else { ".\sb.ps1" }
 $PlayerName = if ($OnMac) { "builds/M1-duel/SHIELDBREAK.app" } else { "builds\M1-duel\SHIELDBREAK.exe" }
 $Player = Join-Path $Root $PlayerName
+$Forge = Join-Path $Root "tools/assetgen/forge.ps1"
 
 function Step($text) { Write-Host "`n== $text" -ForegroundColor Cyan }
 
@@ -56,17 +57,24 @@ switch ($Command) {
         exit $LASTEXITCODE
     }
     "assets" {
+        if (-not (Test-Path $Forge)) {
+            Step "Submodul tools/assetgen (assetforge) fehlt, hole es"
+            git submodule update --init --recursive
+            if (-not (Test-Path $Forge)) { throw "tools/assetgen ist leer. 'git submodule update --init' von Hand ausfuehren." }
+        }
         Step "Bauen (Kontaktbogen: art/contact-sheet.png)"
-        & (Join-Path $Root "tools/assetgen/run.ps1")
+        & $Forge -Project $Root
         if ($LASTEXITCODE -ne 0) { throw "Asset-Build fehlgeschlagen." }
         Step "Pruefen, dass alles reproduzierbar ist"
-        & (Join-Path $Root "tools/assetgen/run.ps1") -Check
+        & $Forge -Project $Root -Check
         exit $LASTEXITCODE
     }
     "setup" {
-        Step "1/2 Werkzeuge (uv, Blender-MCP, Git LFS)"
+        Step "1/3 Submodul tools/assetgen (assetforge)"
+        git submodule update --init --recursive
+        Step "2/3 Werkzeuge (uv, Blender-MCP, Git LFS)"
         & (Join-Path $Root $(if ($OnMac) { "tools/setup-mac.ps1" } else { "tools/setup-windows.ps1" }))
-        Step "2/2 Unity-Pakete (Unity dabei geschlossen)"
+        Step "3/3 Unity-Pakete (Unity dabei geschlossen)"
         & (Join-Path $Root "tools/add-packages.ps1")
         Write-Host "`nFertig. Jetzt: Unity Hub -> Add -> Ordner game, einmal oeffnen, dann $Me play" -ForegroundColor Green
     }

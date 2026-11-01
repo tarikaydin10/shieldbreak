@@ -1,0 +1,3 @@
+[submodule "tools/assetgen"]
+	path = tools/assetgen
+	url = https://github.com/tarikaydin10/assetforge.git

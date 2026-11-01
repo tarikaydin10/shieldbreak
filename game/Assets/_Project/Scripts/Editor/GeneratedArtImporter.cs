@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Shieldbreak.EditorTools
 {
     /// <summary>
-    /// Import rules for the output of tools/assetgen (see art/style/style-bible.md): fixed model import settings,
+    /// Import rules for the output of assetforge, submodule tools/assetgen (see art/style/style-bible.md): fixed model import settings,
     /// one shared palette material, point-filtered palette texture, and a manifest check that flags models
     /// which were not produced (or were modified after being produced) by the pipeline.
     /// </summary>
@@ -61,7 +61,7 @@ namespace Shieldbreak.EditorTools
 
             string error = VerifyAgainstManifest(assetPath);
             if (error != null)
-                Debug.LogError($"[assetgen] {assetPath}: {error} Final assets come only from tools/assetgen/run.ps1.");
+                Debug.LogError($"[assetgen] {assetPath}: {error} Final assets come only from sb.ps1 assets (assetforge).");
         }
 
         void OnPostprocessModel(GameObject root)

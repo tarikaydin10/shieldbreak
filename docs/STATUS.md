@@ -139,7 +139,7 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Rahmen | Hauptmenü, Pausemenü, Steuerung mit Tastenänderung, Optionen, Tutorial, Ergebnisbildschirm mit Statistik | `Scripts/Presentation/Menu`, `Player/TutorialDirector` |
 | Testmodus | Szenen-Katalog: jede Szene und jedes Szenario mit Ziel, Steuerung und Prüfliste; Testseite im Hauptmenü, Hilfe in der Szene (F2), Prüfliste im Pausemenü; Test, dass nichts unerreichbar ist | `Resources/SceneCatalog`, `Menu/TestPage`, `SceneBriefing`, `SceneLaunch` |
 | Weitere Szenen | `M0_Sandbox` (4 Formationen, 20 gegen 20 aus der Draufsicht, mit Kampf; als Stresstest 500 lose Soldaten), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
-| Asset-Pipeline | Low-Poly-Modelle aus JSON-Specs per Headless-Blender, Palette, Validator, Kontaktbogen | [art](../art/README.md), [tools/assetgen](../tools/assetgen/README.md) |
+| Asset-Pipeline | Low-Poly-Modelle aus JSON-Specs per Headless-Blender, Palette, Validator, Kontaktbogen; seit 2026-11-01 das eigene Repo [assetforge](https://github.com/tarikaydin10/assetforge) als Submodul `tools/assetgen`, Specs und Generatoren in `art/` | [art](../art/README.md), [tools/assetgen](../tools/assetgen/README.md) |
 
 Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 22. Zweihänder oben 69, Seite 47, Stich 39, Sprung-Hieb aus 2,6 m 92. Leben 100.
 

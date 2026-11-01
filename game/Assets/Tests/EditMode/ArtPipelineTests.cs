@@ -9,7 +9,7 @@ namespace Shieldbreak.Tests
 {
     /// <summary>
     /// Every model in Art/Generated must come from tools/assetgen unmodified and use the shared palette material
-    /// (art/style/style-bible.md). Geometry reproducibility itself is checked by tools/assetgen/run.ps1 -Check.
+    /// (art/style/style-bible.md). Geometry reproducibility itself is checked by tools/assetgen/forge.ps1 -Check (assetforge).
     /// </summary>
     public class ArtPipelineTests
     {

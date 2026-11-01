@@ -306,6 +306,18 @@ Fun-Gate M2 (Tarik): „joa, ist gut … alles in allem cool“. Befund: Formati
 | Haltung wechseln in der Kommandoansicht mit R (Gamepad Y), für die Auswahl oder alle; die Beschriftung jeder eigenen Formation zeigt sie, ein von selbst begonnener Angriff steht als „(von selbst)“ da. Eine feindliche Formation unter dem Mauszeiger leuchtet auf und zeigt „Rechtsklick: angreifen“ | Befund aus dem Fun-Gate: Der vorhandene Angriffsbefehl wurde nicht gefunden | Neuer Ring-Eintrag im Radialmenü (alle acht Plätze belegt) |
 | Folge für die Balance: Mit Reagieren läuft eine haltende Linie einem anrückenden Feind 10 m entgegen und verschenkt den Vorteil des Haltens (Test: schmale gegen breite Linie wird dann ausgeglichen). Wer den Vorteil will, stellt „Stellung halten“ ein. Die Kompanie-Schlacht ohne Befehle bleibt ein Sieg (52 s statt 40 s). Ob Reagieren der richtige Standard ist, entscheidet Tarik beim Spielen | Tuning ist Tariks Sache; die Werte stehen in `Formation_Default` | – |
 
+## 2026-11-01 — assetforge: Asset-Pipeline wird eigenes Repo und Submodul
+
+Anlass (Tarik): Die Pipeline soll auch den Zombie-Rundensurvival (Repo `deadhold`, Nachfolger von zombie-jam und Dead Hold) komplett mit Assets versorgen, als eigenständiges Werkzeug, das am Ende gut aussieht.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Der projektneutrale Kern von `tools/assetgen` (`build.py`, `run.ps1` → `forge.ps1`, `lib/`) zieht in das Repo [assetforge](https://github.com/tarikaydin10/assetforge) und kommt als Git-Submodul unter `tools/assetgen` zurück. Generatoren bleiben im Spiel, jetzt unter `art/generators/`; Palette, Regeln und Specs waren schon in `art/` | Zwei Spiele, ein Werkzeug, ein Fix. Der Kern enthielt keine shieldbreak-Logik außer Pfaden und der Referenzfarbe des Kontaktbogens; beides ist jetzt Konfiguration (`art/forge.json`, Standardpfade entsprechen diesem Repo) | Kopieren wie bei MULE (zweiter Kern, der auseinanderläuft); Generatoren im Werkzeug (sie sind Spiel-Inhalt) |
+| `sb.ps1 assets` ruft `tools/assetgen/forge.ps1 -Project .` und `-Check`; `sb.ps1 setup` holt das Submodul. Geometrie-Hashes blieben unverändert (Check grün nach der Umstellung) | Der eine Einstieg bleibt; nichts am Workflow ändert sich für Tarik | – |
+| Werkzeug-Änderungen entstehen im Repo `assetforge`, nie im Submodul-Ordner; shieldbreak zieht sie mit `git submodule update --remote tools/assetgen` nach und committet den neuen Stand erst nach grünem `sb.ps1 assets` | Jede Spielversion zeigt auf einen festen Werkzeug-Stand (reproduzierbar) | Submodul auf `main` folgen lassen |
+| Gemeinsame Generatoren (in `assetforge/generators/`) nur, wenn zwei Spiele dieselbe Form brauchen | Verhindert, dass das Werkzeug zur Asset-Bibliothek wird | – |
+| Shieldbreaks Regel „keine Assets vor M4“ bleibt; der Ausbau des Werkzeugs (Bau-Kit, Waffen-Sockets, Humanoid-Rig) wird von deadhold getrieben, shieldbreak profitiert ab M4 | Kein Scope-Wachstum hier | – |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

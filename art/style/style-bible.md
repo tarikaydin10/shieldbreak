@@ -1,10 +1,10 @@
 # Style-Bible — SHIELDBREAK
 
-Verbindlich für jedes Asset. Maschinenlesbare Regeln stehen in `style.json` und `palette.json`; `tools/assetgen/validate.py` prüft sie hart. Dieses Dokument erklärt das Warum.
+Verbindlich für jedes Asset. Maschinenlesbare Regeln stehen in `style.json` und `palette.json`; [assetforge](../../tools/assetgen/README.md) (`tools/assetgen/lib/validate.py`, Git-Submodul) prüft sie hart. Dieses Dokument erklärt das Warum.
 
 ## Grundsatz
 
-Konstanz entsteht durch Einschränkung, nicht durch Geschmack. Kein Asset wird frei modelliert. Jedes finale Asset entsteht aus einer Spec (`art/specs/*.json`) und einem Generator (`tools/assetgen/generators/`) und besteht den Validator. Wer (Mensch, Claude, anderes Modell) die Spec schreibt, ist egal.
+Konstanz entsteht durch Einschränkung, nicht durch Geschmack. Kein Asset wird frei modelliert. Jedes finale Asset entsteht aus einer Spec (`art/specs/*.json`) und einem Generator (`art/generators/`) und besteht den Validator. Wer (Mensch, Claude, anderes Modell) die Spec schreibt, ist egal.
 
 ## Farbe
 
@@ -41,9 +41,9 @@ Text-/Bild-zu-3D (z. B. `generate_3d` im Blender MCP) liefert nur Rohmaterial. E
 ## Ablauf
 
 1. Spec in `art/specs/` anlegen oder ändern.
-2. `.\tools\assetgen\run.ps1` → baut alle Specs, validiert, exportiert FBX nach `game/Assets/_Project/Art/Generated/`, schreibt `manifest.json` und `art/contact-sheet.png`.
+2. `.\sb.ps1 assets` → baut alle Specs, validiert, exportiert FBX nach `game/Assets/_Project/Art/Generated/`, schreibt `manifest.json` und `art/contact-sheet.png`.
 3. Kontaktbogen ansehen. Passt ein Asset nicht neben die anderen: Generator oder Regel ändern, nicht das Asset von Hand.
-4. `.\tools\assetgen\run.ps1 -Check` → baut neu und vergleicht Geometrie-Hashes mit dem Manifest (Reproduzierbarkeit).
+4. `.\sb.ps1 assets` baut danach ein zweites Mal und vergleicht Geometrie-Hashes mit dem Manifest (Reproduzierbarkeit, `forge.ps1 -Check`).
 
 ## Im Spiel prüfen
 
@@ -51,4 +51,4 @@ Text-/Bild-zu-3D (z. B. `generate_3d` im Blender MCP) liefert nur Rohmaterial. E
 
 ## Reproduzierbarkeit (Regel für Generatoren)
 
-Generatoren nutzen nur `lib/meshkit.py`. Neue Grundformen dort selbst konstruieren statt über bmesh-Ops mit undefinierter Ausgabereihenfolge (Beispiel: `create_uvsphere` lieferte Flächen in wechselnder Reihenfolge; `-Check` hat das gefunden). Zusätzlich sortiert `to_object` alle Flächen kanonisch. Zufall nur über das übergebene `rng` (Seed aus der Spec).
+Generatoren (`art/generators/`) nutzen nur `tools/assetgen/lib/meshkit.py`. Neue Grundformen dort selbst konstruieren statt über bmesh-Ops mit undefinierter Ausgabereihenfolge (Beispiel: `create_uvsphere` lieferte Flächen in wechselnder Reihenfolge; `-Check` hat das gefunden). Zusätzlich sortiert `to_object` alle Flächen kanonisch. Zufall nur über das übergebene `rng` (Seed aus der Spec).
