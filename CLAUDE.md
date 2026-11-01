@@ -7,7 +7,7 @@ Bei Konflikt zwischen diesem Dokument und einer Ad-hoc-Anweisung: nachfragen, ni
 
 ## 1. Vision in drei Sätzen
 
-Third-Person-Schlachtsimulator im Low-Poly-Stil, Fokus ausschließlich auf den Battle-Mode (Skirmish, 50v50 bis 150v150).
+Third-Person-Schlachtsimulator im Low-Poly-Stil, Fokus auf den Battle-Mode (Skirmish, 50v50 bis 150v150); im Singleplayer verbindet ein leichter **Kriegszug** die Schlachten (Story, Städte, Ausrüstung, Trupp).
 Der Spieler ist **General und Krieger zugleich**: Er kämpft selbst in der Linie und führt gleichzeitig 4–6 Formationen.
 Kämpfen muss sich physisch und wuchtig anfühlen; Kommandieren muss beim Kämpfen bedienbar sein; die Armee darf ohne Spieler nie dumm werden.
 
@@ -23,7 +23,7 @@ Shieldwall beweist, dass die Fantasie verkauft (80 % positiv), aber nach ~5 h st
 5. **Multiplayer-fähig ab Tag 1.** Deterministische Sim, Input-Queue, Lockstep-tauglich. Singleplayer ist ein Lockstep-Spiel mit einem Teilnehmer.
 
 ### Nicht-Ziele (v1)
-- Keine Kampagne, keine Weltkarte, keine Wirtschaft
+- Keine Kampagne mit Weltkarte, keine Wirtschaftssimulation, keine Lords oder Diplomatie. Der Kriegszug (M4b) ist eine Abfolge von Stadt → Auftrag → Schlacht mit Gold als einziger Ressource, siehe `DECISIONS.md` 2026-11-01
 - Keine Belagerungen (eigenes Projekt, Pathfinding-Hölle)
 - Kein Massen-PvP mit vielen menschlichen Fußsoldaten (anderes Spiel, Serverkosten)
 - Keine aktiven Ragdolls im Leben (Exanima-Problem), keine Cross-Platform-Determinismus-Garantie (PC only)
@@ -212,6 +212,7 @@ Assets/_Project/
       Morale/            # MoraleDiffusion, RoutLogic
       AI/                # AgentBrain, FormationAI, CommanderUtility, Lanchester
       Orders/            # FormationOrder-API (gemeinsam für Spieler + AI)
+    Meta/                # Kriegszug (M4b): Spielstand, Städte, Inventar, Aufträge; außerhalb der Sim, startet Schlachten aus Szenario + Seed
     Presentation/        # SimRunner, Interpolation, Animatoren, VAT-Rendering, VFX, Audio
       Cameras/           # DebugTopDownCamera, CombatCamera, CommandViewCamera
     Player/              # Controller, Input-Mapping, Radialmenü, CommandView (Drag-Orders)
@@ -225,7 +226,7 @@ Assets/Tests/EditMode/   # Determinismus, Slot-Zuordnung, Schadensformel
 
 ## 6. Meilensteine mit Fun-Gates
 
-Budget: ~10 h/Woche, ~650 h gesamt. Ein Meilenstein gilt erst als erreicht, wenn sein Fun-Gate mit Ja beantwortet ist. Bei Nein: Meilenstein nachbessern, nicht weiterbauen.
+Budget: ~10 h/Woche, ~730 h gesamt (650 + 80 für den Kriegszug). Ein Meilenstein gilt erst als erreicht, wenn sein Fun-Gate mit Ja beantwortet ist. Bei Nein: Meilenstein nachbessern, nicht weiterbauen.
 
 | Phase | Stunden | Inhalt | Fun-Gate |
 |---|---|---|---|
@@ -234,6 +235,7 @@ Budget: ~10 h/Woche, ~650 h gesamt. Ein Meilenstein gilt erst als erreicht, wenn
 | **M2 Kompanie** | 130 | Formationen + Slots, FormationOrder-API, Radialmenü (einhändig), **Kommandoansicht mit Drag-Orders, `HeroUnattended`-Verhalten, SP-Zeitlupe**, 20v20, Moral-Diffusion, Rout | Formation reagiert sichtbar und sofort auf Befehl; Rout fühlt sich verdient an; Wechsel Kampf ↔ Kommandoansicht fühlt sich riskant, aber nicht lähmend an |
 | **M3 Feldherr** | 120 | Formation-Behaviors, Standing Orders (3 Presets), Commander-Utility-AI, Lanchester, 50v50, Experiment Befehlsreichweite | (a) Nach Niederlage: „ich hätte woanders stehen müssen". AI-Entscheidungen im Overlay nachvollziehbar. (b) **Feldherr-Test:** Eine 50v50-Schlacht, nur aus der Kommandoansicht geführt (Held passiv), ist spannend. Wenn nein, trägt die taktische Ebene nicht; vor M4 nachbessern. |
 | **M4 Schlacht** | 90 | 100v100+, Reiterei (Pferd als Agent, Couching), 3 Maps mit Höhe/Wald/Deploy-Zonen, Synty-Assets, VAT-Rendering | Drei fremde Spieler spielen 30 min freiwillig weiter |
+| **M4b Kriegszug** | 80 | Story-Einführung (Text und Bilder), Stadt-Bildschirm (Beute verkaufen; Rüstung, Waffen, Pferde, Rekruten kaufen), Auftragswahl (Banditen, Rivalen), Trupp bleibt zwischen Schlachten erhalten, Rüstung pro Soldat, Spielstand. Lebt in `Scripts/Meta/`, außerhalb der Sim | Ein neuer Kriegszug wird freiwillig bis zur dritten Stadt gespielt, und man will danach weiter |
 | **M5 Polish** | 50 | Nachschlachtbericht (wer hat wann warum gefeuert), Sound, Kamera-Feel, Steam-Page | Trailer-Material existiert |
 | **M6 Multiplayer** | 120 | Lockstep-Scheduler, Steam-Transport, Lobby mit Teams (1v1, 2v2), Desync-Erkennung, Pre-Battle-Phase | Match gegen Freund läuft 20 min ohne Desync; beide wollen Revanche |
 
@@ -286,7 +288,8 @@ M0 und M1 sind abgeschlossen (Fun-Gates bestanden, M1 am 2026-10-19). Reihenfolg
 
 - Setting: historisch (Antike/Mittelalter) vs. Low-Fantasy. Beeinflusst Säulen nicht.
 - Spielname. Arbeitstitel SHIELDBREAK.
-- Progression zwischen Schlachten (Skirmish-only vs. leichte Meta).
+- Setting spätestens vor M4b entscheiden: Die Story des Kriegszugs hängt daran.
+- ~~Progression zwischen Schlachten~~: entschieden am 2026-11-01, leichte Meta „Kriegszug“ (M4b).
 - Befehlsreichweite: bleibt oder fliegt, entscheidet M3-Playtest.
 
 ## 10. Setup (einmalig)

@@ -182,3 +182,5 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 ## Aktueller Meilenstein
 
 **M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · ✅ 3 Formations-Pfad (A*) · ✅ 4 Verhalten + Kampf in Formation, 20 gegen 20 · ✅ 5 Moral und Rout · ✅ 6 Radialmenü (mit vorgezogenem Grundgerüst von `M2_Company`) · ✅ 7 Kommandoansicht · 8 Szene `M2_Company` fertig (Ergebnisbildschirm), Build, Fun-Gate.
+
+**Neu im Plan (2026-11-01):** Nach M4 kommt **M4b Kriegszug**, eine leichte Meta in Richtung Bannerlord: Story-Einführung, Städte zum Kaufen und Verkaufen (Rüstung, Waffen, Pferde, Rekruten), Schlachten gegen Banditen und Rivalen. Es gibt keine Weltkarte. Begründung in `DECISIONS.md` 2026-11-01, Plan in CLAUDE.md 6. Davor bleiben M2 und M3 unverändert.

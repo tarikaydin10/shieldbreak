@@ -38,6 +38,9 @@ Regel: Neue Ideen landen hier, nicht im Sprint. Bewertung (Wert / Risiko / Aufwa
 
 ## Meta (frühestens nach Setting-Entscheidung)
 
-- Leichte Progression: Veteranen-Status für Formationen, die eine Schlacht überleben
+Die leichte Meta ist am 2026-11-01 entschieden: Kriegszug in M4b (`DECISIONS.md`). Hier liegt, was darüber hinausgeht oder in M4b noch nicht gesetzt ist.
+
+- Leichte Progression: Veteranen-Status für Formationen, die eine Schlacht überleben (Kandidat für M4b)
+- **Weltkarte light** (Tarik, 2026-11-01, Bannerlord-Richtung): Knotengraph aus Städten und Lagern mit Reisezeit, Banditen tauchen auf Wegen auf. Erst wenn der Kriegszug als Stationenfolge trägt
 - Armee-Editor mit Punktebudget für Skirmish und MP
 - Mod-Support (data-driven macht das billig; Shieldwall-Reviews fordern es)

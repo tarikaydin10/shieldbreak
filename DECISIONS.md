@@ -272,10 +272,23 @@ Anlass (Tarik): Kann ich auf dem Mac (M4) entwickeln und das Spiel ausführen?
 | Die Nicht-Garantie aus CLAUDE.md 1 bleibt: kein Determinismus **zwischen** Mac und Windows. Auf einem Rechner sind Tests, Hash und Replays deterministisch; Singleplayer läuft überall. Ob Mac und PC im Multiplayer (M6) zusammen spielen, entscheidet ein Desync-Test dann | Burst rechnet mit `FloatMode.Deterministic` auf ARM und x64 vermutlich gleich, garantiert ist das ohne Messung nicht. Bis M6 kostet die Frage nichts | Cross-Plattform-Lockstep jetzt zusagen |
 | `assets -Check` vergleicht auf 1e-5 gerundete Geometrie. Weicht Blender auf ARM in einer Rundung ab, gilt der Stand des PCs, bis es einmal gemessen ist | Bisher nur auf Windows gebaut | – |
 
+## 2026-11-01 — Leichte Meta: Kriegszug
+
+Anlass (Tarik, nach dem Anspielen): „in die Richtung von Mount & Blade II Bannerlord“, mit Einführung und Story, Kaufen und Verkaufen in Städten, Rüstung, Pferden und Schlachten gegen Banditen und andere Gegner.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Die offene Frage „Progression zwischen Schlachten“ ist entschieden: **leichte Meta, genannt Kriegszug**. Er ist eine Folge von Schlachten (Banditen, Rivalen, …) mit kurzer Story-Einführung (Text und Bilder, keine Zwischensequenzen). Zwischen den Schlachten gibt es einen Stadt-Bildschirm: Beute verkaufen, Rüstung, Waffen, Pferde und Rekruten kaufen. Gold ist die einzige Ressource | Liefert die Bannerlord-Fantasie (der eigene Trupp wächst, Ausrüstung zählt) ohne deren Kosten. Shieldwall stirbt nach ~5 h an fehlender Langzeitmotivation | Volle Kampagne mit Weltkarte, Lords, Diplomatie und Wirtschaftssimulation: würde das Budget allein verbrauchen. Die Gründungsentscheidung „keine Kampagne“ gilt dafür weiter |
+| Keine Weltkarte: Der Kriegszug ist eine Abfolge von Stationen (Stadt → Auftrag wählen, 2–3 zur Auswahl → Schlacht → Stadt). Kein Reisen in Echtzeit, keine Fraktions-AI | Jede Minute außerhalb der Schlacht soll auf Säule 1 oder 2 einzahlen | Weltkarte light (Knotengraph mit Reisezeit): steht in `IDEAS.md` |
+| Die Meta lebt außerhalb der Sim in `Scripts/Meta/` (Spielstand, Städte, Inventar, Aufträge) und speichert als JSON. Eine Schlacht startet aus einem Szenario (Daten) plus Seed; die Sim bekommt nur Aufstellung, Ausrüstung und Werte | Determinismus, Lockstep und Tests bleiben unberührt; der Multiplayer bleibt Skirmish (Säule 5) | Meta-Zustand in `SimWorld` |
+| Rüstung als Kaufgegenstand: Die Zonen-Schwellwerte (Beine, Torso, Kopf) liegen heute global in `CombatTuningDefinition` und werden dafür pro Soldat gesetzt (Rüstungs-Definition als ScriptableObject). Das Energiemodell bleibt gleich | Rüstung als Schwellwert ist seit den Gründungsentscheidungen Teil des Schadensmodells; nur der Ort der Zahl ändert sich | Rüstung als prozentuale Reduktion |
+| Pferde kommen wie geplant mit der Reiterei in M4; der Kriegszug verkauft sie nur | Der Umfang der Reiterei bleibt unverändert | Pferde vorziehen |
+| Neuer Meilenstein **M4b Kriegszug** (~80 h) nach M4 und vor M5 Polish; das Budget steigt von ~650 h auf ~730 h. M2 und M3 bleiben unverändert | M4 liefert Pferde, Maps und Modelle, die Läden brauchen etwas zum Verkaufen. Ein 20-gegen-20 ohne Commander-AI trägt noch keinen Kriegszug; die Schlacht muss zuerst tragen | Kriegszug direkt nach M2; M-Nummern neu zählen (zu viele Verweise auf M5 und M6) |
+| Vor der Story muss das Setting entschieden sein (historisch oder Low-Fantasy, CLAUDE.md 9) | Story, Gegnertypen und Städte hängen daran | – |
+
 ## Offen (Entscheidung bis M3)
 
-- Setting (historisch vs. Low-Fantasy)
+- Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt
 - Spielname (Arbeitstitel SHIELDBREAK)
 - Befehlsreichweite / Sichtlinie: Experiment in M3, Parameter
-- Progression zwischen Schlachten
 - Synty POLYGON ab M4 vs. eigener Pipeline-Style (Synty passt nur, wenn Palette und Proportionen übernommen werden)
