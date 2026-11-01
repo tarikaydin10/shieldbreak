@@ -122,7 +122,7 @@ namespace Shieldbreak.Presentation.Player
                 if (IsOpen) Close(world);
                 return;
             }
-            bool menus = AdminMenu.IsOpen || PauseMenu.IsOpen || DuelDirector.ResultOpen || GamePause.IsPaused;
+            bool menus = AdminMenu.IsOpen || PauseMenu.IsOpen || ResultScreen.IsOpen || GamePause.IsPaused;
             if (!IsOpen && hold.WasPressedThisFrame() && !menus && !RadialMenu.IsOpen) Open(world);
             else if (IsOpen && !hold.IsPressed()) Close(world);
             // Outlines and labels also follow the field while the camera comes back down

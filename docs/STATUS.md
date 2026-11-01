@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-10-21**, Meilenstein **M2 Kompanie**, Task 7 von 8 fertig: Formationen haben Verhalten (Halten, Vorrücken, Angriff, Folgen, Rückzug), kämpfen aus der Formation, Soldaten brechen (Panik-Feld, Moral, Rout und Flucht), der Held befiehlt seiner Kompanie über das **Radialmenü** aus dem Kampf heraus und mit Überblick aus der **Kommandoansicht** (V halten). Dafür ist das Grundgerüst der Szene `M2_Company` aus Task 8 vorgezogen. Die Sandbox ist ein Gefecht 20 gegen 20. Neu: **Testmodus** im Hauptmenü, jede Szene mit Ziel, Steuerung und Prüfliste (F2), siehe unten. (Task 4 bis 7 in Unity noch nicht angesehen.) **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-01**, Meilenstein **M2 Kompanie**, alle 8 Tasks gebaut, **offen ist das Fun-Gate M2**. Neu: Die Kompanie-Schlacht endet, wenn eine Seite bricht oder der Held fÃ¤llt, mit Ergebnisbildschirm (Task 8). Bisher: Formationen haben Verhalten (Halten, Vorrücken, Angriff, Folgen, Rückzug), kämpfen aus der Formation, Soldaten brechen (Panik-Feld, Moral, Rout und Flucht), der Held befiehlt seiner Kompanie über das **Radialmenü** aus dem Kampf heraus und mit Überblick aus der **Kommandoansicht** (V halten). Dafür ist das Grundgerüst der Szene `M2_Company` aus Task 8 vorgezogen. Die Sandbox ist ein Gefecht 20 gegen 20. Neu: **Testmodus** im Hauptmenü, jede Szene mit Ziel, Steuerung und Prüfliste (F2), siehe unten. (Task 4 bis 7 in Unity noch nicht angesehen.) **M1 Duell ist abgeschlossen**: Fun-Gate am 2026-10-19 bestanden (Tarik: „es macht Spaß“).
 
 ## Sofort spielen
 
@@ -10,7 +10,7 @@
 | Unity | `game/` im Unity Hub öffnen, Szene `Assets/_Project/Scenes/MainMenu` (oder direkt `M1_Duel`) öffnen, Play |
 | Mac | `./sb.ps1 play` im Terminal (baut und startet `builds/M1-duel/SHIELDBREAK.app`); einmalig vorher Setup nach CLAUDE.md 10 (Homebrew, PowerShell, `./sb.ps1 setup`). Die Windows-exe läuft auf dem Mac nicht, sie wird weiter auf dem PC gebaut |
 
-**Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Kompanie (Vorschau), **Testmodus** (alles mit Ziel, Steuerung, Prüfliste), Sandbox, Prototypen, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
+**Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Kompanie, **Testmodus** (alles mit Ziel, Steuerung, Prüfliste), Sandbox, Prototypen, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
 **Im Duell:** Beim Start steht 4 s lang, was läuft (Preset · Gegner-Stufe · Anzahl · Waffe). Nach dem Kampf kommt ein Ergebnisbildschirm mit Statistik und drei Buttons: Nochmal, Anders einstellen, Hauptmenü. Leben = roter Bildrand (wächst mit dem Schaden), Ausdauer = dunkler Puls am Rand; Lebensbalken nur per F9.
 **Im Spiel:** **Esc** Pausemenü (Fortsetzen, Neu starten, Ziel und Prüfliste, Steuerung, Optionen, Hauptmenü), **F1** Status und Admin (alle Tasten, Szenenwechsel, FPS), **F2** Hilfe zur Szene (Ziel, Prüfliste, alle Tasten der Szene).
 
@@ -21,7 +21,7 @@ Hauptmenü → **Testmodus**. Links alles, was es gibt, rechts für den gewählt
 | Eintrag | Szene | Prüfpunkte |
 |---|---|---|
 | Duell, Tutorial, Zuschauen | `M1_Duel` | 6, 3, 3 |
-| Kompanie (Vorschau), mit Kommandoansicht | `M2_Company` | 12 |
+| Kompanie, mit Kommandoansicht und Ergebnis | `M2_Company` | 15 |
 | Sandbox: Formationen und Moral | `M0_Sandbox` | 9 |
 | Stresstest: 250 gegen 250 (vorher nicht erreichbar) | `M0_Sandbox` mit `Stress_250v250` | 3 |
 | Prototyp: Oben-Hieb, Prototyp: Look und Kameras | `Proto_Animation`, `Proto_Style` | 4, 2 |
@@ -50,9 +50,9 @@ Vorschlag für jetzt (Task 4 bis 7 sind ungetestet): Sandbox, dann Kompanie, dan
 ![Tutorial: geführtes Duell](screenshots/tutorial.jpg)
 ![Nach dem Kampf: Ergebnis, Statistik, Auswahl](screenshots/duel_result.jpg)
 
-## Kompanie mit Radialmenü und Kommandoansicht (`M2_Company`, Vorschau)
+## Kompanie mit Radialmenü und Kommandoansicht (`M2_Company`)
 
-Hauptmenü → Kompanie. Der Held (Steuerung wie im Duell) steht zwischen seiner Linie (links) und seinem Schildwall (rechts), je 12 Bots Stufe 3. 36 m vor ihm stehen eine feindliche Linie und ein Keil, die sofort vorrücken; nach etwa einer halben Minute treffen sie aufeinander. Moral ist an: Wer bricht, flieht. Neustart über Esc → Neu starten.
+Hauptmenü → Kompanie. Der Held (Steuerung wie im Duell) steht zwischen seiner Linie (links) und seinem Schildwall (rechts), je 12 Bots Stufe 3. 36 m vor ihm stehen eine feindliche Linie und ein Keil, die sofort vorrücken; nach etwa einer halben Minute treffen sie aufeinander. Moral ist an: Wer bricht, flieht. **Ende:** Sieg, sobald kein Feind mehr kämpft; Niederlage, wenn deine Truppe bricht oder der Held fällt (steht nur noch der Held, geht es weiter). 2,5 s danach kommt der Ergebnisbildschirm: Verluste beider Seiten (stehen, gefallen, geflohen), deine Treffer und Siege, Zeit in der Kommandoansicht, Buttons Nochmal und Hauptmenü. Neustart jederzeit über Esc → Neu starten.
 
 | Taste (Gamepad) | Aktion |
 |---|---|
@@ -77,7 +77,7 @@ Der gegebene Befehl steht kurz oben im Bild; F1 zeigt Ziel, letzten Befehl und d
 | Mausrad | Kamera höher oder tiefer (18–60 m) |
 | linker Stick | Gamepad: Zeiger bewegen |
 
-Noch nicht da (Task 8): Ergebnisbildschirm; Commander-AI für den Feind kommt mit M3 (er rückt nur vor).
+Noch nicht da: Commander-AI für den Feind (kommt mit M3, er rückt nur vor).
 
 ## Formationen in der Sandbox (`M0_Sandbox`)
 
@@ -129,7 +129,7 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Moral (M2) | Panik-Feld pro Team mit Diffusion (Zuversicht als negativer Wert), Quellen und Senken, Moral pro Soldat, Rout, Flucht bis zum Kartenrand; im Duell aus | `Scripts/Sim/Morale`, `Data/MoraleDefinition`, `Data/Morale/Morale_Default` |
 | Radialmenü (M2) | Schnellbefehle aus dem Kampf an alle eigenen Formationen oder eine: Halten, Vorrücken, Angriff, Folgen, Rückzug, Linie, Schildwall, Keil; als `FormationOrder` über die `InputQueue` | `Scripts/Presentation/Player/RadialMenu`, `Sim/Orders/QuickOrders` |
 | Kommandoansicht (M2) | V halten: Kamera hoch, Formationen lesbar (Umriss, Front, Befehl, Moral), Auswahl, Marsch und Frontlinie per Maus, Ziel per Rechtsklick auf den Feind, Formen 1–5, Radialmenü auf die Auswahl, Zeitlupe; der Held kämpft solange als Bot hinter der eigenen Linie (`HeroUnattended`, Sim-Input) | `Scripts/Presentation/Player/CommandView`, `Cameras/CommandViewCamera`, `Sim/Core/SimWorld` |
-| Kompanie (M2, Vorschau) | Held mit zwei eigenen Formationen gegen zwei vorrückende Bot-Formationen, mit Moral; Hitstop und Kamera-Kick wie im Duell | `Data/CompanyScenarioDefinition`, `Data/Scenarios/Company_M2`, `Scenes/M2_Company`, `Player/CompanyDirector` |
+| Kompanie (M2) | Held mit zwei eigenen Formationen gegen zwei vorrückende Bot-Formationen, mit Moral; Hitstop und Kamera-Kick wie im Duell; Ende der Schlacht (`Sim/Morale/BattleOutcome`: eine Seite bricht oder der Held fällt) und Ergebnisbildschirm | `Data/CompanyScenarioDefinition`, `Data/Scenarios/Company_M2`, `Scenes/M2_Company`, `Player/CompanyDirector` |
 | Bots | Stufen L1–L5 spielen dieselben Regeln, nur Reaktionszeit, Fehlerquote und Techniken unterscheiden sich; höchstens 2 greifen gleichzeitig an | `Scripts/Sim/AI` |
 | Kampfgefühl | Hitstop, Kamera-Kick, Rückstoß, Blut/Funken/Splitter, Platzhalter-Sounds (synthetisch), Leben als roter Rand und Ausdauer als dunkler Puls statt HUD, Zeitlupe bei entscheidenden Kills | `Scripts/Presentation/Feedback` |
 | Feel-Presets | Schwer, Mittel, Tödlich (alle Zahlen in ScriptableObjects) | `Data/Combat` |
@@ -144,7 +144,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (174, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (176, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2` (Mac: `SHIELDBREAK.app/Contents/MacOS/SHIELDBREAK -shot …`). Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
 | Von Hand: alle Szenen | Hauptmenü → Testmodus (Prüflisten pro Szene, siehe oben) |
@@ -171,7 +171,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - **Moral-Tuning (Tarik):** Wann bricht eine Seite? Startwerte und Messungen in `DECISIONS.md` 2026-10-20. Fliehende kommen in v1 nicht zurück (Sammeln steht in `IDEAS.md`). Flankentreffer erschrecken nur wenig zusätzlich (0,3); wer Flanken stärker spüren will, dreht dort
 - Moral wirkt in Sandbox und Kompanie; Duell und Tutorial bleiben ohne
 - **Radialmenü (Tarik):** Taste F und RB, Belegung der acht Richtungen und das Ziel per Mausrad sind ein erster Vorschlag (`DECISIONS.md` 2026-10-21). Kreis und lockere Ordnung fehlen im Ring (in der Kommandoansicht mit 4 und 5)
-- Kompanie ist eine Vorschau: kein Ergebnisbildschirm, kein Menüpunkt „Nochmal“, der Feind hat keine Commander-AI (rückt nur vor). Die Szene ist von Hand aus Duell- und Sandbox-Szene zusammengesetzt; falls sie in Unity nicht lädt: Menü Shieldbreak → Build M2 Company Scene baut sie neu
+- Kompanie: Der Feind hat keine Commander-AI (rückt nur vor, M3). Wer als Held fällt, verliert; ob man danach lieber als Zuschauer weiterschauen will, zeigt das Fun-Gate (Tarik). Die Szene ist von Hand aus Duell- und Sandbox-Szene zusammengesetzt; falls sie in Unity nicht lädt: Menü Shieldbreak → Build M2 Company Scene baut sie neu
 - Fliehende suchen keinen Weg um Mauern, sie weichen nur lokal aus und gleiten an der Wand entlang (wie alle Soldaten, CLAUDE.md 3.6)
 - Vorrücken und Angriff wählen die nächste feindliche Formation selbst, außer man zeigt in der Kommandoansicht per Rechtsklick auf eine. Freier Angriff auf ein bestimmtes Ziel: erst Rechtsklick auf den Feind, dann Radialmenü → Angriff (das Ziel bleibt)
 - **Kommandoansicht (Tarik):** Taste V/LB, Höhe 35 m, Blickwinkel, Zeitlupe 0,3× und „ohne Auswahl = alle“ sind ein erster Vorschlag (`DECISIONS.md` 2026-10-21). Die Kamera folgt dem Helden; Verschieben über das Feld steht in `IDEAS.md`
@@ -181,6 +181,6 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 ## Aktueller Meilenstein
 
-**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · ✅ 3 Formations-Pfad (A*) · ✅ 4 Verhalten + Kampf in Formation, 20 gegen 20 · ✅ 5 Moral und Rout · ✅ 6 Radialmenü (mit vorgezogenem Grundgerüst von `M2_Company`) · ✅ 7 Kommandoansicht · 8 Szene `M2_Company` fertig (Ergebnisbildschirm), Build, Fun-Gate.
+**M2 Kompanie** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Formationen in der Sim · ✅ 2 Sichtbar machen (Sandbox, Overlay, Befehle per Maus) · ✅ 3 Formations-Pfad (A*) · ✅ 4 Verhalten + Kampf in Formation, 20 gegen 20 · ✅ 5 Moral und Rout · ✅ 6 Radialmenü (mit vorgezogenem Grundgerüst von `M2_Company`) · ✅ 7 Kommandoansicht · ✅ 8 Szene `M2_Company` fertig (Ende der Schlacht, Ergebnisbildschirm) · **Fun-Gate M2 (Tarik):** Formation reagiert sichtbar und sofort auf Befehl; Rout fühlt sich verdient an; Wechsel Kampf ↔ Kommandoansicht fühlt sich riskant, aber nicht lähmend an.
 
 **Neu im Plan (2026-11-01):** Nach M4 kommt **M4b Kriegszug**, eine leichte Meta in Richtung Bannerlord: Story-Einführung, Städte zum Kaufen und Verkaufen (Rüstung, Waffen, Pferde, Rekruten), Schlachten gegen Banditen und Rivalen. Es gibt keine Weltkarte. Begründung in `DECISIONS.md` 2026-11-01, Plan in CLAUDE.md 6. Davor bleiben M2 und M3 unverändert.

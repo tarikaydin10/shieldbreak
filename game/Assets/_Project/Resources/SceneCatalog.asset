@@ -63,13 +63,13 @@ MonoBehaviour:
     - "F7 (Gegner-Stufe): eine höhere Stufe kämpft erkennbar besser"
     - "Z (Zeitlupe) macht Treffer und Blocks gut lesbar"
   - id: company
-    title: "Kompanie (Vorschau)"
+    title: "Kompanie"
     section: "Spielen"
     scene: M2_Company
     launch: 0
     scenario: {fileID: 0}
     briefingOnStart: 1
-    objective: "Du bist Held und Anführer zugleich: deine Linie (links) und dein Schildwall (rechts) gegen eine feindliche Linie und einen Keil, die sofort vorrücken. Befiehl schnell über das Radialmenü (F halten) oder mit Überblick aus der Kommandoansicht (V halten), und kämpfe selbst. Ziel: Der Feind bricht und flieht, bevor deine Leute es tun. Noch ohne Ergebnisbildschirm (Neustart über Esc)."
+    objective: "Du bist Held und Anführer zugleich: deine Linie (links) und dein Schildwall (rechts) gegen eine feindliche Linie und einen Keil, die sofort vorrücken. Befiehl schnell über das Radialmenü (F halten) oder mit Überblick aus der Kommandoansicht (V halten), und kämpfe selbst. Ziel: Der Feind bricht und flieht, bevor deine Leute es tun. Fällst du, ist die Schlacht verloren. Danach zeigt ein Ergebnisbildschirm, was passiert ist."
     controlMaps:
     - Radial
     - CommandView
@@ -87,6 +87,9 @@ MonoBehaviour:
     - "In der Kommandoansicht 4 drücken: Die Auswahl (ohne Auswahl: alle) bildet einen Kreis; 1 macht wieder eine Linie"
     - "Solange die Kommandoansicht offen ist, zieht sich der Held hinter die eigene Linie zurück und wehrt sich, wenn ihn jemand angreift"
     - "V loslassen: Die Kamera kommt zurück, die Steuerung ist sofort wieder da; Wechsel fühlt sich riskant, aber nicht lähmend an"
+    - "Schlacht gewinnen: Kurz nachdem der Feind bricht, erscheint der Ergebnisbildschirm mit Sieg, Verlusten beider Seiten und deiner Statistik"
+    - "Schlacht verlieren (Held stirbt oder die eigene Truppe bricht): Ergebnisbildschirm mit Gefallen bzw. Niederlage; Nochmal startet dieselbe Schlacht von vorn"
+    - "Der Sieg fühlt sich verdient an: Du weißt, warum der Feind gebrochen ist"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

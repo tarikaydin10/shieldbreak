@@ -31,8 +31,6 @@ namespace Shieldbreak.Presentation.Player
         GUIStyle banner;
         enum ResultPage { None, Result, Setup }
         ResultPage resultPage;
-        /// <summary>True while the result screen is up (gameplay input and cursor lock pause).</summary>
-        public static bool ResultOpen { get; private set; }
         int resultTicks, hitsLanded, hitsTaken, blocks, perfectBlocks, specials, feints;
         float damageDealt, damageTaken, startBannerUntil;
 
@@ -106,6 +104,7 @@ namespace Shieldbreak.Presentation.Player
         void OnDisable()
         {
             map?.Disable();
+            ResultScreen.IsOpen = false;
             if (runner != null) { runner.HitstopHook -= OnTick; runner.WorldRebuilt -= ResetStats; }
         }
 
@@ -227,7 +226,7 @@ namespace Shieldbreak.Presentation.Player
             bool over = heroDead || enemiesDead;
             var tutorial = GetComponent<TutorialDirector>();
             if (tutorial != null && tutorial.Active) over = false;
-            ResultOpen = over;
+            ResultScreen.IsOpen = over;
             if (!over) { resultPage = ResultPage.None; return; }
             if (resultPage == ResultPage.None)
             {
@@ -295,7 +294,7 @@ namespace Shieldbreak.Presentation.Player
             hitsLanded = hitsTaken = blocks = perfectBlocks = specials = feints = 0;
             damageDealt = damageTaken = 0f;
             resultPage = ResultPage.None;
-            ResultOpen = false;
+            ResultScreen.IsOpen = false;
             startBannerUntil = Time.unscaledTime + 4f;
         }
 

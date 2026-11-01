@@ -272,6 +272,14 @@ Anlass (Tarik): Kann ich auf dem Mac (M4) entwickeln und das Spiel ausführen?
 | Die Nicht-Garantie aus CLAUDE.md 1 bleibt: kein Determinismus **zwischen** Mac und Windows. Auf einem Rechner sind Tests, Hash und Replays deterministisch; Singleplayer läuft überall. Ob Mac und PC im Multiplayer (M6) zusammen spielen, entscheidet ein Desync-Test dann | Burst rechnet mit `FloatMode.Deterministic` auf ARM und x64 vermutlich gleich, garantiert ist das ohne Messung nicht. Bis M6 kostet die Frage nichts | Cross-Plattform-Lockstep jetzt zusagen |
 | `assets -Check` vergleicht auf 1e-5 gerundete Geometrie. Weicht Blender auf ARM in einer Rundung ab, gilt der Stand des PCs, bis es einmal gemessen ist | Bisher nur auf Windows gebaut | – |
 
+## 2026-11-01 — M2 Task 8: Ende der Kompanie-Schlacht
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Entschieden ist die Schlacht, wenn auf einer Seite niemand mehr kämpft (alle tot, fliehend oder geflohen) **oder der Held fällt** (`Sim/Morale/BattleOutcome`, aus der Sicht des Spieler-Teams). Steht nur noch der Held, geht sie weiter | Dieselbe Regel wie im Multiplayer (CLAUDE.md 3.8: Rout oder Kommandant tot), also nur einmal zu bauen. Eine Funktion über den Agenten-Array ist deterministisch und auf jedem Client gleich | Weiterkämpfen nach dem Tod des Helden als Zuschauer (entwertet den Helden; als Idee möglich, falls Tarik es will) |
+| Der Ergebnisbildschirm kommt 2,5 Sim-Sekunden nach der Entscheidung (`CompanyDirector.resultDelaySeconds`), damit man die Flucht noch sieht. Inhalt: Sieg, Gefallen oder Niederlage, Verluste beider Seiten (stehen, gefallen, geflohen), Helden-Statistik, Zeit in der Kommandoansicht, Buttons Nochmal und Hauptmenü | Wie im Duell: Ergebnis statt F-Tasten. Die Zeit in der Kommandoansicht hilft beim Fun-Gate (riskant, aber nicht lähmend) | Sofort einblenden (die Flucht ist das Verdiente am Sieg) |
+| Ein gemeinsamer Schalter `Presentation/Menu/ResultScreen.IsOpen` für Duell und Kompanie ersetzt `DuelDirector.ResultOpen` | Eingabe, Radialmenü, Kommandoansicht und Szenen-Hilfe ruhen bei jedem Ergebnisbildschirm, nicht nur beim Duell | Zweiter Schalter pro Szene |
+
 ## 2026-11-01 — Leichte Meta: Kriegszug
 
 Anlass (Tarik, nach dem Anspielen): „in die Richtung von Mount & Blade II Bannerlord“, mit Einführung und Story, Kaufen und Verkaufen in Städten, Rüstung, Pferden und Schlachten gegen Banditen und andere Gegner.

@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Shieldbreak.Data;
+using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
 using Shieldbreak.Sim.Formations;
+using Shieldbreak.Sim.Morale;
 using Shieldbreak.Sim.Orders;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -176,6 +178,49 @@ namespace Shieldbreak.Tests
             }
             Assert.That(log.Exists(e => e.Type == CombatEventType.Death), "the companies meet and fight");
             Assert.That(log.Exists(e => e.Type == CombatEventType.Rout), "and someone breaks");
+        }
+
+        // ---- Battle outcome ----
+
+        static BattleResult Outcome(params (int team, int flags)[] list)
+        {
+            var source = new AgentData[list.Length];
+            for (int i = 0; i < list.Length; i++) source[i] = new AgentData { Id = i, Team = list[i].team, Flags = list[i].flags };
+            using var agents = new NativeArray<AgentData>(source, Allocator.Temp);
+            return BattleOutcome.Evaluate(agents.AsReadOnly(), 0, 0);
+        }
+
+        [Test]
+        public void BattleOutcome_ASideIsBeaten_WhenNoneOfItFights_OrTheHeroFalls()
+        {
+            const int dead = AgentFlags.Dead, routing = AgentFlags.Routing, fled = AgentFlags.Dead | AgentFlags.Fled;
+            // Agent 0 is the hero (team 0), then one own soldier and two enemies
+            Assert.That(Outcome((0, 0), (0, 0), (1, 0), (1, 0)), Is.EqualTo(BattleResult.Undecided));
+            Assert.That(Outcome((0, 0), (0, 0), (1, routing), (1, fled)), Is.EqualTo(BattleResult.Victory), "routing and fled enemies no longer count");
+            Assert.That(Outcome((0, 0), (0, 0), (1, dead), (1, 0)), Is.EqualTo(BattleResult.Undecided), "one enemy still fights");
+            Assert.That(Outcome((0, 0), (0, routing), (1, 0), (1, 0)), Is.EqualTo(BattleResult.Undecided), "the hero fights on alone");
+            Assert.That(Outcome((0, dead), (0, 0), (1, 0), (1, 0)), Is.EqualTo(BattleResult.Defeat), "the hero fell");
+            Assert.That(Outcome((0, dead), (0, 0), (1, dead), (1, dead)), Is.EqualTo(BattleResult.Defeat), "falling with the last enemy is still a defeat");
+            using var noHero = new NativeArray<AgentData>(new[] { new AgentData { Team = 0, Flags = routing }, new AgentData { Team = 1 } }, Allocator.Temp);
+            Assert.That(BattleOutcome.Evaluate(noHero.AsReadOnly(), 0, -1), Is.EqualTo(BattleResult.Defeat), "without a hero the side breaks when its soldiers do");
+        }
+
+        [Test]
+        public void Company_IsDecided_WithoutTheHeroDoingAnything_AndStaysDecided()
+        {
+            using var world = World(out int hero);
+            var result = BattleResult.Undecided;
+            int decidedAt = -1;
+            for (int t = 0; t < 180 * 60 && result == BattleResult.Undecided; t++)
+            {
+                world.Step();
+                result = BattleOutcome.Evaluate(world.Agents, 0, hero);
+                if (result != BattleResult.Undecided) decidedAt = world.Tick;
+            }
+            Assert.That(result, Is.Not.EqualTo(BattleResult.Undecided), "a company battle ends within three minutes");
+            Run(world, 600);
+            Assert.That(BattleOutcome.Evaluate(world.Agents, 0, hero), Is.EqualTo(result), "the routed never come back");
+            TestContext.WriteLine($"{result} after {decidedAt * SimConstants.DT:0} s");
         }
     }
 }

@@ -91,7 +91,7 @@ namespace Shieldbreak.Presentation.Player
         void Update()
         {
             var world = runner != null ? runner.World : null;
-            bool blocked = world == null || runner.PlayerAgent < 0 || AdminMenu.IsOpen || PauseMenu.IsOpen || DuelDirector.ResultOpen || GamePause.IsPaused;
+            bool blocked = world == null || runner.PlayerAgent < 0 || AdminMenu.IsOpen || PauseMenu.IsOpen || ResultScreen.IsOpen || GamePause.IsPaused;
             if (blocked)
             {
                 IsOpen = false;
