@@ -115,6 +115,7 @@ MonoBehaviour:
     - "1 und R, dann 2 und C: die Linien treffen sich, das zweite Glied rückt nach, Blau stürmt frei"
     - "Mitten im Kampf X: die Formation dreht ab, kämpft nicht und steht 20 m weiter mit Front zum Feind"
     - "M (Moral): Flecken, wo Soldaten fallen; eine Seite bricht vor der Auslöschung, Fliehende (oranger Ring) verschwinden am Rand"
+    - "Formation mit H festsetzen und eine feindliche Formation in ihre Flanke oder ihren Rücken schicken: Sie bleibt stehen, dreht die Front zum Feind und die Beschriftung nennt kurz die Seite (Feind links, rechts, im Rücken)"
     - "Läuft flüssig (F1 zeigt FPS und Sim-Zeit)"
   - id: stress
     title: "Stresstest: 250 gegen 250"

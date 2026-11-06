@@ -55,6 +55,9 @@ namespace Shieldbreak.Tests
             DefaultStance = FormationStance.React,
             ReactDistance = 10f,
             AggressiveDistance = 30f,
+            ThreatDistance = 8f,
+            ThreatMinEnemies = 3,
+            ThreatCooldownTicks = 180,
         };
 
         /// <summary>Mirrors the MoraleDefinition defaults (Morale_Default).</summary>

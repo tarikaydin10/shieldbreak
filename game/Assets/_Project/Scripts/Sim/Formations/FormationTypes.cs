@@ -46,6 +46,15 @@ namespace Shieldbreak.Sim.Formations
         Aggressive = 2,
     }
 
+    /// <summary>Where the last threat a formation turned to came from, relative to its front at that moment.</summary>
+    public enum FormationThreatSide
+    {
+        None = 0,
+        Left = 1,
+        Right = 2,
+        Rear = 3,
+    }
+
     public static class FormationLimits
     {
         public const int TypeCount = 5;
@@ -114,6 +123,11 @@ namespace Shieldbreak.Sim.Formations
         /// holds again; Aggressive (2): it goes for the next enemy like an ordered advance.
         /// </summary>
         public int Reacting;
+        /// <summary>Earliest tick the formation looks for threats again; -1 = an order just came, start the cooldown.</summary>
+        public int NextThreatTick;
+        /// <summary>Tick of the last turn to a threat (with ThreatSide: what the overlay shows).</summary>
+        public int ThreatTick;
+        public FormationThreatSide ThreatSide;
 
         public const int ReformNone = 0, ReformKeepAnchor = 1, ReformAroundMembers = 2;
 
@@ -217,6 +231,12 @@ namespace Shieldbreak.Sim.Formations
         public float ReactDistance;
         /// <summary>Aggressive: the same, from this far (m).</summary>
         public float AggressiveDistance;
+        /// <summary>Enemy soldiers this close (m) to the formation's outline count as a threat; 0 = formations never turn on their own.</summary>
+        public float ThreatDistance;
+        /// <summary>So many enemies in flank or rear (and more than in front) before a whole formation turns.</summary>
+        public int ThreatMinEnemies;
+        /// <summary>Ticks after a turn or an order before the formation looks for threats again.</summary>
+        public int ThreatCooldownTicks;
 
         public FormationSpacing Spacing(FormationType type) => type switch
         {
@@ -250,6 +270,7 @@ namespace Shieldbreak.Sim.Formations
             if (BehaviorIntervalTicks < 1 || RetargetDistance < 0f) throw new ArgumentException("Require BehaviorIntervalTicks >= 1 and RetargetDistance >= 0.");
             if (HeroUnattendedLevel < 0 || HeroRetreatGap < 0f) throw new ArgumentException("Require HeroUnattendedLevel >= 0 and HeroRetreatGap >= 0.");
             if ((uint)DefaultStance >= FormationLimits.StanceCount || ReactDistance < 0f || AggressiveDistance < 0f) throw new ArgumentException("Require a valid DefaultStance and ReactDistance, AggressiveDistance >= 0.");
+            if (ThreatDistance < 0f || ThreatMinEnemies < 1 && ThreatDistance > 0f || ThreatCooldownTicks < 0) throw new ArgumentException("Require ThreatDistance >= 0, ThreatMinEnemies >= 1 and ThreatCooldownTicks >= 0.");
         }
     }
 }

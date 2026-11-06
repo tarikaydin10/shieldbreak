@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-01**, Meilenstein **M3 Feldherr**, Task 1 von 7 fertig: **Haltung** (Stellung halten, Reagieren, Aggressiv). Formationen greifen jetzt von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst. **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-06**, Meilenstein **M3 Feldherr**, Task 2 von 7 fertig: **Haltung** (Stellung halten, Reagieren, Aggressiv) und **Bedrohungen**. Formationen greifen von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst, und sie drehen die Front, wenn der Feind in Flanke oder Rücken steht. Die Reaktion auf Beschuss kommt mit dem Fernkampf (Task 5). **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
 
 ## Sofort spielen
 
@@ -22,7 +22,7 @@ Hauptmenü → **Testmodus**. Links alles, was es gibt, rechts für den gewählt
 |---|---|---|
 | Duell, Tutorial, Zuschauen | `M1_Duel` | 6, 3, 3 |
 | Kompanie, mit Kommandoansicht, Haltung und Ergebnis | `M2_Company` | 18 |
-| Sandbox: Formationen und Moral | `M0_Sandbox` | 9 |
+| Sandbox: Formationen und Moral | `M0_Sandbox` | 10 |
 | Stresstest: 250 gegen 250 (vorher nicht erreichbar) | `M0_Sandbox` mit `Stress_250v250` | 3 |
 | Prototyp: Oben-Hieb, Prototyp: Look und Kameras | `Proto_Animation`, `Proto_Style` | 4, 2 |
 
@@ -102,6 +102,8 @@ Im Overlay: Kreuz = Slot (hell bei Auswahl), Pfeil = Anker und Blickrichtung, we
 
 Kampf in Formation: Beim Halten, Vorrücken und Folgen bleiben die Soldaten an einer 2-m-Leine um ihren Platz, kämpfen nach vorn (120°-Bogen), zur Seite und nach hinten nur gegen Feinde, die näher als 1,6 m kommen; das zweite Glied rückt in Lücken nach. Beim Angriff kämpfen sie frei, beim Rückzug gar nicht. Ein Schildwall blockt, statt auszuweichen. Folgen geht schon über die Befehls-API, aber noch ohne Taste: es braucht den Helden (Task 6 und 8).
 
+**Bedrohungen:** Eine Formation, die am Ziel hält, schaut alle 0,5 s, wer bis 8 m an ihren Umriss herankommt. Stehen mindestens 3 Feinde in Flanke oder Rücken und mehr als vor der Front, dreht sie sich dorthin, ohne ihren Platz zu verlassen; bei großen Drehungen wird das hintere Glied zur Front. Das gilt in jeder Haltung, auch bei Stellung halten. Danach schaut sie 3 s lang nicht mehr. Ein Angriff, den die Haltung ausgelöst hat, wechselt auf die neue Bedrohung. Ein befohlener Angriff und ein Marsch bleiben wie befohlen, nach jedem Befehl gilt ebenfalls die Pause von 3 s, und ein Kreis hat keine Flanke. Die Beschriftung nennt kurz die Seite („Feind links!“, „Feind rechts!“, „Feind im Rücken!“), in der Sandbox wie in der Kommandoansicht. Ein Feind vor dem Flügel einer breiten Linie zählt als Front, denn gemessen wird in den Achsen der Formation.
+
 **Moral:** Wer stirbt, erschreckt die Seinen in der Nähe; Panik breitet sich aus und klingt ab. Treffer von der Seite oder von hinten erschrecken, Fliehende stecken an. Kills und ein brechender Feind ermutigen. Unter 25 % Moral bricht ein Soldat: Er verlässt seine Formation, wehrt sich nicht mehr, rennt vom Feind weg und verlässt am Kartenrand das Feld. In einer haltenden, vorrückenden oder folgenden Formation sinkt die Moral langsamer als im Sturmangriff oder allein. Overlay (M): Panik pro Team als rote bzw. lila Fläche, Zuversicht grün, ein Balken unter jedem Soldaten, der nicht mehr voll bei Mut ist, Fliehende mit orangem Ring; die Beschriftung zeigt die Moral der Formation. Der Held beruhigt seine Seite im Umkreis von 8 m (in der Kompanie; die Sandbox hat keinen Helden).
 
 Gemessen ohne Unity mit Moral (20 gegen 20, Stufe 3, je 10 Gefechte): Die Verlierer brechen nach 7–9 Toten (35–45 %), die übrigen fliehen; die Sieger behalten meist 13–16 Kämpfer. Ein Gefecht ist nach ~30 s entschieden (ohne Moral nach ~45 s, fast bis zum letzten Mann). Halten gegen Angriff 8:2 (ohne Moral 5:5), Vorrücken gegen Vorrücken ohne festen Sieger.
@@ -131,6 +133,7 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Moral (M2) | Panik-Feld pro Team mit Diffusion (Zuversicht als negativer Wert), Quellen und Senken, Moral pro Soldat, Rout, Flucht bis zum Kartenrand; im Duell aus | `Scripts/Sim/Morale`, `Data/MoraleDefinition`, `Data/Morale/Morale_Default` |
 | Radialmenü (M2) | Schnellbefehle aus dem Kampf an alle eigenen Formationen oder eine: Halten, Vorrücken, Angriff, Folgen, Rückzug, Linie, Schildwall, Keil; als `FormationOrder` über die `InputQueue` | `Scripts/Presentation/Player/RadialMenu`, `Sim/Orders/QuickOrders` |
 | Kommandoansicht (M2) | V halten: Kamera hoch, Formationen lesbar (Umriss, Front, Befehl, Moral), Auswahl, Marsch und Frontlinie per Maus, Ziel per Rechtsklick auf den Feind, Formen 1–5, Radialmenü auf die Auswahl, Zeitlupe; der Held kämpft solange als Bot hinter der eigenen Linie (`HeroUnattended`, Sim-Input) | `Scripts/Presentation/Player/CommandView`, `Cameras/CommandViewCamera`, `Sim/Core/SimWorld` |
+| Bedrohungen (M3) | Eine haltende Formation dreht die Front zu Feinden in Flanke oder Rücken, ein von selbst begonnener Angriff wechselt auf sie; mit Abklingzeit, Befehle gehen vor; Auslöser in Overlay und Kommandoansicht; Werte in `Data/Formations/Formation_Default` | `Sim/Formations/FormationSystem` (`FaceThreat`) |
 | Haltung (M3) | Standing Order pro Formation: Stellung halten, Reagieren (Standard: rückt gegen Feinde vor, die bis 10 m herankommen, hält danach wieder), Aggressiv (ab 30 m, danach weiter); nur wenn die Formation hält und angekommen ist; „Halten“ im Radialmenü heißt auch Stellung halten; Werte in `Data/Formations/Formation_Default` | `Sim/Formations` (`FormationStance`, `React`), `Sim/Orders/FormationOrder`, `Player/CommandView` |
 | Kompanie (M2) | Held mit zwei eigenen Formationen gegen zwei vorrückende Bot-Formationen, mit Moral; Hitstop und Kamera-Kick wie im Duell; Ende der Schlacht (`Sim/Morale/BattleOutcome`: eine Seite bricht oder der Held fällt) und Ergebnisbildschirm | `Data/CompanyScenarioDefinition`, `Data/Scenarios/Company_M2`, `Scenes/M2_Company`, `Player/CompanyDirector` |
 | Bots | Stufen L1–L5 spielen dieselben Regeln, nur Reaktionszeit, Fehlerquote und Techniken unterscheiden sich; höchstens 2 greifen gleichzeitig an | `Scripts/Sim/AI` |
@@ -147,7 +150,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (179, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (187, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2` (Mac: `SHIELDBREAK.app/Contents/MacOS/SHIELDBREAK -shot …`). Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
 | Von Hand: alle Szenen | Hauptmenü → Testmodus (Prüflisten pro Szene, siehe oben) |
@@ -178,6 +181,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - Fliehende suchen keinen Weg um Mauern, sie weichen nur lokal aus und gleiten an der Wand entlang (wie alle Soldaten, CLAUDE.md 3.6)
 - Vorrücken und Angriff wählen die nächste feindliche Formation selbst, außer man zeigt in der Kommandoansicht per Rechtsklick auf eine. Freier Angriff auf ein bestimmtes Ziel: erst Rechtsklick auf den Feind, dann Radialmenü → Angriff (das Ziel bleibt)
 - **Kommandoansicht (Tarik):** Taste V/LB, Höhe 35 m, Blickwinkel, Zeitlupe 0,3× und „ohne Auswahl = alle“ sind ein erster Vorschlag (`DECISIONS.md` 2026-10-21). Die Kamera folgt dem Helden; Verschieben über das Feld steht in `IDEAS.md`
+- **Bedrohungen (Tarik):** 8 m, 3 Feinde und 3 s Abklingzeit sind ein erster Vorschlag (`DECISIONS.md` 2026-11-06). Der Feind in der Kompanie rückt auf Befehl vor und dreht sich deshalb nicht: Dein Flankenangriff trifft ihn ungebremst, bis er mit Task 3 einen Kommandanten bekommt
 - **Haltung (Tarik):** Reagieren ist Standard. Dann läuft eine haltende Linie einem anrückenden Feind 10 m entgegen und verliert den Vorteil des Haltens; wer ihn will, stellt R auf Stellung halten. Ob Reagieren der richtige Standard ist und ob 10 m und 30 m passen, beim Spielen entscheiden (`DECISIONS.md` 2026-11-01). Die Sandbox hat noch keine Taste für die Haltung (H setzt Stellung halten)
 - Formationen und Hindernisse: Beim Umformen laufen Soldaten geradeaus zum neuen Slot, ein Slot hinter einer Wand wird erst erreicht, wenn die Formation weiterzieht (nur lokales Steering, CLAUDE.md 3.6). Hindernisse sind nur im Overlay sichtbar (keine Meshes vor M4)
 - Sounds sind Platzhalter (M5), Figuren sind Gliederpuppen aus der Pipeline (Synty-Vergleich offen, `DECISIONS.md`)
@@ -185,6 +189,6 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 ## Aktueller Meilenstein
 
-**M3 Feldherr** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Haltung (Standing Orders) · 2 Formation-AI: Bedrohungen · 3 Commander-Utility-AI · 4 Lanchester · 5 Fernkampf (Bogen) · 6 50 gegen 50, Befehlsreichweite · 7 Fun-Gate M3 (inkl. Feldherr-Test). M2 Kompanie: alle 8 Tasks fertig, Fun-Gate bestanden.
+**M3 Feldherr** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Haltung (Standing Orders) · ✅ 2 Formation-AI: Bedrohungen (Beschuss folgt mit Task 5) · 3 Commander-Utility-AI · 4 Lanchester · 5 Fernkampf (Bogen) · 6 50 gegen 50, Befehlsreichweite · 7 Fun-Gate M3 (inkl. Feldherr-Test). M2 Kompanie: alle 8 Tasks fertig, Fun-Gate bestanden.
 
 **Neu im Plan (2026-11-01):** Nach M4 kommt **M4b Kriegszug**, eine leichte Meta in Richtung Bannerlord: Story-Einführung, Städte zum Kaufen und Verkaufen (Rüstung, Waffen, Pferde, Rekruten), Schlachten gegen Banditen und Rivalen. Es gibt keine Weltkarte. Begründung in `DECISIONS.md` 2026-11-01, Plan in CLAUDE.md 6. Davor bleiben M2 und M3 unverändert.

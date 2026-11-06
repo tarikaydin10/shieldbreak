@@ -41,3 +41,6 @@ MonoBehaviour:
   defaultStance: 1
   reactDistance: 10
   aggressiveDistance: 30
+  threatDistance: 8
+  threatMinEnemies: 3
+  threatCooldownMs: 3000

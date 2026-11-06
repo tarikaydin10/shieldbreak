@@ -208,7 +208,8 @@ namespace Shieldbreak.Tests
         {
             using var world = World(40);
             int a = Line(world, 0, new float2(48f, 48f), East);
-            Line(world, 1, new float2(60f, 48f), West);
+            int b = Line(world, 1, new float2(60f, 48f), West);
+            world.SubmitFormationOrder(PlayerB, FormationOrder.SetStance(b, FormationStance.HoldGround));   // it does not give chase
             world.SubmitFormationOrder(PlayerA, FormationOrder.RetreatTo(a, new float2(48f, 20f), East));
             Run(world, 60);
             Assert.That(world.Formations[a].Behavior, Is.EqualTo(FormationBehavior.Retreat));
@@ -353,6 +354,126 @@ namespace Shieldbreak.Tests
             world.SubmitFormationOrder(PlayerA, FormationOrder.SetStance(a, (FormationStance)7));
             Run(world, world.Config.InputDelayTicks + 1);
             Assert.That(world.Formations[a].Stance, Is.EqualTo(FormationStance.HoldGround));
+        }
+
+        // ---- Threats ----
+
+        static readonly float2 North = new float2(0f, 1f), South = new float2(0f, -1f);
+
+        /// <summary>A line facing east at (30, 48) that holds its ground, so only the threat reaction can move it.</summary>
+        static int Holder(SimWorld world)
+        {
+            int a = Line(world, 0, new float2(30f, 48f), East);
+            SetStance(world, PlayerA, a, FormationStance.HoldGround);
+            return a;
+        }
+
+        static int Enemy(SimWorld world, float2 front, float2 facing, int count = 20, int files = 10)
+        {
+            int e = Line(world, 1, front, facing, count, files);
+            SetStance(world, PlayerB, e, FormationStance.HoldGround);
+            return e;
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Threat_HoldingFormation_TurnsToItsFlank_WhereItStands(bool left)
+        {
+            using var world = World(60);
+            int a = Holder(world);
+            float side = left ? 1f : -1f;
+            int b = Enemy(world, new float2(29f, 48f + 32f * side), left ? South : North);
+            world.SubmitFormationOrder(PlayerB, FormationOrder.MoveTo(b, new float2(29f, 48f + 11f * side), left ? South : North));
+            Run(world, 2400);
+
+            var f = world.Formations[a];
+            Assert.That(f.ThreatSide, Is.EqualTo(left ? FormationThreatSide.Left : FormationThreatSide.Right));
+            Assert.That(f.Behavior, Is.EqualTo(FormationBehavior.Hold), "it turns, it does not leave");
+            Assert.That(f.Stance, Is.EqualTo(FormationStance.HoldGround));
+            float2 toEnemy = math.normalize(world.Formations[b].Position - f.Position);
+            Assert.That(math.dot(f.Facing, toEnemy), Is.GreaterThan(0.8f), "the front points at the enemy");
+            Assert.That(math.distance(f.Position, new float2(30f, 48f)), Is.LessThan(7f), "where it stands");
+        }
+
+        [Test]
+        public void Threat_FromBehind_TheRearRankBecomesTheFront()
+        {
+            using var world = World(60);
+            int a = Holder(world);
+            int b = Enemy(world, new float2(8f, 48f), East);
+            world.SubmitFormationOrder(PlayerB, FormationOrder.MoveTo(b, new float2(22f, 48f), East));
+            Run(world, 2400);
+
+            var f = world.Formations[a];
+            Assert.That(f.ThreatSide, Is.EqualTo(FormationThreatSide.Rear));
+            Assert.That(math.dot(f.Facing, West), Is.GreaterThan(0.9f));
+            Assert.That(f.Position.x, Is.LessThan(30f), "the anchor moved to the former rear rank");
+            Assert.That(Standing(world, a), "and it stands");
+        }
+
+        [Test]
+        public void Threat_AFormationEngagedInFront_KeepsItsFront()
+        {
+            using var world = World(60);
+            int a = Holder(world);
+            Enemy(world, new float2(36f, 48f), West);                               // 20 in front
+            Enemy(world, new float2(29f, 59f), South, count: 5, files: 5);          // 5 on the flank
+            Run(world, 600);
+            var f = world.Formations[a];
+            Assert.That(f.ThreatSide, Is.EqualTo(FormationThreatSide.None), "more enemies in front than on the flank");
+            Assert.That(math.dot(f.Facing, East), Is.GreaterThan(0.99f));
+        }
+
+        [Test]
+        public void Threat_TooFewEnemies_OrACircle_DoNotTurn()
+        {
+            using var world = World(60);
+            int a = Holder(world);
+            Enemy(world, new float2(29f, 59f), South, count: 2, files: 2);
+            int ring = world.SpawnFormation(0, 0, FormationType.Circle, 10, 16, new float2(70f, 48f), East, TestScenarios.AgentRadius);
+            SetStance(world, PlayerA, ring, FormationStance.HoldGround);
+            Enemy(world, new float2(70f, 56f), South, count: 6, files: 6);
+            Run(world, 600);
+            Assert.That(world.Formations[a].ThreatSide, Is.EqualTo(FormationThreatSide.None), "two soldiers do not turn a line");
+            Assert.That(world.Formations[ring].ThreatSide, Is.EqualTo(FormationThreatSide.None), "a circle has no flank");
+        }
+
+        [Test]
+        public void Threat_AnOrder_WinsForTheCooldown()
+        {
+            using var world = World(60);
+            int a = Holder(world);
+            Enemy(world, new float2(29f, 59f), South);
+            Run(world, 600);
+            Assert.That(math.dot(world.Formations[a].Facing, North), Is.GreaterThan(0.8f), "turned to the flank");
+
+            // The player insists on the east: the formation obeys, and looks again only after the cooldown
+            world.SubmitFormationOrder(PlayerA, FormationOrder.MoveTo(a, world.Formations[a].Position, East));
+            int cooldown = TestScenarios.Formations.ThreatCooldownTicks;
+            Run(world, cooldown - 30);
+            Assert.That(math.dot(world.Formations[a].Facing, East), Is.GreaterThan(0.9f), "the order comes first");
+            Run(world, 600);
+            Assert.That(math.dot(world.Formations[a].Facing, North), Is.GreaterThan(0.8f), "then the threat counts again");
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Threat_AReaction_TakesOnTheThreat_AnOrderedAttackKeepsItsTarget(bool ordered)
+        {
+            using var world = World(90);
+            int a = Line(world, 0, new float2(30f, 48f), East);
+            int b = Enemy(world, new float2(39f, 48f), West, count: 10, files: 10);     // 10 in front
+            int c = Enemy(world, new float2(6f, 48f), East, count: 30, files: 10);      // 30 come from behind
+            if (ordered) world.SubmitFormationOrder(PlayerA, FormationOrder.Against(a, FormationBehavior.Advance, b));
+            Run(world, 300);
+            Assert.That(world.Formations[a].TargetFormation, Is.EqualTo(b));
+            Assert.That(world.Formations[a].Reacting, Is.EqualTo(ordered ? 0 : (int)FormationStance.React));
+
+            world.SubmitFormationOrder(PlayerB, FormationOrder.MoveTo(c, new float2(31f, 48f), East));
+            Run(world, 1800);
+            var f = world.Formations[a];
+            Assert.That(f.TargetFormation, Is.EqualTo(ordered ? b : c), ordered ? "the player's target stays" : "the bigger threat from behind becomes the target");
+            Assert.That(f.ThreatSide, Is.EqualTo(ordered ? FormationThreatSide.None : FormationThreatSide.Rear));
         }
     }
 }

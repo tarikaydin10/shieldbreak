@@ -56,6 +56,8 @@ namespace Shieldbreak.DebugTools
 
         static readonly string[] TypeNames = { "Linie", "Schildwall", "Keil", "Kreis", "Locker" };
         static readonly string[] BehaviorNames = { "hält", "rückt vor", "greift an", "folgt", "zieht sich zurück" };
+        static readonly string[] ThreatNames = { "", "Feind links!", "Feind rechts!", "Feind im Rücken!" };
+        const float ThreatLabelSeconds = 4f;
 
         public string AdminStatusLabel => "Overlay";
         public string AdminStatus => $"Grid {OnOff(showGrid)} · Geschwindigkeit {OnOff(showVelocity)} · Ziele {OnOff(showTargets)} · Formationen {OnOff(showFormations)} · Moral {OnOff(showMorale)}";
@@ -310,6 +312,9 @@ namespace Shieldbreak.DebugTools
                 string state = f.Behavior == FormationBehavior.Hold && marching ? "marschiert" : BehaviorNames[math.clamp((int)f.Behavior, 0, BehaviorNames.Length - 1)];
                 string text = $"{TypeNames[math.clamp((int)f.Type, 0, TypeNames.Length - 1)]} · {f.MemberCount} · {state}";
                 if (world.HasMorale) text += $" · Moral {AverageMorale(world, id) * 100f:0} %";
+                // The trigger of the last turn on its own, for a moment
+                if (f.ThreatSide != FormationThreatSide.None && (world.Tick - f.ThreatTick) * SimConstants.DT < ThreatLabelSeconds)
+                    text += $" · {ThreatNames[(int)f.ThreatSide]}";
                 var rect = new Rect(s.x - 120f, Screen.height - s.y - 11f, 240f, 22f);
                 labelStyle.normal.textColor = Color.black;
                 GUI.Label(new Rect(rect.x + 1f, rect.y + 1f, rect.width, rect.height), text, labelStyle);

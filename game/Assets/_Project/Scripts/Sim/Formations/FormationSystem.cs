@@ -149,7 +149,11 @@ namespace Shieldbreak.Sim.Formations
             bool behavior = (order.Flags & FormationOrderFlags.Behavior) != 0 && (uint)order.Behavior < FormationLimits.BehaviorCount &&
                             (order.Behavior != FormationBehavior.Follow || (order.FollowAgent >= 0 && order.FollowAgent < members.Length));
             // Every order of the player or the commander AI ends a reaction of the stance
-            if (behavior || move) f.Reacting = 0;
+            if (behavior || move)
+            {
+                f.Reacting = 0;
+                f.NextThreatTick = -1;
+            }
             if (behavior)
             {
                 f.Behavior = order.Behavior;
@@ -332,6 +336,7 @@ namespace Shieldbreak.Sim.Formations
         /// </summary>
         void UpdateBehavior(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
         {
+            FaceThreat(ref f, tick, agents, agentCount);
             if (f.Behavior == FormationBehavior.Hold)
             {
                 React(ref f, tick, agents, agentCount);
@@ -422,8 +427,7 @@ namespace Shieldbreak.Sim.Formations
         {
             if (f.Stance == FormationStance.HoldGround || tick < f.NextBehaviorTick) return;
             f.NextBehaviorTick = tick + settings.BehaviorIntervalTicks;
-            bool arrived = f.NeedsPath == 0 && f.PathIndex >= f.PathCount && math.distancesq(f.Destination, f.Position) < 0.25f;
-            if (!arrived) return;
+            if (!Arrived(f)) return;
             float range = f.Stance == FormationStance.React ? settings.ReactDistance : settings.AggressiveDistance;
             float bestSq = range * range;
             int target = -1;
@@ -448,6 +452,73 @@ namespace Shieldbreak.Sim.Formations
             f.TargetFormation = target;
             f.Reacting = (int)f.Stance;
             f.NextBehaviorTick = tick;
+        }
+
+        static bool Arrived(in FormationData f) => f.NeedsPath == 0 && f.PathIndex >= f.PathCount && math.distancesq(f.Destination, f.Position) < 0.25f;
+
+        /// <summary>
+        /// Threat reaction (CLAUDE.md 3.7), in any stance: a formation that holds where it was sent, or advances on its
+        /// own, looks at the enemy soldiers near its outline. With at least ThreatMinEnemies in flank or rear, and more
+        /// there than in front, a holding formation turns its front to them where it stands and a reacting advance
+        /// takes on the nearest of them. Marches and ordered attacks stay as ordered; a circle has no flank. Measured in
+        /// the formation's own axes, so an enemy in front of a wing of a wide line stays a front enemy.
+        /// </summary>
+        void FaceThreat(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
+        {
+            if (f.NextThreatTick < 0) f.NextThreatTick = tick + settings.ThreatCooldownTicks;
+            if (tick < f.NextThreatTick || settings.ThreatDistance <= 0f || f.Type == FormationType.Circle) return;
+            bool holding = f.Behavior == FormationBehavior.Hold && Arrived(f);
+            bool reacting = f.Behavior == FormationBehavior.Advance && f.Reacting != 0;
+            if (!holding && !reacting) return;
+            f.NextThreatTick = tick + settings.BehaviorIntervalTicks;
+
+            float halfFront = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f;
+            int ranks = (f.MemberCount + f.Files - 1) / math.max(f.Files, 1);
+            float depth = (ranks - 1) * settings.Spacing(f.Type).Depth;
+            float limitSq = settings.ThreatDistance * settings.ThreatDistance, nearestSq = float.MaxValue;
+            int front = 0, threats = 0, nearest = -1;
+            float2 threatSum = float2.zero;
+            for (int j = 0; j < agentCount; j++)
+            {
+                var enemy = agents[j];
+                if (enemy.Team == f.Team || enemy.IsDead || enemy.IsRouting) continue;
+                float2 local = FormationData.InverseRotate(enemy.Position - f.Position, f.Facing);
+                // Distance to the outline: the front rank lies on y = 0, the rear rank on y = -depth
+                float2 gap = new float2(math.max(math.abs(local.x) - halfFront, 0f), local.y > 0f ? local.y : math.max(-local.y - depth, 0f));
+                float gapSq = math.lengthsq(gap);
+                if (gapSq > limitSq) continue;
+                if (local.y > 0f && gap.x <= local.y)
+                {
+                    front++;
+                    continue;
+                }
+                threats++;
+                threatSum += local;
+                if (gapSq < nearestSq)
+                {
+                    nearestSq = gapSq;
+                    nearest = j;
+                }
+            }
+            if (threats < settings.ThreatMinEnemies || threats <= front) return;
+
+            float2 threatLocal = threatSum / threats - new float2(0f, -depth * 0.5f);
+            f.ThreatSide = threatLocal.y < -math.abs(threatLocal.x) ? FormationThreatSide.Rear : threatLocal.x < 0f ? FormationThreatSide.Left : FormationThreatSide.Right;
+            f.ThreatTick = tick;
+            f.NextThreatTick = tick + settings.ThreatCooldownTicks;
+            if (reacting)
+            {
+                if (IsEnemyFormation(members[nearest].Formation, f.Team)) f.TargetFormation = members[nearest].Formation;
+                f.NextBehaviorTick = tick;
+                return;
+            }
+            float2 wanted = FormationData.Rotate(math.normalizesafe(threatLocal, new float2(0f, 1f)), f.Facing);
+            f.TargetFacing = wanted;
+            if (math.dot(f.Facing, wanted) >= settings.ReformTurnCos) return;
+            // Too far to wheel: re-form around the soldiers, the rank nearest the threat becomes the front
+            f.Facing = wanted;
+            f.Reform = FormationData.ReformAroundMembers;
+            f.NextReformTick = tick;
         }
 
         /// <summary>Halts where the anchor stands, keeping the current facing.</summary>

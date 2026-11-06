@@ -47,6 +47,8 @@ namespace Shieldbreak.Presentation.Player
         public Color ownColor = new Color(0.35f, 0.72f, 1f, 0.9f);
         public Color selectedColor = new Color(1f, 0.85f, 0.35f, 1f);
         public Color enemyColor = new Color(1f, 0.38f, 0.3f, 0.9f);
+        [Tooltip("How long the label names the threat a formation turned to (sim seconds).")]
+        public float threatLabelSeconds = 4f;
         public Color pathColor = new Color(1f, 1f, 1f, 0.45f);
 
         /// <summary>True while the key is held; PlayerCombatInput then leaves the hero alone and frees the cursor.</summary>
@@ -60,6 +62,7 @@ namespace Shieldbreak.Presentation.Player
         static readonly string[] BehaviorNames = { "hält", "rückt vor", "greift an", "folgt", "zieht sich zurück" };
         static readonly string[] ShapeActions = { "ShapeLine", "ShapeShieldWall", "ShapeWedge", "ShapeCircle", "ShapeLoose" };
         static readonly string[] StanceNames = { "Stellung halten", "Reagieren", "Aggressiv" };
+        static readonly string[] ThreatNames = { "", "Feind links!", "Feind rechts!", "Feind im Rücken!" };
 
         InputActionMap map;
         InputAction hold, point, select, command, additive, zoom, padPointer, cycleStance;
@@ -610,6 +613,9 @@ namespace Shieldbreak.Presentation.Player
                 else if ((fd.Behavior == FormationBehavior.Advance || fd.Behavior == FormationBehavior.Charge) && fd.TargetFormation >= 0) state += " (Ziel)";
                 // Own formations also show their stance, the enemy's is not the player's business
                 if (IsOwn(world, f)) state += $" · {StanceNames[math.clamp((int)fd.Stance, 0, StanceNames.Length - 1)]}";
+                // What it just turned to, for a moment
+                if (fd.ThreatSide != FormationThreatSide.None && (world.Tick - fd.ThreatTick) * SimConstants.DT < threatLabelSeconds)
+                    state += $" · {ThreatNames[(int)fd.ThreatSide]}";
                 string text = $"{TypeNames[math.clamp((int)fd.Type, 0, TypeNames.Length - 1)]} · {living[f]} · {state}";
                 float w = 260f * scale, h = 20f * scale;
                 var rect = new Rect(s.x - w * 0.5f, Screen.height - s.y - h, w, h);

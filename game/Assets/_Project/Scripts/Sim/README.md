@@ -12,7 +12,7 @@ Die deterministische Simulation. Gleicher Seed und gleiche Eingaben ergeben auf 
 ## Ein Tick (`SimWorld.Step`)
 
 1. Befehle des Ticks anwenden (sortiert nach Spieler und Sequenz)
-2. `FormationSystem`: Tote austragen, Verhalten auswerten (Halten, Vorrücken, Angriff, Folgen, Rückzug wählen das Marschziel), umformen (Burst-Job), Weg planen (A*, Burst-Job), Anker marschieren und schwenken, jedem Mitglied seinen Slot als Ziel geben
+2. `FormationSystem`: Tote austragen, Bedrohungen prüfen, Verhalten auswerten (Halten, Vorrücken, Angriff, Folgen, Rückzug wählen das Marschziel), umformen (Burst-Job), Weg planen (A*, Burst-Job), Anker marschieren und schwenken, jedem Mitglied seinen Slot als Ziel geben
 3. Spieler-Bewegungsabsichten anwenden; unbeaufsichtigte Helden (Spieler in der Kommandoansicht) bekommen ihren Posten hinter der eigenen Linie
 4. `AgentSystem`: Spatial Hash, Steering (Ziel, Abstand, Wände, Drehrate), Integration (nie in gesperrte Zellen)
 5. `CombatSystem`: Bots denken (in Formation nach `FormationCombatRules`, Fliehende kämpfen nicht), Angriffe laufen, SwingTrace löst Treffer auf
@@ -29,7 +29,7 @@ Ohne Unity prüfen: `tools/simcheck/run.sh` (siehe [README](../../../../../tools
 | `Agents/` | `AgentData`, `AgentSystem` (Bewegung als Burst-Jobs) |
 | [Combat/](Combat/README.md) | Kampf-Grammatik, Waffen, Treffererkennung, Kampf in Formation (`Context/`) |
 | `AI/` | `BotBrain`: Nahkampf-Bots auf derselben Grammatik wie der Spieler |
-| `Formations/` | `FormationData` (mit Verhalten und Haltung), `SlotGenerator` (5 Typen), `SlotAssignment` (Ungarische Methode, exakt), `FormationSystem` (Haltung: eine haltende, angekommene Formation rückt von selbst gegen nahe Feinde vor, `FormationStance`) |
+| `Formations/` | `FormationData` (mit Verhalten und Haltung), `SlotGenerator` (5 Typen), `SlotAssignment` (Ungarische Methode, exakt), `FormationSystem` (Haltung: eine haltende, angekommene Formation rückt von selbst gegen nahe Feinde vor, `FormationStance`; Bedrohungen: `FaceThreat` dreht die Front zu Feinden in Flanke oder Rücken) |
 | `Orders/` | `FormationOrder`: die eine Befehls-API für Spieler (über `InputQueue`) und Commander-AI (direkt): Bewegen/Ausrichten, Form, Breite, Verhalten (Vorrücken und Angriff wahlweise gegen eine bestimmte feindliche Formation); `FormationLinePlanner`: Frontlinie oder Zielpunkt → Befehle für mehrere Formationen nebeneinander; `QuickOrders`: Schnellbefehle ohne Kartenpunkt (Radialmenü) und welche Formationen ein Spieler befehligt |
 | `Nav/` | `GridAStar`: A* für Formationsanker, ganzzahlige Kosten, Abstandsfeld zu Hindernissen (breite Fronten meiden enge Lücken), Glätten zu wenigen Wegpunkten |
 | `Morale/` | `MoraleSystem` (ein Burst-Job: Quellen, Feld, Moral, Rout, Flucht), `MoraleDiffusion` (ein Schritt von `P += D·ΔP − k·P`), `MoraleSettings`, `MoraleData` (Moral pro Agent), `BattleOutcome` (Schlacht entschieden: eine Seite kämpft nicht mehr oder der Held ist gefallen; CLAUDE.md 3.8) |

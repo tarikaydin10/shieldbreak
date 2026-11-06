@@ -73,6 +73,14 @@ namespace Shieldbreak.Data
         [Tooltip("Aggressive: the same from this far (m); afterwards it goes for the next enemy.")]
         [Min(0f)] public float aggressiveDistance = 30f;
 
+        [Header("Threats (a formation turns on its own)")]
+        [Tooltip("Enemy soldiers this close to the formation's outline count as a threat (m). 0 = formations never turn on their own.")]
+        [Min(0f)] public float threatDistance = 8f;
+        [Tooltip("So many enemies in flank or rear, and more than in front, before a whole formation turns to them.")]
+        [Min(1)] public int threatMinEnemies = 3;
+        [Tooltip("After a turn or an order the formation looks for threats again only after this long (ms).")]
+        [Min(0)] public int threatCooldownMs = 3000;
+
         [Header("Hero in the command view (HeroUnattended)")]
         [Tooltip("Bot level (L1–L5) the hero fights at while the player is in the command view; 0 = no command view.")]
         [Range(0, 5)] public int heroUnattendedLevel = 2;
@@ -113,6 +121,9 @@ namespace Shieldbreak.Data
             DefaultStance = defaultStance,
             ReactDistance = reactDistance,
             AggressiveDistance = aggressiveDistance,
+            ThreatDistance = threatDistance,
+            ThreatMinEnemies = threatMinEnemies,
+            ThreatCooldownTicks = Mathf.RoundToInt(threatCooldownMs * SimConstants.TickRate / 1000f),
         };
     }
 }

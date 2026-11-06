@@ -318,6 +318,17 @@ Anlass (Tarik): Die Pipeline soll auch den Zombie-Rundensurvival (Repo `deadhold
 | Gemeinsame Generatoren (in `assetforge/generators/`) nur, wenn zwei Spiele dieselbe Form brauchen | Verhindert, dass das Werkzeug zur Asset-Bibliothek wird | – |
 | Shieldbreaks Regel „keine Assets vor M4“ bleibt; der Ausbau des Werkzeugs (Bau-Kit, Waffen-Sockets, Humanoid-Rig) wird von deadhold getrieben, shieldbreak profitiert ab M4 | Kein Scope-Wachstum hier | – |
 
+## 2026-11-06 — M3 Task 2: Bedrohungen
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Eine Formation prüft Bedrohungen nur, wenn sie am Ziel hält oder einen von der Haltung ausgelösten Angriff läuft (`FormationSystem.FaceThreat`). Marsch, befohlenes Vorrücken, Angriff, Folgen und Rückzug bleiben unberührt | Befehle gehen vor (CLAUDE.md 3.1: Spieler und AI nutzen dieselbe API, keine eigenmächtige Formation). Solange der Feind in der Kompanie nur befohlen vorrückt, wirkt auch dein Flankenangriff voll | Jede Formation dreht immer (Befehle des Spielers würden überstimmt) |
+| Auslöser: mindestens `threatMinEnemies` (3) Feinde bis `threatDistance` (8 m) am Umriss der Formation, in Flanke oder Rücken, und mehr als vor der Front. Gemessen in den Achsen der Formation: als Front zählt, was vor dem vorderen Glied steht und seitlich weniger über den Flügel hinausragt als es vor ihm steht | Eine Messung vom Mittelpunkt hielte Feinde vor dem Flügel einer breiten Linie für eine Flanke. Wer vorn gebunden ist, dreht sich nicht weg und gibt dem Feind nicht den Rücken frei | Winkel vom Mittelpunkt; jeder einzelne Feind löst aus (ein Held in der Flanke drehte die ganze Linie) |
+| Reaktion: Beim Halten dreht die Front zur Mitte der Bedrohung, die Formation bleibt stehen. Über `reformTurnDeg` hinaus formt sie um die Soldaten um (das Glied nächst der Bedrohung wird Front). Ein von der Haltung ausgelöster Angriff wechselt das Ziel auf die Formation des nächsten Bedrohers | Säule 2: die Armee darf ohne Spieler nie dumm werden. Drehen gilt auch bei „Stellung halten“, denn es verlässt die Stellung nicht | Stellung halten dreht nie (Linie lässt sich von hinten abschlachten) |
+| Nach einer Drehung und nach jedem Befehl schaut die Formation `threatCooldownMs` (3 s) nicht nach Bedrohungen; ein Befehl setzt dafür `NextThreatTick = -1` | Kein Hin- und Herdrehen; wer eine Blickrichtung befiehlt, behält sie zunächst. `Apply` kennt den Tick nicht, daher der Merker, den der nächste Tick auflöst | Eigene Hysterese über Winkel |
+| Kreis prüft nicht | Er hat keine Flanke, seine Slots schauen nach außen | – |
+| Beschuss (Schildwall) kommt mit Task 5, weil es noch keinen Fernkampf gibt | Nichts zum Testen | Stummel-Ereignis jetzt |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt
