@@ -19,6 +19,8 @@ namespace Shieldbreak.Sim.Grid
         public NativeArray<byte> NavCost;
         /// <summary>Panic per team and cell (negative = confidence): index PanicIndex(team, cell). Only Sim/Morale writes it.</summary>
         public NativeArray<float> Panic;
+        /// <summary>Height of the ground on the cell corners (Terrain); 0 everywhere on a flat map.</summary>
+        public NativeArray<float> Heights;
 
         public WorldGrid(GridLayout layout, Allocator allocator)
         {
@@ -26,6 +28,19 @@ namespace Shieldbreak.Sim.Grid
             NavCost = new NativeArray<byte>(layout.CellCount, allocator, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < NavCost.Length; i++) NavCost[i] = DefaultCost;
             Panic = new NativeArray<float>(layout.CellCount * SimConstants.MaxTeams, allocator);
+            Heights = new NativeArray<float>(Terrain.CornerCount(layout), allocator);
+        }
+
+        public float HeightAt(float2 position) => Terrain.HeightAt(Heights, Layout, position);
+
+        /// <summary>True once the map has any relief: the presentation then draws it.</summary>
+        public bool HasRelief { get; private set; }
+
+        /// <summary>Raises a hill. Scenario setup, before the first tick.</summary>
+        public void AddHill(float2 centre, float radius, float height)
+        {
+            Terrain.AddHill(Heights, Layout, centre, radius, height);
+            HasRelief = true;
         }
 
         public int PanicIndex(int team, int cell) => team * Layout.CellCount + cell;
@@ -62,6 +77,7 @@ namespace Shieldbreak.Sim.Grid
         {
             if (NavCost.IsCreated) NavCost.Dispose();
             if (Panic.IsCreated) Panic.Dispose();
+            if (Heights.IsCreated) Heights.Dispose();
         }
     }
 }

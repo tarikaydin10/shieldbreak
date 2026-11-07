@@ -20,7 +20,7 @@ namespace Shieldbreak.Sim.Agents
 
         public static void Step(NativeArray<AgentData> agents, int count, ref SpatialHash spatial,
             NativeArray<float2> positionScratch, NativeArray<float2> velocityScratch, NativeArray<float2> facingScratch,
-            in AgentMoveSettings settings, NativeArray<byte> navCost)
+            in AgentMoveSettings settings, NativeArray<byte> navCost, NativeArray<float> heights)
         {
             if (count == 0) return;
 
@@ -35,6 +35,7 @@ namespace Shieldbreak.Sim.Agents
                 Layout = spatial.Layout,
                 Settings = settings,
                 NavCost = navCost,
+                Heights = heights,
                 NewVelocity = velocityScratch,
                 NewFacing = facingScratch,
             }.Schedule(count, BatchSize).Complete();
@@ -70,6 +71,7 @@ namespace Shieldbreak.Sim.Agents
             public GridLayout Layout;
             public AgentMoveSettings Settings;
             [ReadOnly] public NativeArray<byte> NavCost;
+            [ReadOnly] public NativeArray<float> Heights;
             [WriteOnly] public NativeArray<float2> NewVelocity;
             [WriteOnly] public NativeArray<float2> NewFacing;
 
@@ -89,7 +91,11 @@ namespace Shieldbreak.Sim.Agents
                 float2 toTarget = a.Target - a.Position;
                 float dist = math.length(toTarget);
                 if (dist > Settings.StopRadius)
-                    desired = toTarget / dist * (maxSpeed * math.min(1f, dist / Settings.SlowRadius));
+                {
+                    float2 way = toTarget / dist;
+                    maxSpeed *= Settings.SlopeFactor(Terrain.SlopeAt(Heights, Layout, a.Position), way);
+                    desired = way * (maxSpeed * math.min(1f, dist / Settings.SlowRadius));
+                }
 
                 // Separation over the 3x3 cells around the agent; push grows linearly as neighbours get closer
                 float sep = Settings.SeparationRadius;

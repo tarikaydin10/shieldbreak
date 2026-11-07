@@ -342,9 +342,9 @@ namespace Shieldbreak.Tests
         [Test]
         public void StateStructs_HaveNoPadding()
         {
-            Assert.That(UnsafeUtility.SizeOf<CommanderFeatures>(), Is.EqualTo(92));
+            Assert.That(UnsafeUtility.SizeOf<CommanderFeatures>(), Is.EqualTo(100));
             Assert.That(UnsafeUtility.SizeOf<CommanderScores>(), Is.EqualTo(20));
-            Assert.That(UnsafeUtility.SizeOf<CommanderState>(), Is.EqualTo(160));
+            Assert.That(UnsafeUtility.SizeOf<CommanderState>(), Is.EqualTo(168));
         }
 
         [Test]

@@ -427,6 +427,19 @@ Anlass: Ohne einen Befehl gewann die Spielerseite 100 gegen 100 in 7 von 8 Läuf
 | `screenFollowDistance` = 10 m: Abschirmende Schützen bleiben höchstens so weit hinter ihrer nächsten Infanterie, aber nie näher am Feind als `screenFallbackDistance` | Gilt für beide Seiten, also kein Sonderpfad des Kommandanten. Gemessen über 8 Läufe ohne Befehl: 100 gegen 100 von 7 auf 3 Siege; Spiegelduell mit vorrückender Spielerseite bleibt fair (5, 4 und 4 von 8) | 6 m: Schützen kamen so nah, dass die Kompanie auf 1 von 8 kippte |
 | Kein Sturm auf den letzten Metern und keine Flanken-Vorliebe gegen stehende Feinde | Beides gemessen und wieder entfernt: Sturm ab 16 m und Flanke allein änderten 100 gegen 100 nicht (7 von 8), zusammen mit dem Folgen wurde es schlechter (6 von 8) statt 3 von 8. Ohne Wirkung kein zusätzlicher Regler | Beide als Regler behalten |
 
+## 2026-11-07 — M4 Task 3: Höhe
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Höhen liegen auf den Zellecken des `WorldGrid`, bilinear dazwischen (`Sim/Grid/Terrain`). Agenten bleiben `float2`, die Sim liest die Höhe bei Bedarf nach. Auf flachen Karten ändert das nichts: Alle Messwerte der Szenarien ohne Hügel blieben auf die Stelle gleich | Ein Grid für alles (Abschnitt 3.4); kleinster Eingriff in Structs und Jobs | Dritte Koordinate im `AgentData` |
+| Hügel sind Daten im Szenario (Mitte, Radius, Höhe), die Form ist eine Glättungskurve ohne Trigonometrie | Deterministisch und ohne Assets; echte Karten kommen in Task 8 | Höhenkarte als Textur |
+| Hang wirkt auf Soldaten und auf den Anker der Formation: `uphillSlowdown` 2, `downhillBoost` 1, Grenzen 0,5 bis 1,25 | Bremste nur der Soldat, liefe der Anker davon. Gemessen: 50 m dauern flach 41 s, bergauf 60 s, bergab 37 s | – |
+| **Nahkampf-Traces ignorieren den Boden**, der Vorteil von oben ist ein Energiefaktor: 25 % pro Meter, höchstens 30 % | Erst liefen die Klingen in echter Höhe. Dann ging ein Hieb von oben über den Gegner hinweg und traf nur mit dem langsamen Ende: 59 statt 481 J. Höhe wurde bestraft. Ein Soldat richtet seinen Schlag auf den Gegner aus. Jetzt: flach 481 J, von oben 547 J, von unten 414 J | Klingen in echter Höhe; Posen zum Ziel kippen (viel Aufwand für wenige Zentimeter) |
+| Pfeile fliegen in echter Höhe: Start und Ziel auf dem Boden des Schützen und des Ziels, Hügel fangen sie ab, Reichweite plus oder minus 1,5 m pro Meter Höhe | Sim-seitig schon 3D; „Schießt weiter von oben“ entsteht ohne Sonderregel bei der Flugbahn, nur die Zielwahl braucht die Reichweite | – |
+| Commander: Merkmale `OwnGround` und `EnemyGround`, Halten plus 0,3 oben, Frontalangriff minus 0,3 bergauf, voll ab 4 m Unterschied. Er besetzt keinen Hügel von sich aus | Task 3 verlangt das Merkmal; ein eigenes Ziel „Hügel besetzen“ ist neues Verhalten | Eigene Taktik „Höhe besetzen“ |
+| Hat der Commander keine Infanterie mehr, stürmen seine Schützen mit der Zweitwaffe | Gefunden in `Battle_Hill`: Zwei Reste Schützen standen sich auf 36 m gegenüber, oft mit dem Hügel dazwischen, nach 5 Minuten war nichts entschieden | Pfeile zählen und abbrechen |
+| `GroundField` baut auf Karten mit Relief ein Mesh aus den Sim-Höhen (Zelle 3 m, flach schattiert, Farben aus der Palette), auf flachen Karten bleiben die Kacheln. `SimRunner.ToWorld` setzt alles auf den Boden | Die Form kommt aus Szenario-Daten zur Laufzeit, das kann die Asset-Pipeline nicht liefern. Palette und Stil bleiben ihre. Task 9 prüft, was die Pipeline ergänzen kann (Felsen, Gras) | Unity Terrain (eigene Datenhaltung, zweite Wahrheit) |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

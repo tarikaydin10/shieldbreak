@@ -137,6 +137,25 @@ MonoBehaviour:
     - "Das Bild bleibt flüssig, auch wenn alle 200 kämpfen (F1 zeigt FPS und Sim-Zeit)"
     - "Die Karte ist groß genug für eine Flanke, und die Schlacht bleibt trotzdem nicht stehen"
     - "Alle Soldaten sind als Figuren zu sehen, keine als Kapseln"
+  - id: battle-hill
+    title: "Schlacht am Hügel"
+    section: "Spielen"
+    scene: M2_Company
+    launch: 0
+    scenario: {fileID: 11400000, guid: 0f97f6dee0cf31e5bc9a31044da24702, type: 2}
+    briefingOnStart: 1
+    objective: "100 gegen 100 um zwei Hügel: Der große liegt links zwischen den Heeren, der kleine rechts näher am Feind. Bergauf läuft man langsamer, von oben trifft man härter und schießt weiter. Wer den großen Hügel hält, hat den Vorteil."
+    controlMaps:
+    - Radial
+    - CommandView
+    - Combat
+    - CommanderDebug
+    checks:
+    - "Die Soldaten stehen auf dem Boden, keiner schwebt oder versinkt, auch beim Marsch über den Hügel"
+    - "Eine Formation am Hang wird sichtbar langsamer, bergab schneller"
+    - "In der Kommandoansicht landet ein Befehl dort, wo der Zeiger auf dem Hügel steht"
+    - "Die Kampfkamera taucht am Hang nicht in den Boden ein"
+    - "Der Hügel lohnt sich: Wer oben steht, gewinnt spürbar leichter"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

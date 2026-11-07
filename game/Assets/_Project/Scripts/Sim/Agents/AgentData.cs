@@ -75,6 +75,15 @@ namespace Shieldbreak.Sim.Agents
         public float MaxTurnRateDeg;
         /// <summary>Push away from blocked cells within SeparationRadius, relative to MaxSpeed (like SeparationWeight).</summary>
         public float WallWeight;
+        /// <summary>Speed lost per unit of grade walking uphill: 2 = a 10 % slope costs 20 %.</summary>
+        public float UphillSlowdown;
+        /// <summary>Speed gained per unit of grade walking downhill.</summary>
+        public float DownhillBoost;
+        /// <summary>Limits of the factor a slope puts on the speed.</summary>
+        public float SlopeSpeedMin, SlopeSpeedMax;
+
+        /// <summary>Factor on the speed along <paramref name="direction"/> over this slope.</summary>
+        public float SlopeFactor(float2 slope, float2 direction) => Shieldbreak.Sim.Grid.Terrain.SpeedFactor(slope, direction, UphillSlowdown, DownhillBoost, SlopeSpeedMin, SlopeSpeedMax);
 
         public void Validate()
         {
@@ -85,6 +94,8 @@ namespace Shieldbreak.Sim.Agents
             if (SeparationWeight < 0f) throw new ArgumentException("SeparationWeight must be >= 0.");
             if (MaxTurnRateDeg <= 0f) throw new ArgumentException("MaxTurnRateDeg must be positive.");
             if (WallWeight < 0f) throw new ArgumentException("WallWeight must be >= 0.");
+            if (UphillSlowdown < 0f || DownhillBoost < 0f) throw new ArgumentException("UphillSlowdown and DownhillBoost must be >= 0.");
+            if ((UphillSlowdown > 0f || DownhillBoost > 0f) && (SlopeSpeedMin <= 0f || SlopeSpeedMax < 1f)) throw new ArgumentException("Require SlopeSpeedMin > 0 and SlopeSpeedMax >= 1.");
         }
     }
 }

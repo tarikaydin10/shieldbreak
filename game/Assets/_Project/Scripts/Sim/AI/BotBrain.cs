@@ -209,7 +209,7 @@ namespace Shieldbreak.Sim.AI
             if (c.BlockHeld == 1) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), job.Rules, job.EventList, i);
             bool lost = c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead;
             if (ctx.Disengaged == 1) c.BotTarget = -1;
-            else if ((lost && (tick + i) % 6 == 0) || (tick + i) % ReacquireInterval == 0) c.BotTarget = FindShot(me, weapon.MaxRange, ctx, ref job);
+            else if ((lost && (tick + i) % 6 == 0) || (tick + i) % ReacquireInterval == 0) c.BotTarget = FindShot(me, weapon.MaxRange, weapon.RangePerMeterAbove, ctx, ref job);
             me.Target = c.OrderTarget;
             if (c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead)
             {
@@ -248,17 +248,20 @@ namespace Shieldbreak.Sim.AI
         }
 
         /// <summary>Nearest living enemy in range and in the front arc. A plain loop: a bow reaches over too many cells for the grid.</summary>
-        static int FindShot(in AgentData me, float range, in FormationCombatContext ctx, ref CombatSystem.CombatJob job)
+        static int FindShot(in AgentData me, float range, float rangePerMeter, in FormationCombatContext ctx, ref CombatSystem.CombatJob job)
         {
             var formationRules = job.FormationRules;
             int best = -1;
-            float bestSq = range * range;
+            float bestSq = float.MaxValue;
+            float ground = job.GroundAt(me.Position);
             for (int j = 0; j < job.AgentCount; j++)
             {
                 var other = job.Agent(j);
                 if (other.IsDead || other.Team == me.Team) continue;
                 float dsq = math.distancesq(other.Position, me.Position);
-                if (dsq >= bestSq || !FormationCombatRules.Accepts(ctx, formationRules, me.Position, other.Position, range)) continue;
+                // An arrow carries further downhill and falls short uphill
+                float reach = math.max(0f, range + rangePerMeter * (ground - job.GroundAt(other.Position)));
+                if (dsq >= bestSq || dsq >= reach * reach || !FormationCombatRules.Accepts(ctx, formationRules, me.Position, other.Position, reach)) continue;
                 bestSq = dsq;
                 best = j;
             }

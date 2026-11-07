@@ -10,7 +10,7 @@
 | Unity | `game/` im Unity Hub öffnen, Szene `Assets/_Project/Scenes/MainMenu` (oder direkt `M1_Duel`) öffnen, Play |
 | Mac | `./sb.ps1 play` im Terminal (baut und startet `builds/M1-duel/SHIELDBREAK.app`); einmalig vorher Setup nach CLAUDE.md 10 (Homebrew, PowerShell, `./sb.ps1 setup`). Die Windows-exe läuft auf dem Mac nicht, sie wird weiter auf dem PC gebaut |
 
-**Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Kompanie, **Schlacht 50 gegen 50**, **Schlacht 100 gegen 100**, **Testmodus** (alles mit Ziel, Steuerung, Prüfliste), Sandbox, Prototypen, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
+**Hauptmenü:** Duell spielen (Kampfgefühl, Gegner-Stufe, Gegnerzahl, Waffen wählen), Tutorial (14 Schritte, jeder schließt durch Tun ab), Zuschauen, Kompanie, **Schlacht 50 gegen 50**, **Schlacht 100 gegen 100**, **Schlacht am Hügel**, **Testmodus** (alles mit Ziel, Steuerung, Prüfliste), Sandbox, Steuerung (Tasten ändern, bleibt gespeichert), Optionen (Maus, Lautstärke, Zeitlupe, Angriffs-Steuerung).
 **Im Duell:** Beim Start steht 4 s lang, was läuft (Preset · Gegner-Stufe · Anzahl · Waffe). Nach dem Kampf kommt ein Ergebnisbildschirm mit Statistik und drei Buttons: Nochmal, Anders einstellen, Hauptmenü. Leben = roter Bildrand (wächst mit dem Schaden), Ausdauer = dunkler Puls am Rand; Lebensbalken nur per F9.
 **Im Spiel:** **Esc** Pausemenü (Fortsetzen, Neu starten, Ziel und Prüfliste, Steuerung, Optionen, Hauptmenü), **F1** Status und Admin (alle Tasten, Szenenwechsel, FPS), **F2** Hilfe zur Szene (Ziel, Prüfliste, alle Tasten der Szene).
 
@@ -24,6 +24,7 @@ Hauptmenü → **Testmodus**. Links alles, was es gibt, rechts für den gewählt
 | Kompanie, mit Kommandoansicht, Haltung, Feind-Kommandant, Schützen und Ergebnis | `M2_Company` | 25 |
 | Schlacht: 50 gegen 50 | `M2_Company` mit `Battle_50v50` | 5 |
 | Schlacht: 100 gegen 100 | `M2_Company` mit `Battle_100v100` | 3 |
+| Schlacht am Hügel | `M2_Company` mit `Battle_Hill` | 5 |
 | Sandbox: Formationen und Moral | `M0_Sandbox` | 10 |
 | Stresstest: 250 gegen 250 (vorher nicht erreichbar) | `M0_Sandbox` mit `Stress_250v250` | 3 |
 | Prototyp: Oben-Hieb, Prototyp: Look und Kameras | `Proto_Animation`, `Proto_Style` | 4, 2 |
@@ -98,6 +99,21 @@ Hauptmenü → Schlacht · 100 gegen 100. Karte 200 m, je sechs Formationen: zwe
 
 ![Schlacht 100 gegen 100](screenshots/m4-battle-100.png)
 
+## Schlacht am Hügel (`M2_Company` mit `Battle_Hill`)
+
+Hauptmenü → Schlacht · am Hügel. Dieselben Armeen wie 100 gegen 100, aber um zwei Hügel: Der große liegt links zwischen den Heeren, der kleine rechts näher am Feind.
+
+| Wer oben steht | Wirkung |
+|---|---|
+| läuft bergauf langsamer | 50 m dauern flach 41 s, bergauf 60 s, bergab 37 s |
+| trifft härter | 25 % mehr Wucht pro Meter Höhenunterschied, höchstens 30 % |
+| schießt weiter | 1,5 m mehr Reichweite pro Meter Höhe, bergauf entsprechend weniger |
+| steht hinter Deckung | Pfeile bleiben im Hügel stecken |
+
+F3 zeigt, auf welcher Höhe der Kommandant sich und dich sieht. Er hält lieber oben, und ein Angriff bergauf ist ihm weniger wert. Von sich aus besetzt er aber keinen Hügel.
+
+![Schlacht am Hügel](screenshots/m4-battle-hill.png)
+
 ## Formationen in der Sandbox (`M0_Sandbox`)
 
 Hauptmenü → Sandbox. Vier Formationen zu je 10 Soldaten: A Linie, A Schildwall (rot) gegen B Keil, B Linie (blau), alle Bots Stufe 3 mit Schwert und Schild, gezeigt als Kampf-Figuren. Sie stehen, bis sie einen Befehl bekommen; wer an den Feind gerät, kämpft. Im Norden eine Mauer mit 6 m breitem Tor, im Süden ein Fels, hinter Team B Gestrüpp (begehbar, aber teuer). Die Zeit läuft; Esc pausiert.
@@ -154,6 +170,7 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Haltung (M3) | Standing Order pro Formation: Stellung halten, Reagieren (Standard: rückt gegen Feinde vor, die bis 10 m herankommen, hält danach wieder), Aggressiv (ab 30 m, danach weiter); nur wenn die Formation hält und angekommen ist; „Halten“ im Radialmenü heißt auch Stellung halten; Werte in `Data/Formations/Formation_Default` | `Sim/Formations` (`FormationStance`, `React`), `Sim/Orders/FormationOrder`, `Player/CommandView` |
 | Fernkampf (M3) | Archetyp Bogen auf derselben Grammatik, Pfeile als Sim-Structs mit Ballistik, Schild blockt Pfeile, Schwert als Zweitwaffe, Zielfehler pro Bot-Stufe, Verhalten Abschirmen, Deckung als Schildwall unter Beschuss; Pfeile bis M4 als einfache Quader; Schützen halten das Schwert-Modell, ein Bogen-Modell fehlt (keine Assets vor M4) | `Sim/Combat/Resolvers/Projectile`, `Sim/Combat/CombatSystem`, `Sim/AI/BotBrain`, `Sim/Formations/FormationSystem`, `Data/Weapons/Weapon_Bow` |
 | Kommandant (M3) | Utility-AI für den Feind: Taktik alle 2,5 s aus Stärke, Moral, Frontbreiten und offener Seite, mit Hysterese, Mindestdauer und Ungeduld beim Halten; nur über `FormationOrder`; Scores auf F3; Werte in `Data/Commanders/Commander_Default` | `Sim/AI/CommanderUtility`, `CommanderSystem`, `Presentation/CommanderPanel` |
+| Höhe (M4) | Höhen auf den Zellecken, Hügel als Szenario-Daten, Hang bremst, Energie und Pfeile spüren die Höhe, Kommandant liest sie, Gelände aus den Sim-Höhen | `Sim/Grid/Terrain`, `Data/Scenarios/Battle_Hill`, `Presentation/GroundField`, `SimRunner.ToWorld` |
 | Große Schlacht (M4) | 100 gegen 100 als Daten in der Kompanie-Szene, Boden passt sich der Karte an; 0,37 ms pro Tick, 257 bis 505 FPS bei 1080p | `Data/Scenarios/Battle_100v100`, `Presentation/GroundField` |
 | Schlacht (M3) | 50 gegen 50 als Daten in der Kompanie-Szene; Kommandoansicht verschieben und offen lassen; 0,15 ms pro Tick, 151 FPS im Build | `Data/Scenarios/Battle_50v50`, `Cameras/CommandViewCamera` |
 | Kompanie (M2) | Held mit zwei eigenen Formationen gegen zwei Bot-Formationen unter einem Kommandanten, mit Moral; Hitstop und Kamera-Kick wie im Duell; Ende der Schlacht (`Sim/Morale/BattleOutcome`: eine Seite bricht oder der Held fällt) und Ergebnisbildschirm | `Data/CompanyScenarioDefinition`, `Data/Scenarios/Company_M2`, `Scenes/M2_Company`, `Player/CompanyDirector` |
@@ -171,7 +188,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (240, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (253, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2` (Mac: `SHIELDBREAK.app/Contents/MacOS/SHIELDBREAK -shot …`). Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial`. Katalog-Eintrag: `-shotEntry battle -shotDelay 50 -logFile x.log` (das Log nennt die Bildrate) |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
 | Von Hand: alle Szenen | Hauptmenü → Testmodus (Prüflisten pro Szene, siehe oben) |
@@ -203,6 +220,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - Vorrücken und Angriff wählen die nächste feindliche Formation selbst, außer man zeigt in der Kommandoansicht per Rechtsklick auf eine. Freier Angriff auf ein bestimmtes Ziel: erst Rechtsklick auf den Feind, dann Radialmenü → Angriff (das Ziel bleibt)
 - **Kommandoansicht (Tarik):** Taste V/LB, Höhe 35 m, Blickwinkel, Zeitlupe 0,3× und „ohne Auswahl = alle“ sind ein erster Vorschlag (`DECISIONS.md` 2026-10-21). Die Kamera folgt dem Helden; Verschieben über das Feld steht in `IDEAS.md`
 - **Schlacht (Tarik):** Als Spieler untätig zu bleiben, verliert 50 gegen 50 in 6 von 6 Läufen nach rund 50 s: Der Held steht dann offen im Pfeilhagel. In der Kommandoansicht hält er bis zum Ende durch; ohne Befehle gewinnt deine Seite dort 2 von 6 (77 bis 146 s)
+- **Schlacht am Hügel (Tarik):** Ohne Befehl gewinnst du 1 von 6 als untätiger Held und 2 von 6 aus der Kommandoansicht; die Schlachten dauern lange (85 bis 294 s), weil sich die Heere um die Hügel verteilen. Hügelgrößen, Hangtempo und Höhenbonus sind ein erster Vorschlag. Die Bedienung am Hang habe ich nicht gespielt, nur den Stand per Screenshot geprüft
 - **Große Schlacht (Tarik):** Schützen folgen jetzt ihrer Infanterie (`screenFollowDistance`, 10 m, `DECISIONS.md` 2026-11-07). Als untätiger Held gewinnst du 100 gegen 100 in 3 von 6 Läufen statt 5 von 6; die Niederlagen kommen dabei oft, weil dein Held fällt, während die Armee noch führt. Aus der Kommandoansicht ohne Befehl gewinnt deine Armee aber weiter 5 von 6, nur später (68 bis 113 s statt 67 bis 80 s). Halten bleibt also im Vorteil, ob zu sehr, zeigt das Spielen
 - **Held in der Kommandoansicht (Tarik):** Er steht jetzt 5 m statt 1,5 m hinter der Linie (`heroRetreatGap`), weil er sonst bei einem Durchbruch sofort fiel. Dadurch nimmt er weniger am Kampf teil; ob das passt, zeigt das Spielen
 - **Schützen (Tarik):** Stärke, Reichweite und Deckung sind ein erster Vorschlag (`Weapon_Bow`, `Bow_Shot`, `Formation_Default`). Pfeile treffen einen Helden, der stillsteht: Ohne eigenes Zutun waren drei von 12 Schlachten nach 20 bis 40 s verloren. Dein Held kann noch nicht schießen, das steht wie Wurfwaffen in `IDEAS.md`. Der Kommandant schätzt Schützen eher zu niedrig ein, die Prognose ist ein Nahkampf-Modell. Die Taste T/X ist ein Vorschlag
@@ -215,7 +233,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 ## Aktueller Meilenstein
 
-**M4 Schlacht** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 100 gegen 100 · 2 Massen-Rendering · 3 Höhe · 4 Wald und Gelände · 5 Speer · 6 Reiterei: Sim · 7 Reiterei: Führung · 8 Drei Karten mit Aufstellung · 9 Modelle aus der Pipeline · 10 Fun-Gate M4.
+**M4 Schlacht** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 100 gegen 100 · 2 Massen-Rendering · ✅ 3 Höhe · 4 Wald und Gelände · 5 Speer · 6 Reiterei: Sim · 7 Reiterei: Führung · 8 Drei Karten mit Aufstellung · 9 Modelle aus der Pipeline · 10 Fun-Gate M4.
 
 **M3 Feldherr** ist abgeschlossen (Fun-Gate bestanden am 2026-11-07): Haltung, Bedrohungen, Commander-Utility-AI, Lanchester, Fernkampf (Bots), 50 gegen 50. Die Befehlsreichweite ist nach dem Spielen wieder entfernt worden.
 

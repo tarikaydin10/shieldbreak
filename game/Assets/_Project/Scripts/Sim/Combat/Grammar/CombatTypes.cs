@@ -216,6 +216,10 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public float BashKnockback;
         /// <summary>Knockback kept per tick (0..1).</summary>
         public float KnockbackDecay;
+        /// <summary>Energy gained per metre the attacker stands above the target, lost per metre below.</summary>
+        public float HeightEnergyPerMeter;
+        /// <summary>The most height can add to or take off a blow (0.3 = 30 %).</summary>
+        public float HeightEnergyLimit;
 
         /// <summary>Jump: airborne ticks, landing recovery ticks, stamina cost, apex height (presentation).</summary>
         public int JumpTicks;

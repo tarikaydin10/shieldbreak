@@ -269,6 +269,22 @@ namespace Shieldbreak.Tests
             Assert.That(behind, Is.GreaterThan(1f), "behind the own line");
         }
 
+        [Test]
+        public void Commander_SendsItsShootersIn_WhenNoInfantryIsLeft()
+        {
+            var definition = ScriptableObject.CreateInstance<CommanderDefinition>();
+            created.Add(definition);
+            scenario.commander = definition;
+            scenario.units = new[]
+            {
+                Soldiers(0, new Vector2(48f, 20f), new Vector2(48f, 90f)),
+                Archers(1, new Vector2(48f, 70f), new Vector2(48f, 10f), start: FormationBehavior.Screen),
+            };
+            using var world = World();
+            Run(world, 600);
+            Assert.That(world.Formations[1].Behavior, Is.EqualTo(FormationBehavior.Charge));
+        }
+
         /// <summary>Measured in the 100 v 100: shooters left at full range behind their own attack lost the battle for it.</summary>
         [Test]
         public void Screen_ShootersKeepUpWithTheirOwnAttack()

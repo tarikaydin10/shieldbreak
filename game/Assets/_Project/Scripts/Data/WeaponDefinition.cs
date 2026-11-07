@@ -46,6 +46,8 @@ namespace Shieldbreak.Data
         [Min(0f)] public float projectileGravity = 9.81f;
         [Tooltip("Furthest a bot shoots (m).")]
         [Min(1f)] public float maxRange = 40f;
+        [Tooltip("Metres of range gained per metre the shooter stands above the target, lost per metre below.")]
+        [Min(0f)] public float rangePerMeterAbove = 1.5f;
         [Tooltip("An enemy closer than this makes a bot draw its side arm (m).")]
         [Min(0f)] public float minRange = 5f;
 

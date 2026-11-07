@@ -276,6 +276,8 @@ namespace Shieldbreak.Sim.Formations
                 {
                     float averageError = errorSum[id] / f.MemberCount;
                     float factor = math.clamp(1f - (averageError - settings.CohesionSlack) / settings.CohesionRange, settings.MinMarchFactor, 1f);
+                    float2 heading = math.normalizesafe(paths[id * FormationLimits.MaxPathPoints + f.PathIndex] - f.Position);
+                    factor *= movement.SlopeFactor(Terrain.SlopeAt(grid.Heights, grid.Layout, f.Position), heading);
                     float step = settings.MarchSpeed * factor * SimConstants.DT;
                     float2 start = f.Position;
                     // Walk the waypoints; a step that reaches one carries on towards the next

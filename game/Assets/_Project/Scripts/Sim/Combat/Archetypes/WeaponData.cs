@@ -49,6 +49,8 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         public float ProjectileGravity;
         /// <summary>Bow: furthest a bot shoots (m).</summary>
         public float MaxRange;
+        /// <summary>Range gained per metre the shooter stands above the target, lost per metre below.</summary>
+        public float RangePerMeterAbove;
         /// <summary>Bow: an enemy closer than this (m) makes a bot draw its side arm.</summary>
         public float MinRange;
 

@@ -53,6 +53,9 @@ namespace Shieldbreak.Presentation.Cameras
             if (ownHit) fovPulse = 1.5f;
         }
 
+        [Tooltip("The camera stays this far above the ground (m).")]
+        [Min(0f)] public float groundClearance = 0.5f;
+
         void LateUpdate()
         {
             var world = runner != null ? runner.World : null;
@@ -79,7 +82,10 @@ namespace Shieldbreak.Presentation.Cameras
             float k = kickTime / Mathf.Max(kickSeconds, 1e-4f);
             var rotation = Quaternion.Euler(Pitch + kick.y * k, Yaw + kick.x * k, 0f);
             Vector3 offset = runner.PlayerAgent >= 0 ? shoulderOffset : new Vector3(0f, 2.2f, -spectatorDistance);
-            transform.SetPositionAndRotation(focus + rotation * offset, rotation);
+            Vector3 eye = focus + rotation * offset;
+            // On a slope the camera behind the hero would sink into the hill
+            eye.y = Mathf.Max(eye.y, SimRunner.GroundAt(new Unity.Mathematics.float2(eye.x, eye.z)) + groundClearance);
+            transform.SetPositionAndRotation(eye, rotation);
 
             fovPulse = Mathf.MoveTowards(fovPulse, 0f, dt * 15f);
             cam.fieldOfView = baseFov + fovPulse;

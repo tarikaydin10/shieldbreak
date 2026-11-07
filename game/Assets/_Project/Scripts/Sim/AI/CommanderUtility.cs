@@ -6,6 +6,7 @@ using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
 using Shieldbreak.Sim.Formations;
+using Shieldbreak.Sim.Grid;
 using Shieldbreak.Sim.Morale;
 using Shieldbreak.Sim.Orders;
 
@@ -42,6 +43,12 @@ namespace Shieldbreak.Sim.AI
         public float HoldPerAdvantage;
         /// <summary>Taken off holding and retreating per tick since the last fight: nobody stands opposite the enemy for ever.</summary>
         public float HoldImpatiencePerTick;
+        /// <summary>Added to holding on higher ground than the enemy, taken off on lower, at HeightEdgeLimit.</summary>
+        public float HoldPerHeight;
+        /// <summary>Taken off the frontal attack when it has to go uphill, at HeightEdgeLimit.</summary>
+        public float FrontalPerHeight;
+        /// <summary>This much height (m) between the sides counts in full.</summary>
+        public float HeightEdgeLimit;
         /// <summary>Attacking closer than this (m) counts as a fight: it ends the impatience.</summary>
         public float ContactDistance;
         public float FrontalBase;
@@ -90,7 +97,7 @@ namespace Shieldbreak.Sim.AI
     }
 
     /// <summary>
-    /// What a commander sees: only what a player could read off the field. 92 bytes, no padding (hashed raw with the state).
+    /// What a commander sees: only what a player could read off the field. 100 bytes, no padding (hashed raw with the state).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CommanderFeatures
@@ -108,6 +115,9 @@ namespace Shieldbreak.Sim.AI
         public float ForecastSeconds;
         /// <summary>The own side in line-soldier strength.</summary>
         public float OwnStrength;
+        /// <summary>Average height of the ground under each side (m).</summary>
+        public float OwnGround;
+        public float EnemyGround;
         public float OwnMorale;
         public float EnemyMorale;
         /// <summary>Sum of the front widths per side (m).</summary>
@@ -164,7 +174,7 @@ namespace Shieldbreak.Sim.AI
         }
     }
 
-    /// <summary>One commander. Sim state, hashed raw: 160 bytes, no padding.</summary>
+    /// <summary>One commander. Sim state, hashed raw: 168 bytes, no padding.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CommanderState
     {
@@ -205,7 +215,7 @@ namespace Shieldbreak.Sim.AI
         /// and morale bars. With nobody left on one side the counts say so and the rest stays zero.
         /// </summary>
         public static CommanderFeatures Read(int team, int owner, NativeArray<AgentData> agents, NativeArray<MoraleData> morale, NativeArray<CombatData> combat, int count,
-            NativeArray<FormationData> formations, int formationCount, in FormationSettings formationSettings, in CommanderSettings settings)
+            NativeArray<FormationData> formations, int formationCount, in FormationSettings formationSettings, in CommanderSettings settings, NativeArray<float> heights, in GridLayout layout)
         {
             var f = default(CommanderFeatures);
             var ownSide = default(LanchesterSide);
@@ -219,6 +229,7 @@ namespace Shieldbreak.Sim.AI
                 {
                     f.OwnFighters++;
                     f.OwnCentre += a.Position;
+                    f.OwnGround += Terrain.HeightAt(heights, layout, a.Position);
                     ownMorale += morale[i].Morale;
                     ownSide.AddSoldier(Worth(a, combat[i].BotProfile, morale[i].Morale, true, settings));
                 }
@@ -226,6 +237,7 @@ namespace Shieldbreak.Sim.AI
                 {
                     f.EnemyFighters++;
                     f.EnemyCentre += a.Position;
+                    f.EnemyGround += Terrain.HeightAt(heights, layout, a.Position);
                     enemyMorale += morale[i].Morale;
                     enemySide.AddSoldier(Worth(a, combat[i].BotProfile, morale[i].Morale, false, settings));
                 }
@@ -233,6 +245,8 @@ namespace Shieldbreak.Sim.AI
             if (f.OwnFighters == 0 || f.EnemyFighters == 0) return f;
             f.OwnCentre /= f.OwnFighters;
             f.EnemyCentre /= f.EnemyFighters;
+            f.OwnGround /= f.OwnFighters;
+            f.EnemyGround /= f.EnemyFighters;
             f.OwnMorale = ownMorale / f.OwnFighters;
             f.EnemyMorale = enemyMorale / f.EnemyFighters;
             f.Ratio = (float)f.OwnFighters / f.EnemyFighters;
@@ -323,9 +337,10 @@ namespace Shieldbreak.Sim.AI
             float moraleEdge = f.OwnMorale - f.EnemyMorale;
             var scores = default(CommanderScores);
             float impatience = s.HoldImpatiencePerTick * ticksPassive;
-            scores.Hold = s.HoldBase - s.HoldPerAdvantage * advantage - impatience;
+            float height = s.HeightEdgeLimit > 0f ? math.clamp((f.OwnGround - f.EnemyGround) / s.HeightEdgeLimit, -1f, 1f) : 0f;
+            scores.Hold = s.HoldBase - s.HoldPerAdvantage * advantage + s.HoldPerHeight * height - impatience;
             // Always possible, however bad: a side that has nothing left can still turn and fight
-            scores.Frontal = math.max(MinimumScore, s.FrontalBase + s.FrontalPerAdvantage * advantage + s.FrontalPerMorale * moraleEdge);
+            scores.Frontal = math.max(MinimumScore, s.FrontalBase + s.FrontalPerAdvantage * advantage + s.FrontalPerMorale * moraleEdge + s.FrontalPerHeight * math.min(height, 0f));
             bool flanking = current == CommanderTactic.FlankLeft || current == CommanderTactic.FlankRight;
             if (s.AllowFlank == 1 && f.OwnFormations >= 2 && (f.Distance >= s.FlankMinDistance || flanking))
             {

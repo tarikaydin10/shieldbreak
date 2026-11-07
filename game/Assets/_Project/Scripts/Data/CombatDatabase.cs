@@ -52,6 +52,7 @@ namespace Shieldbreak.Data
                     ProjectileSpeed = def.projectileSpeed,
                     ProjectileGravity = def.projectileGravity,
                     MaxRange = def.maxRange,
+                    RangePerMeterAbove = def.rangePerMeterAbove,
                     MinRange = def.minRange,
                 };
                 var table = def.HasSpecialAttack ? new List<AttackDefinition>(def.attacks) { def.specialAttack } : new List<AttackDefinition>(def.attacks);

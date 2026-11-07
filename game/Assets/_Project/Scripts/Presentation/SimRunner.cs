@@ -78,7 +78,14 @@ namespace Shieldbreak.Presentation
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() => PendingScenario = null;
+        static void ResetStatics()
+        {
+            PendingScenario = null;
+            ground = null;
+        }
+
+        /// <summary>The ground of the running world: static, because positions are converted everywhere and there is one world.</summary>
+        static Sim.Grid.WorldGrid ground;
 
         /// <summary>Rebuilds the world from the scenario (restart, preset or level change).</summary>
         public void Restart()
@@ -90,6 +97,7 @@ namespace Shieldbreak.Presentation
                 return;
             }
             World = source.CreateWorld(movement.ToSettings(), out int playerAgent);
+            ground = World.Grid;
             PlayerAgent = playerAgent;
             previous = new NativeArray<float2>(math.max(1, World.Config.MaxAgents), Allocator.Persistent);
             CapturePrevious();
@@ -135,6 +143,7 @@ namespace Shieldbreak.Presentation
 
         void DisposeWorld()
         {
+            if (World != null && ground == World.Grid) ground = null;
             World?.Dispose();
             World = null;
             if (previous.IsCreated) previous.Dispose();
@@ -206,6 +215,25 @@ namespace Shieldbreak.Presentation
         /// <summary>Render position of agent i in sim coordinates (x, y = world x, z).</summary>
         public float2 InterpolatedPosition(int i) => math.lerp(previous[i], World.Agents[i].Position, Alpha);
 
-        public static Vector3 ToWorld(float2 p, float height = 0f) => new Vector3(p.x, height, p.y);
+        /// <summary>The ground under a sim position; 0 without a world.</summary>
+        public static float GroundAt(float2 p) => ground != null ? ground.HeightAt(p) : 0f;
+
+        /// <summary>World position of a sim position, <paramref name="height"/> above the ground.</summary>
+        public static Vector3 ToWorld(float2 p, float height = 0f) => new Vector3(p.x, GroundAt(p) + height, p.y);
+
+        /// <summary>Where a ray from above meets the ground: from the plane at height 0 it closes in on the relief.</summary>
+        public static bool RayToGround(Ray ray, out float2 point)
+        {
+            point = default;
+            if (ray.direction.y >= -1e-4f) return false;
+            float y = 0f;
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 p = ray.GetPoint((y - ray.origin.y) / ray.direction.y);
+                point = new float2(p.x, p.z);
+                y = GroundAt(point);
+            }
+            return true;
+        }
     }
 }

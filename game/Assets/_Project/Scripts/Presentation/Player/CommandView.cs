@@ -447,11 +447,7 @@ namespace Shieldbreak.Presentation.Player
         {
             ground = default;
             if (viewCamera == null) return false;
-            Ray ray = viewCamera.ScreenPointToRay(screen);
-            if (ray.direction.y >= -1e-4f) return false;
-            Vector3 p = ray.origin + ray.direction * (-ray.origin.y / ray.direction.y);
-            ground = new float2(p.x, p.z);
-            return true;
+            return SimRunner.RayToGround(viewCamera.ScreenPointToRay(screen), out ground);
         }
 
         // ---- Drawing ----

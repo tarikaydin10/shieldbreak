@@ -68,6 +68,8 @@ Spieler-Radialmenü und Commander-AI sind **zwei Clients derselben `FormationOrd
 - **Spatial Hash:** Agenten-IDs pro Zelle für Nachbar-Queries, Hit-Detection, Separation.
 - **Moral-Feld:** Panik-Wert pro Zelle, Diffusion pro Tick (`P += D·ΔP − k·P + Quellen − Senken`). Verluste = Quellen, Captains/Banner = Senken.
 
+Dazu die **Höhe** (`Terrain`, ab M4): ein Wert pro Zellecke, bilinear dazwischen. Agenten bleiben 2D; die Höhe liest jedes System bei Bedarf nach.
+
 ### 3.5 Kampfsystem (Kern-Mechanik, M1): vier Schichten
 
 Das Kampfsystem ist eine **waffenunabhängige Grammatik**, keine Schwertkampf-Implementierung. Jeder Entwurf in Schicht A wird gegen die Frage geprüft: „Funktioniert das auch für Bogen (Spannen/Lösen) und Lanze (Couch)?" Wenn nein, ist er zu schwertspezifisch.
@@ -248,7 +250,7 @@ M0 bis M3 sind abgeschlossen (Fun-Gates bestanden, M3 am 2026-11-07; die ältere
 
 1. **100 gegen 100** ✅ — `Data/Scenarios/Battle_100v100` (6 Formationen pro Seite, Karte 200 m) in der Szene `M2_Company`; `GroundField` hält den Boden unter jeder Karte. 0,37 ms pro Tick, im Build bei 1080p 257 bis 505 FPS. Tests: `BattleScenarioTests`.
 2. **Massen-Rendering** — Volle Figuren nur für die ~20 nächsten Soldaten (Abschnitt 3.2), der Rest per Instancing ohne GameObjects. Bei 200 Soldaten ist das Bild kein Engpass (Task 1); der Task zielt auf 150 gegen 150 und schwächere Rechner, Reihenfolge nach Task 6 möglich.
-3. **Höhe** — Höhenfeld im `WorldGrid`: Soldaten stehen darauf, Hang bremst, Energie und Pfeile spüren die Höhe, der Commander bekommt das Merkmal Höhendifferenz („Halten auf Höhe“).
+3. **Höhe** ✅ — `Sim/Grid/Terrain`: Höhen auf den Zellecken des `WorldGrid`, Hügel als Daten im Szenario (`Battle_Hill`). Hang bremst Soldaten und Formationen, von oben trifft man härter und schießt weiter, Hügel fangen Pfeile ab, der Commander liest die Höhe und hält lieber oben. `GroundField` baut das Gelände aus den Sim-Höhen. Tests: `HeightTests`.
 4. **Wald und Gelände** — Zellkosten für Wald und Sumpf, Wald bremst und bricht die Ordnung, deckt gegen Pfeile; alles über das eine Grid.
 5. **Speer** — Archetyp Stangenwaffe (Stich, Hieb, Brace), steht in Abschnitt 3.5 seit M2 aus und ist der Gegenpol zur Reiterei.
 6. **Reiterei: Sim** — Pferd als Agent mit Trägheit, Reiter als Einheit, Lanze mit Couch (`ContactTrace`, Energie aus Relativgeschwindigkeit), Wucht in die Linie, Brace und Schildwall als Antwort.

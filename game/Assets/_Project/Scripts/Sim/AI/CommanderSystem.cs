@@ -7,6 +7,7 @@ using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
 using Shieldbreak.Sim.Formations;
+using Shieldbreak.Sim.Grid;
 using Shieldbreak.Sim.Morale;
 using Shieldbreak.Sim.Orders;
 
@@ -21,14 +22,16 @@ namespace Shieldbreak.Sim.AI
     {
         readonly CommanderSettings settings;
         readonly FormationSystem formations;
+        readonly WorldGrid grid;
         readonly ulong seed;
         NativeArray<CommanderState> commanders;
         int count;
 
-        public CommanderSystem(int capacity, in CommanderSettings settings, FormationSystem formations, ulong seed)
+        public CommanderSystem(int capacity, in CommanderSettings settings, FormationSystem formations, WorldGrid grid, ulong seed)
         {
             this.settings = settings;
             this.formations = formations;
+            this.grid = grid;
             this.seed = seed;
             commanders = new NativeArray<CommanderState>(capacity, Allocator.Persistent);
         }
@@ -68,6 +71,8 @@ namespace Shieldbreak.Sim.AI
                 Morale = morale,
                 Combat = combat,
                 Formations = formations.FormationBuffer,
+                Heights = grid.Heights,
+                Layout = grid.Layout,
             }.Schedule().Complete();
 
             for (int c = 0; c < count; c++)
@@ -100,10 +105,15 @@ namespace Shieldbreak.Sim.AI
                 if (f.Owner != c.Owner || f.MemberCount == 0) continue;
                 if (f.Ranged == 1)
                 {
-                    // Shooters follow the retreat and otherwise screen, whatever the line does
+                    // Shooters follow the retreat and otherwise screen, whatever the line does. With no line left there is
+                    // nothing to screen: they go in with the side arm, or two sets of shooters would stand off for ever
                     if (c.Tactic == CommanderTactic.Retreat)
                     {
                         if (changed) Give(c, FormationOrder.Retreat(id));
+                    }
+                    else if (c.Features.OwnFormations == 0)
+                    {
+                        if (f.Behavior != FormationBehavior.Charge) Give(c, FormationOrder.Charge(id));
                     }
                     else if (f.Behavior != FormationBehavior.Screen) Give(c, FormationOrder.SetBehavior(id, FormationBehavior.Screen));
                     continue;
@@ -187,6 +197,8 @@ namespace Shieldbreak.Sim.AI
             [ReadOnly] public NativeArray<MoraleData> Morale;
             [ReadOnly] public NativeArray<CombatData> Combat;
             [ReadOnly] public NativeArray<FormationData> Formations;
+            [ReadOnly] public NativeArray<float> Heights;
+            public GridLayout Layout;
 
             public void Execute()
             {
@@ -195,7 +207,7 @@ namespace Shieldbreak.Sim.AI
                     var state = Commanders[c];
                     if (Tick < state.NextDecisionTick) continue;
                     state.NextDecisionTick = Tick + Settings.DecisionIntervalTicks;
-                    state.Features = CommanderUtility.Read(state.Team, state.Owner, Agents, Morale, Combat, AgentCount, Formations, FormationCount, FormationSettings, Settings);
+                    state.Features = CommanderUtility.Read(state.Team, state.Owner, Agents, Morale, Combat, AgentCount, Formations, FormationCount, FormationSettings, Settings, Heights, Layout);
                     if (state.Features.OwnFighters > 0 && state.Features.EnemyFighters > 0)
                     {
                         var rng = new SimRandom { State = state.Rng };

@@ -24,6 +24,16 @@ namespace Shieldbreak.Data
         [Tooltip("Push away from walls and blocked cells within Separation Radius, relative to top speed.")]
         [Min(0f)] public float wallWeight = 2f;
 
+        [Header("Slopes")]
+        [Tooltip("Speed lost per unit of grade walking uphill: 2 = a 10 % slope costs 20 %.")]
+        [Min(0f)] public float uphillSlowdown = 2f;
+        [Tooltip("Speed gained per unit of grade walking downhill.")]
+        [Min(0f)] public float downhillBoost = 1f;
+        [Tooltip("Slowest a slope can make a walker, as a factor.")]
+        [Range(0.1f, 1f)] public float slopeSpeedMin = 0.5f;
+        [Tooltip("Fastest a slope can make a walker, as a factor.")]
+        [Range(1f, 2f)] public float slopeSpeedMax = 1.25f;
+
         public AgentMoveSettings ToSettings() => new AgentMoveSettings
         {
             MaxSpeed = maxSpeed,
@@ -34,6 +44,10 @@ namespace Shieldbreak.Data
             SeparationWeight = separationWeight,
             MaxTurnRateDeg = maxTurnRateDeg,
             WallWeight = wallWeight,
+            UphillSlowdown = uphillSlowdown,
+            DownhillBoost = downhillBoost,
+            SlopeSpeedMin = slopeSpeedMin,
+            SlopeSpeedMax = slopeSpeedMax,
         };
     }
 }

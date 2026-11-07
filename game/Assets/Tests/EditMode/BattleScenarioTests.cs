@@ -77,6 +77,7 @@ namespace Shieldbreak.Tests
 
         [TestCase("Battle_50v50")]
         [TestCase("Battle_100v100")]
+        [TestCase("Battle_Hill")]
         public void Battle_IsDecided_WithoutAnyOrder(string name)
         {
             var scenario = Object.Instantiate(Load(name));
@@ -109,6 +110,7 @@ namespace Shieldbreak.Tests
         /// <summary>The Feldherr test of the fun gate: the hero stays with the bot brain from the first tick.</summary>
         [TestCase("Battle_50v50")]
         [TestCase("Battle_100v100")]
+        [TestCase("Battle_Hill")]
         public void Battle_FromTheCommandView_TheHeroLastsLongEnoughToCommand(string name)
         {
             var scenario = Object.Instantiate(Load(name));
@@ -139,7 +141,7 @@ namespace Shieldbreak.Tests
             }
         }
 
-        [TestCase("Battle_50v50", 40), TestCase("Battle_100v100", 45), Category("Performance")]
+        [TestCase("Battle_50v50", 40), TestCase("Battle_100v100", 45), TestCase("Battle_Hill", 50), Category("Performance")]
         public void Battle_MedianStepUnderBudget_WhileEverybodyFights(string name, int contactSeconds)
         {
             using var world = World(Load(name));

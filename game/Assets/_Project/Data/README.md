@@ -5,7 +5,7 @@ Tunebare Werte als ScriptableObject-Assets. Im Inspector ändern, Play drücken;
 | Ordner | Assets |
 |---|---|
 | `Agents/` | `AgentMovement_Default` |
-| `Scenarios/` | `Duel_M1`, `Company_M2`, `Battle_50v50`, `Battle_100v100`, `Sandbox_20v20`, `Stress_250v250` |
+| `Scenarios/` | `Duel_M1`, `Company_M2`, `Battle_50v50`, `Battle_100v100`, `Battle_Hill` (mit Hügeln), `Sandbox_20v20`, `Stress_250v250` |
 | `Attacks/` | `OneHand_Overhead/Left/Right/Thrust`, `TwoHand_Overhead/Left/Right/Thrust/Leap`, `Bow_Shot`, `Attack_OneHand_Overhead` (Hieb-Prototyp) |
 | `Weapons/` | `Weapon_OneHandShield`, `Weapon_TwoHand`, `Weapon_Bow` |
 | `Combat/` | Presets `CombatTuning_Schwer/Mittel/Toedlich`, `BotRoster_Default` (L1–L5) |

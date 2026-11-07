@@ -41,6 +41,7 @@
     <Compile Include="$(Game)Tests/EditMode/SimCoreTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/DeterminismTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/GridTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/HeightTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/AgentTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/FormationTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/NavTests.cs" />

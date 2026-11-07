@@ -100,6 +100,12 @@ namespace Shieldbreak.Data
         [Tooltip("Knockback kept per tick; 0.85 fades out in about 0.3 s.")]
         [Range(0f, 0.98f)] public float knockbackDecay = 0.85f;
 
+        [Header("Height")]
+        [Tooltip("Energy of a blow gained per metre the attacker stands above the target (0.25 = 25 %), lost per metre below.")]
+        [Min(0f)] public float heightEnergyPerMeter = 0.25f;
+        [Tooltip("The most height can add to or take off a blow.")]
+        [Range(0f, 0.9f)] public float heightEnergyLimit = 0.3f;
+
         [Header("Movement in combat")]
         [Range(0f, 1f)] public float attackSpeedScale = 0.5f;
         [Range(0f, 1f)] public float blockSpeedScale = 0.6f;
@@ -154,6 +160,8 @@ namespace Shieldbreak.Data
             BlockKnockbackScale = blockKnockbackScale,
             BashKnockback = bashKnockback,
             KnockbackDecay = knockbackDecay,
+            HeightEnergyPerMeter = heightEnergyPerMeter,
+            HeightEnergyLimit = heightEnergyLimit,
         };
     }
 }

@@ -112,7 +112,7 @@ namespace Shieldbreak.Sim.Core
             this.combatSetup = Copy(combatSetup);
             formations = new FormationSystem(config.MaxFormations, config.MaxAgents, config.Formations, config.Movement, Grid);
             morale = new MoraleSystem(config.MaxAgents, config.Morale, Grid);
-            commanders = new CommanderSystem(SimConstants.MaxPlayers, config.Commander, formations, config.Seed);
+            commanders = new CommanderSystem(SimConstants.MaxPlayers, config.Commander, formations, Grid, config.Seed);
         }
 
         static CombatSetup Copy(CombatSetup source)
@@ -175,6 +175,9 @@ namespace Shieldbreak.Sim.Core
         /// every peer must make the same calls. Marching formations replan on the next tick.
         /// </summary>
         public void SetNavCost(int2 minCell, int2 maxCell, byte cost) => Grid.SetCost(minCell, maxCell, cost);
+
+        /// <summary>Raises a hill (scenario setup): the ground under everybody, hashed like the navigation cost.</summary>
+        public void AddHill(float2 centre, float radius, float height) => Grid.AddHill(centre, radius, height);
 
         /// <summary>
         /// Adds panic (negative = confidence) for <paramref name="team"/> in the cell at <paramref name="position"/>.
@@ -380,9 +383,9 @@ namespace Shieldbreak.Sim.Core
             formations.Step(Tick, agents, combat, AgentCount, HasCombat);
             ApplyMoveIntents();
             PostUnattendedHeroes();
-            AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement, Grid.NavCost);
+            AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement, Grid.NavCost, Grid.Heights);
             CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch, seenScratch, projectiles,
-                formations.FormationBuffer, formations.MemberBuffer, formations.Settings);
+                formations.FormationBuffer, formations.MemberBuffer, formations.Settings, Grid.Heights);
             morale.Step(Tick, agents, combat, AgentCount, events, spatial, playerAgent, formations.FormationBuffer, formations.MemberBuffer);
 
             Tick++;
@@ -611,6 +614,7 @@ namespace Shieldbreak.Sim.Core
             h.Add(Random.State);
             h.Add(appliedInputHash);
             h.Add(Grid.NavCost);
+            h.Add(Grid.Heights);
             h.Add(AgentCount);
             h.Add(agents.GetSubArray(0, AgentCount));
             h.Add(combat.GetSubArray(0, AgentCount));

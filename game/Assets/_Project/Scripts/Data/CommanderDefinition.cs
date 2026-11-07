@@ -31,12 +31,18 @@ namespace Shieldbreak.Data
         [Min(0f)] public float holdImpatiencePerMinute = 0.6f;
         [Tooltip("Attacking closer than this counts as a fight: it ends the impatience (m).")]
         [Min(0f)] public float contactDistance = 6f;
+        [Tooltip("Added to holding on higher ground than the enemy, taken off on lower, at the height below.")]
+        public float holdPerHeight = 0.3f;
+        [Tooltip("This much height between the sides counts in full (m).")]
+        [Min(0f)] public float heightEdgeLimit = 4f;
 
         [Header("Frontal attack")]
         public float frontalBase = 0.5f;
         public float frontalPerAdvantage = 0.5f;
         [Tooltip("Per unit of own morale above the enemy's.")]
         public float frontalPerMorale = 0.5f;
+        [Tooltip("Taken off the frontal attack when it has to go uphill, at the height above.")]
+        public float frontalPerHeight = 0.3f;
 
         [Header("Flank")]
         public float flankBase = 0.45f;
@@ -85,6 +91,9 @@ namespace Shieldbreak.Data
             HoldPerAdvantage = holdPerAdvantage,
             HoldImpatiencePerTick = holdImpatiencePerMinute / (60f * SimConstants.TickRate),
             ContactDistance = contactDistance,
+            HoldPerHeight = holdPerHeight,
+            FrontalPerHeight = frontalPerHeight,
+            HeightEdgeLimit = heightEdgeLimit,
             FrontalBase = frontalBase,
             FrontalPerAdvantage = frontalPerAdvantage,
             FrontalPerMorale = frontalPerMorale,

@@ -33,7 +33,7 @@ namespace Shieldbreak.Presentation
             {
                 var state = world.Commanders[c];
                 var f = state.Features;
-                var box = new Rect(16f, y, 340f, 262f + 22f * Own(world, state));
+                var box = new Rect(16f, y, 340f, 284f + 22f * Own(world, state));
                 Fill(box, new Color(0f, 0f, 0f, 0.6f), pixel);
                 float row = y + 8f;
                 Row($"KOMMANDANT · {TacticName(state.Tactic)} seit {(world.Tick - state.TacticTick) * SimConstants.DT:0} s", ref row, MenuStyle.Accent);
@@ -52,6 +52,7 @@ namespace Shieldbreak.Presentation
                 Row($"Moral {f.OwnMorale * 100f:0} % : {f.EnemyMorale * 100f:0} %", ref row, MenuStyle.Fg);
                 Row($"Front {f.OwnFront:0} m : {f.EnemyFront:0} m · Abstand {f.Distance:0} m", ref row, MenuStyle.Fg);
                 Row($"Feind offen links {f.OpenLeft * 100f:0} %, rechts {f.OpenRight * 100f:0} %", ref row, MenuStyle.Fg);
+                Row($"Boden {f.OwnGround:0.0} m : {f.EnemyGround:0.0} m", ref row, f.OwnGround >= f.EnemyGround ? MenuStyle.Fg : MenuStyle.Accent);
                 row = Pairs(world, state, row);
                 y += box.height + 8f;
             }

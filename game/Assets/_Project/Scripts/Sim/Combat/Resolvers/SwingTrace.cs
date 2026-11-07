@@ -33,23 +33,23 @@ namespace Shieldbreak.Sim.Combat.Resolvers
             return new float3(planar.x, local.y, planar.y);
         }
 
-        /// <summary>Capsule axis of a body zone for an agent standing at <paramref name="pos"/>.</summary>
-        public static void ZoneCapsule(int zone, float2 pos, out float3 a, out float3 b, out float radius)
+        /// <summary>Capsule axis of a body zone for an agent standing at <paramref name="pos"/> on <paramref name="ground"/>.</summary>
+        public static void ZoneCapsule(int zone, float2 pos, out float3 a, out float3 b, out float radius, float ground = 0f)
         {
             switch (zone)
             {
                 case BodyZone.Legs:
-                    a = new float3(pos.x, LegsBottom, pos.y);
-                    b = new float3(pos.x, LegsTop, pos.y);
+                    a = new float3(pos.x, ground + LegsBottom, pos.y);
+                    b = new float3(pos.x, ground + LegsTop, pos.y);
                     radius = LegsRadius;
                     return;
                 case BodyZone.Torso:
-                    a = new float3(pos.x, TorsoBottom, pos.y);
-                    b = new float3(pos.x, TorsoTop, pos.y);
+                    a = new float3(pos.x, ground + TorsoBottom, pos.y);
+                    b = new float3(pos.x, ground + TorsoTop, pos.y);
                     radius = TorsoRadius;
                     return;
                 default:
-                    a = b = new float3(pos.x, HeadCentre, pos.y);
+                    a = b = new float3(pos.x, ground + HeadCentre, pos.y);
                     radius = HeadRadius;
                     return;
             }
@@ -109,13 +109,13 @@ namespace Shieldbreak.Sim.Combat.Resolvers
         /// Earliest contact of a socket sweep with any body zone of an agent at <paramref name="pos"/>.
         /// Returns true with the sweep parameter (0 = previous position) and the zone.
         /// </summary>
-        public static bool SweepAgent(float3 from, float3 to, float2 pos, out float sweepT, out int zone)
+        public static bool SweepAgent(float3 from, float3 to, float2 pos, out float sweepT, out int zone, float ground = 0f)
         {
             sweepT = 2f;
             zone = -1;
             for (int z = 0; z < BodyZone.Count; z++)
             {
-                ZoneCapsule(z, pos, out float3 a, out float3 b, out float radius);
+                ZoneCapsule(z, pos, out float3 a, out float3 b, out float radius, ground);
                 float r = radius + BladeRadius;
                 float d2 = ClosestSegmentSegment(from, to, a, b, out float s, out _);
                 if (d2 <= r * r && s < sweepT)

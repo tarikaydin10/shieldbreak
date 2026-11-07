@@ -73,6 +73,18 @@ namespace Shieldbreak.Data
         [Min(0.1f)] public float heroSpeedScale = 1.6f;
         [Min(0.1f)] public float heroAccelScale = 4f;
 
+        [Serializable]
+        public class Hill
+        {
+            public Vector2 centre;
+            [Min(1f)] public float radius = 30f;
+            public float height = 6f;
+        }
+
+        [Header("Ground")]
+        [Tooltip("Round hills on the map; several add up. Empty = flat.")]
+        public Hill[] hills = Array.Empty<Hill>();
+
         [Header("Formations")]
         public Unit[] units = Array.Empty<Unit>();
 
@@ -161,6 +173,7 @@ namespace Shieldbreak.Data
         /// <summary>Spawns the hero (agent 0), then every unit in list order; returns the hero's agent id.</summary>
         public int Spawn(SimWorld world)
         {
+            foreach (var hill in hills) world.AddHill(hill.centre, hill.radius, hill.height);
             float2 heroFacing = math.normalizesafe((float2)(heroFacesTowards - heroPosition), new float2(0f, 1f));
             int hero = world.SpawnAgent(0, heroPosition, agentRadius, heroFacing, HeroLoadout().x);
             world.SetAgentMotion(hero, heroSpeedScale, heroAccelScale);

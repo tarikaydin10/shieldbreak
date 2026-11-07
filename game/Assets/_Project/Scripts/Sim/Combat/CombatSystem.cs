@@ -26,7 +26,7 @@ namespace Shieldbreak.Sim.Combat
     {
         public static void Step(int tick, NativeArray<AgentData> agents, NativeArray<CombatData> combat, int count,
             in SpatialHash spatial, CombatSetup setup, NativeList<CombatEvent> events, NativeArray<int> attackerScratch, NativeArray<CombatData> seenScratch, NativeArray<ProjectileData> projectiles,
-            NativeArray<FormationData> formations, NativeArray<FormationMember> members, in FormationSettings formationSettings)
+            NativeArray<FormationData> formations, NativeArray<FormationMember> members, in FormationSettings formationSettings, NativeArray<float> heights)
         {
             if (count == 0 || !setup.Weapons.IsCreated || setup.Weapons.Length == 0) return;
             new CombatJob
@@ -38,6 +38,7 @@ namespace Shieldbreak.Sim.Combat
                 CellStart = spatial.CellStart,
                 Entries = spatial.Entries,
                 Layout = spatial.Layout,
+                Heights = heights,
                 Weapons = setup.Weapons,
                 Attacks = setup.Attacks,
                 Keys = setup.Keys,
@@ -222,6 +223,7 @@ namespace Shieldbreak.Sim.Combat
             [ReadOnly] public NativeArray<int> CellStart;
             [ReadOnly] public NativeArray<int> Entries;
             public GridLayout Layout;
+            [ReadOnly] public NativeArray<float> Heights;
             [ReadOnly] public NativeArray<WeaponData> Weapons;
             [ReadOnly] public NativeArray<AttackData> Attacks;
             [ReadOnly] public NativeArray<WeaponPathKey> Keys;
@@ -326,6 +328,9 @@ namespace Shieldbreak.Sim.Combat
                 }
                 FlyArrows();
             }
+
+            /// <summary>Height of the ground under a position (Sim/Grid/Terrain).</summary>
+            public float GroundAt(float2 position) => Terrain.HeightAt(Heights, Layout, position);
 
             /// <summary>Arrows leave the bow at this height and go for this height on the target: the chest (m).</summary>
             const float ShootHeight = 1.5f, AimHeight = 1.25f;
@@ -576,8 +581,13 @@ namespace Shieldbreak.Sim.Combat
                     float speed = math.length(motion) / SimConstants.DT;
                     float3 bladeWorld = SwingTrace.DirectionToWorld(me.Facing, b1);
                     float energy = 0.5f * weapon.Mass * speed * speed * energyKeep;
-                    float effective = energy * SwingTrace.Penetration(motion, bladeWorld, weapon.EdgeFactor, weapon.PointFactor);
+                    // A soldier aims his swing at his enemy, so the trace ignores the ground: the blade would pass over a
+                    // man lower down and strike him only with the slow end of the swing. From above he has his weight behind it
+                    float struckGround = GroundAt(struck.Position);
+                    float above = math.clamp((GroundAt(me.Position) - struckGround) * Tuning.HeightEnergyPerMeter, -Tuning.HeightEnergyLimit, Tuning.HeightEnergyLimit);
+                    float effective = energy * (1f + above) * SwingTrace.Penetration(motion, bladeWorld, weapon.EdgeFactor, weapon.PointFactor);
                     float3 point = math.lerp(p0, p1, bestT);
+                    point.y += struckGround;
 
                     RecordHit(ref c, bestTarget);
                     bool stopped = Resolve(i, ref c, bestTarget, bestZone, effective, weapon, point);
@@ -612,7 +622,7 @@ namespace Shieldbreak.Sim.Combat
                 if (slot < 0) return;
                 var me = Agents[i];
                 var weapon = Weapons[c.WeaponId];
-                var from = new float3(me.Position.x, ShootHeight, me.Position.y) + new float3(me.Facing.x, 0f, me.Facing.y) * 0.4f;
+                var from = new float3(me.Position.x, GroundAt(me.Position) + ShootHeight, me.Position.y) + new float3(me.Facing.x, 0f, me.Facing.y) * 0.4f;
                 int target = c.BotTarget >= 0 && c.BotTarget < Count && !Agents[c.BotTarget].IsDead ? c.BotTarget : -1;
                 float2 aim = me.Position + me.Facing * weapon.MaxRange * 0.5f;
                 if (target >= 0)
@@ -628,7 +638,7 @@ namespace Shieldbreak.Sim.Combat
                 Projectiles[slot] = new ProjectileData
                 {
                     Position = from,
-                    Velocity = Projectile.Launch(from, new float3(aim.x, AimHeight, aim.y), weapon.ProjectileSpeed, weapon.ProjectileGravity),
+                    Velocity = Projectile.Launch(from, new float3(aim.x, GroundAt(aim) + AimHeight, aim.y), weapon.ProjectileSpeed, weapon.ProjectileGravity),
                     Owner = i,
                     Team = me.Team,
                     WeaponId = c.WeaponId,
@@ -660,7 +670,7 @@ namespace Shieldbreak.Sim.Combat
                             if (j >= Count) continue;
                             var other = Agents[j];
                             if (other.IsDead || other.Team == arrow.Team) continue;
-                            if (SwingTrace.SweepAgent(from, arrow.Position, other.Position, out float t, out int z) && !(IsAirborne(Combat[j], Tuning) && z == BodyZone.Legs) &&
+                            if (SwingTrace.SweepAgent(from, arrow.Position, other.Position, out float t, out int z, GroundAt(other.Position)) && !(IsAirborne(Combat[j], Tuning) && z == BodyZone.Legs) &&
                                 (t < bestT || (t == bestT && j < struck)))
                             {
                                 bestT = t;
@@ -674,7 +684,7 @@ namespace Shieldbreak.Sim.Combat
                         ResolveArrow(arrow, struck, zone, math.lerp(from, arrow.Position, bestT));
                         arrow.Active = 0;
                     }
-                    else if (arrow.Position.y <= 0f || !Layout.InBounds(cell)) arrow.Active = 0;
+                    else if (!Layout.InBounds(cell) || arrow.Position.y <= GroundAt(arrow.Position.xz)) arrow.Active = 0;
                     Projectiles[p] = arrow;
                 }
             }
