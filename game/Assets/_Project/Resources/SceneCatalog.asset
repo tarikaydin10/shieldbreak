@@ -156,6 +156,25 @@ MonoBehaviour:
     - "In der Kommandoansicht landet ein Befehl dort, wo der Zeiger auf dem Hügel steht"
     - "Die Kampfkamera taucht am Hang nicht in den Boden ein"
     - "Der Hügel lohnt sich: Wer oben steht, gewinnt spürbar leichter"
+  - id: battle-forest
+    title: "Schlacht am Wald"
+    section: "Spielen"
+    scene: M2_Company
+    launch: 0
+    scenario: {fileID: 11400000, guid: 29e7bf79240eaa0fef4303b7ccb1f084, type: 2}
+    briefingOnStart: 1
+    objective: "100 gegen 100 zwischen Wald und Sumpf: Links ein Wald, rechts ein Sumpf, dazwischen freies Feld. Im Wald läuft man langsamer, die Reihen lösen sich auf, und Bäume fangen Pfeile ab. Der Sumpf bremst noch stärker und deckt nicht."
+    controlMaps:
+    - Radial
+    - CommandView
+    - Combat
+    - CommanderDebug
+    checks:
+    - "Eine Formation im Wald verliert sichtbar ihre Reihen und läuft langsamer, draußen ordnet sie sich wieder"
+    - "Formationen laufen von selbst um den Sumpf herum, wenn der Umweg lohnt"
+    - "Schützen sind im Wald deutlich schlechter zu treffen als auf freiem Feld"
+    - "Bäume stehen nicht so dicht, dass man Soldaten aus der Kommandoansicht nicht mehr erkennt"
+    - "Das Bild bleibt flüssig, auch im Wald"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

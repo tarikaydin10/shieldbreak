@@ -20,7 +20,7 @@ namespace Shieldbreak.Sim.Agents
 
         public static void Step(NativeArray<AgentData> agents, int count, ref SpatialHash spatial,
             NativeArray<float2> positionScratch, NativeArray<float2> velocityScratch, NativeArray<float2> facingScratch,
-            in AgentMoveSettings settings, NativeArray<byte> navCost, NativeArray<float> heights)
+            in AgentMoveSettings settings, NativeArray<byte> navCost, NativeArray<float> heights, NativeArray<byte> ground)
         {
             if (count == 0) return;
 
@@ -36,6 +36,7 @@ namespace Shieldbreak.Sim.Agents
                 Settings = settings,
                 NavCost = navCost,
                 Heights = heights,
+                Ground = ground,
                 NewVelocity = velocityScratch,
                 NewFacing = facingScratch,
             }.Schedule(count, BatchSize).Complete();
@@ -72,6 +73,7 @@ namespace Shieldbreak.Sim.Agents
             public AgentMoveSettings Settings;
             [ReadOnly] public NativeArray<byte> NavCost;
             [ReadOnly] public NativeArray<float> Heights;
+            [ReadOnly] public NativeArray<byte> Ground;
             [WriteOnly] public NativeArray<float2> NewVelocity;
             [WriteOnly] public NativeArray<float2> NewFacing;
 
@@ -84,7 +86,7 @@ namespace Shieldbreak.Sim.Agents
                     NewFacing[i] = a.Facing;
                     return;
                 }
-                float maxSpeed = Settings.MaxSpeed * math.max(a.BaseSpeedScale, 0f) * math.max(a.SpeedScale, 0f);
+                float maxSpeed = Settings.MaxSpeed * math.max(a.BaseSpeedScale, 0f) * math.max(a.SpeedScale, 0f) * Settings.GroundSpeed(Ground[Layout.ClampedCellIndex(a.Position)]);
 
                 // Seek with linear slow-down inside SlowRadius
                 float2 desired = float2.zero;

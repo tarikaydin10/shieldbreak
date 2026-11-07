@@ -106,6 +106,12 @@ namespace Shieldbreak.Data
         [Tooltip("The most height can add to or take off a blow.")]
         [Range(0f, 0.9f)] public float heightEnergyLimit = 0.3f;
 
+        [Header("Forest")]
+        [Tooltip("Chance per metre below the crowns that a tree stops an arrow.")]
+        [Range(0f, 1f)] public float forestArrowStopPerMeter = 0.1f;
+        [Tooltip("Above this height over the ground an arrow flies over the forest (m).")]
+        [Min(0f)] public float forestCrownHeight = 7f;
+
         [Header("Movement in combat")]
         [Range(0f, 1f)] public float attackSpeedScale = 0.5f;
         [Range(0f, 1f)] public float blockSpeedScale = 0.6f;
@@ -162,6 +168,8 @@ namespace Shieldbreak.Data
             KnockbackDecay = knockbackDecay,
             HeightEnergyPerMeter = heightEnergyPerMeter,
             HeightEnergyLimit = heightEnergyLimit,
+            ForestArrowStopPerMeter = forestArrowStopPerMeter,
+            ForestCrownHeight = forestCrownHeight,
         };
     }
 }

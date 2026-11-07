@@ -26,7 +26,7 @@ namespace Shieldbreak.Sim.Combat
     {
         public static void Step(int tick, NativeArray<AgentData> agents, NativeArray<CombatData> combat, int count,
             in SpatialHash spatial, CombatSetup setup, NativeList<CombatEvent> events, NativeArray<int> attackerScratch, NativeArray<CombatData> seenScratch, NativeArray<ProjectileData> projectiles,
-            NativeArray<FormationData> formations, NativeArray<FormationMember> members, in FormationSettings formationSettings, NativeArray<float> heights)
+            NativeArray<FormationData> formations, NativeArray<FormationMember> members, in FormationSettings formationSettings, NativeArray<float> heights, NativeArray<byte> ground)
         {
             if (count == 0 || !setup.Weapons.IsCreated || setup.Weapons.Length == 0) return;
             new CombatJob
@@ -39,6 +39,7 @@ namespace Shieldbreak.Sim.Combat
                 Entries = spatial.Entries,
                 Layout = spatial.Layout,
                 Heights = heights,
+                Ground = ground,
                 Weapons = setup.Weapons,
                 Attacks = setup.Attacks,
                 Keys = setup.Keys,
@@ -224,6 +225,7 @@ namespace Shieldbreak.Sim.Combat
             [ReadOnly] public NativeArray<int> Entries;
             public GridLayout Layout;
             [ReadOnly] public NativeArray<float> Heights;
+            [ReadOnly] public NativeArray<byte> Ground;
             [ReadOnly] public NativeArray<WeaponData> Weapons;
             [ReadOnly] public NativeArray<AttackData> Attacks;
             [ReadOnly] public NativeArray<WeaponPathKey> Keys;
@@ -684,9 +686,21 @@ namespace Shieldbreak.Sim.Combat
                         ResolveArrow(arrow, struck, zone, math.lerp(from, arrow.Position, bestT));
                         arrow.Active = 0;
                     }
-                    else if (!Layout.InBounds(cell) || arrow.Position.y <= GroundAt(arrow.Position.xz)) arrow.Active = 0;
+                    else if (!Layout.InBounds(cell) || arrow.Position.y <= GroundAt(arrow.Position.xz) || StopsInTrees(arrow, from, p)) arrow.Active = 0;
                     Projectiles[p] = arrow;
                 }
+            }
+
+            /// <summary>
+            /// Below the crowns every metre of forest may stop an arrow. The dice come from the arrow, its slot and the
+            /// tick, so nobody's random numbers shift with how many arrows fly.
+            /// </summary>
+            bool StopsInTrees(in ProjectileData arrow, float3 from, int slot)
+            {
+                if (Ground[Layout.ClampedCellIndex(arrow.Position.xz)] != (byte)GroundKind.Forest) return false;
+                if (arrow.Position.y > GroundAt(arrow.Position.xz) + Tuning.ForestCrownHeight) return false;
+                var rng = new SimRandom((ulong)(uint)Tick * 0x9E3779B97F4A7C15UL + (ulong)(uint)slot * 0xC2B2AE3D27D4EB4FUL + (ulong)(uint)arrow.Owner + 1UL);
+                return rng.NextFloat() < Tuning.ForestArrowStopPerMeter * math.distance(from, arrow.Position);
             }
 
             /// <summary>
@@ -885,7 +899,9 @@ namespace Shieldbreak.Sim.Combat
             {
                 if (i >= Members.Length) return default;
                 var m = Members[i];
-                return m.Formation >= 0 && m.Formation < Formations.Length ? FormationCombatRules.For(m, Formations[m.Formation]) : default;
+                if (m.Formation < 0 || m.Formation >= Formations.Length) return default;
+                var ctx = FormationCombatRules.For(m, Formations[m.Formation]);
+                return Ground[Layout.ClampedCellIndex(Agents[i].Position)] == (byte)GroundKind.Forest ? FormationCombatRules.InForest(ctx) : ctx;
             }
             public void ClaimAttackToken(int target) { if (target >= 0 && target < Count) AttackersOn[target]++; }
         }

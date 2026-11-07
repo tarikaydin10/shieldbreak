@@ -10,6 +10,16 @@ namespace Shieldbreak.Sim.Grid
     /// per cell and may change at runtime, which is how destruction will plug in later. Panic is one value per cell
     /// and team, spread and decayed by Sim/Morale.
     /// </summary>
+    /// <summary>What a cell of the map is. Stored as a byte per cell; everything else reads it from the grid.</summary>
+    public enum GroundKind : byte
+    {
+        Open = 0,
+        /// <summary>Slows, costs on the way, breaks the order of a formation, stops arrows.</summary>
+        Forest = 1,
+        /// <summary>Slows most and costs most on the way, gives no cover.</summary>
+        Swamp = 2,
+    }
+
     public sealed class WorldGrid : IDisposable
     {
         public const byte DefaultCost = 1;
@@ -21,6 +31,8 @@ namespace Shieldbreak.Sim.Grid
         public NativeArray<float> Panic;
         /// <summary>Height of the ground on the cell corners (Terrain); 0 everywhere on a flat map.</summary>
         public NativeArray<float> Heights;
+        /// <summary>GroundKind per cell.</summary>
+        public NativeArray<byte> Ground;
 
         public WorldGrid(GridLayout layout, Allocator allocator)
         {
@@ -29,11 +41,15 @@ namespace Shieldbreak.Sim.Grid
             for (int i = 0; i < NavCost.Length; i++) NavCost[i] = DefaultCost;
             Panic = new NativeArray<float>(layout.CellCount * SimConstants.MaxTeams, allocator);
             Heights = new NativeArray<float>(Terrain.CornerCount(layout), allocator);
+            Ground = new NativeArray<byte>(layout.CellCount, allocator);
         }
 
         public float HeightAt(float2 position) => Terrain.HeightAt(Heights, Layout, position);
 
-        /// <summary>True once the map has any relief: the presentation then draws it.</summary>
+        /// <summary>Ground of a position; outside the map the nearest border cell.</summary>
+        public GroundKind KindAt(float2 position) => (GroundKind)Ground[Layout.ClampedCellIndex(position)];
+
+        /// <summary>True once the map has relief or areas: the presentation then builds the ground from the grid.</summary>
         public bool HasRelief { get; private set; }
 
         /// <summary>Raises a hill. Scenario setup, before the first tick.</summary>
@@ -41,6 +57,23 @@ namespace Shieldbreak.Sim.Grid
         {
             Terrain.AddHill(Heights, Layout, centre, radius, height);
             HasRelief = true;
+        }
+
+        /// <summary>Makes a round area this kind of ground, with this cost on the way. Blocked cells stay blocked. Scenario setup.</summary>
+        public void PaintArea(float2 centre, float radius, GroundKind kind, byte cost)
+        {
+            if (cost == 0) throw new ArgumentOutOfRangeException(nameof(cost), "Cost 0 is not allowed; 1 is the cheapest cell.");
+            for (int y = 0; y < Layout.Height; y++)
+            for (int x = 0; x < Layout.Width; x++)
+            {
+                var cell = new int2(x, y);
+                if (math.distancesq(Layout.CellCenter(cell), centre) > radius * radius) continue;
+                int index = Layout.CellIndex(cell);
+                Ground[index] = (byte)kind;
+                if (NavCost[index] != Impassable) NavCost[index] = cost;
+            }
+            HasRelief = true;
+            Version++;
         }
 
         public int PanicIndex(int team, int cell) => team * Layout.CellCount + cell;
@@ -78,6 +111,7 @@ namespace Shieldbreak.Sim.Grid
             if (NavCost.IsCreated) NavCost.Dispose();
             if (Panic.IsCreated) Panic.Dispose();
             if (Heights.IsCreated) Heights.Dispose();
+            if (Ground.IsCreated) Ground.Dispose();
         }
     }
 }

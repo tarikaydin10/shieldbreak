@@ -81,6 +81,13 @@ namespace Shieldbreak.Sim.Agents
         public float DownhillBoost;
         /// <summary>Limits of the factor a slope puts on the speed.</summary>
         public float SlopeSpeedMin, SlopeSpeedMax;
+        /// <summary>Factor on the speed in the forest and in the swamp.</summary>
+        public float ForestSpeed, SwampSpeed;
+        /// <summary>Cost of these cells on the way (open ground = 1).</summary>
+        public int ForestNavCost, SwampNavCost;
+
+        /// <summary>Factor a kind of ground puts on the speed.</summary>
+        public float GroundSpeed(byte kind) => kind == (byte)Shieldbreak.Sim.Grid.GroundKind.Forest ? ForestSpeed : kind == (byte)Shieldbreak.Sim.Grid.GroundKind.Swamp ? SwampSpeed : 1f;
 
         /// <summary>Factor on the speed along <paramref name="direction"/> over this slope.</summary>
         public float SlopeFactor(float2 slope, float2 direction) => Shieldbreak.Sim.Grid.Terrain.SpeedFactor(slope, direction, UphillSlowdown, DownhillBoost, SlopeSpeedMin, SlopeSpeedMax);
@@ -94,6 +101,7 @@ namespace Shieldbreak.Sim.Agents
             if (SeparationWeight < 0f) throw new ArgumentException("SeparationWeight must be >= 0.");
             if (MaxTurnRateDeg <= 0f) throw new ArgumentException("MaxTurnRateDeg must be positive.");
             if (WallWeight < 0f) throw new ArgumentException("WallWeight must be >= 0.");
+            if (ForestSpeed < 0f || SwampSpeed < 0f) throw new ArgumentException("ForestSpeed and SwampSpeed must be >= 0.");
             if (UphillSlowdown < 0f || DownhillBoost < 0f) throw new ArgumentException("UphillSlowdown and DownhillBoost must be >= 0.");
             if ((UphillSlowdown > 0f || DownhillBoost > 0f) && (SlopeSpeedMin <= 0f || SlopeSpeedMax < 1f)) throw new ArgumentException("Require SlopeSpeedMin > 0 and SlopeSpeedMax >= 1.");
         }

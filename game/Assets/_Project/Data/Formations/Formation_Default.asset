@@ -48,5 +48,6 @@ MonoBehaviour:
   screenAdvanceDistance: 34
   screenBehindDistance: 8
   screenFollowDistance: 10
+  forestScatter: 1.5
   coverMinHits: 3
   coverWindowMs: 5000

@@ -265,7 +265,7 @@ namespace Shieldbreak.Sim.Formations
                 var m = members[i];
                 if (m.Formation < 0 || m.Slot < 0) continue;
                 var f = formations[m.Formation];
-                errorSum[m.Formation] += math.distance(agents[i].Position, f.ToWorld(m.Local));
+                errorSum[m.Formation] += math.distance(agents[i].Position, SlotOf(f, m, i));
             }
 
             for (int id = 0; id < formationCount; id++)
@@ -278,6 +278,7 @@ namespace Shieldbreak.Sim.Formations
                     float factor = math.clamp(1f - (averageError - settings.CohesionSlack) / settings.CohesionRange, settings.MinMarchFactor, 1f);
                     float2 heading = math.normalizesafe(paths[id * FormationLimits.MaxPathPoints + f.PathIndex] - f.Position);
                     factor *= movement.SlopeFactor(Terrain.SlopeAt(grid.Heights, grid.Layout, f.Position), heading);
+                    factor *= movement.GroundSpeed(grid.Ground[grid.Layout.ClampedCellIndex(f.Position)]);
                     float step = settings.MarchSpeed * factor * SimConstants.DT;
                     float2 start = f.Position;
                     // Walk the waypoints; a step that reaches one carries on towards the next
@@ -315,7 +316,7 @@ namespace Shieldbreak.Sim.Formations
                 if (m.Formation < 0 || m.Slot < 0) continue;
                 var f = formations[m.Formation];
                 var a = agents[i];
-                float2 slot = f.ToWorld(m.Local);
+                float2 slot = SlotOf(f, m, i);
                 float2 slotFacingWorld = FormationData.Rotate(m.LocalFacing, f.Facing);
                 // Arrive-steering trails a moving target by v * SlowRadius / speed; leading the target by the same
                 // amount keeps the soldier on the slot while marching
@@ -512,6 +513,18 @@ namespace Shieldbreak.Sim.Formations
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Where a soldier belongs right now. In the forest the same offset for the same soldier: the ranks come apart,
+        /// nobody jitters, and the march does not wait for ranks that cannot exist.
+        /// </summary>
+        float2 SlotOf(in FormationData f, in FormationMember m, int agent)
+        {
+            float2 slot = f.ToWorld(m.Local);
+            if (settings.ForestScatter <= 0f || grid.Ground[grid.Layout.ClampedCellIndex(slot)] != (byte)GroundKind.Forest) return slot;
+            uint hash = (uint)agent * 2654435761u;
+            return slot + (new float2((hash >> 16) & 0xFF, (hash >> 8) & 0xFF) / 127.5f - 1f) * settings.ForestScatter;
         }
 
         /// <summary>How far the nearest own infantry stands ahead of this formation along <paramref name="towards"/> (m).</summary>

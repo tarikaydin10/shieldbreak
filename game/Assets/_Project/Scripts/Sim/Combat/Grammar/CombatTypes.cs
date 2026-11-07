@@ -220,6 +220,10 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public float HeightEnergyPerMeter;
         /// <summary>The most height can add to or take off a blow (0.3 = 30 %).</summary>
         public float HeightEnergyLimit;
+        /// <summary>Chance per metre below the crowns that a tree stops an arrow.</summary>
+        public float ForestArrowStopPerMeter;
+        /// <summary>Above this height over the ground (m) an arrow flies over the forest.</summary>
+        public float ForestCrownHeight;
 
         /// <summary>Jump: airborne ticks, landing recovery ticks, stamina cost, apex height (presentation).</summary>
         public int JumpTicks;

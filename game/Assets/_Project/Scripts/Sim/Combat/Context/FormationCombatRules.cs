@@ -54,6 +54,18 @@ namespace Shieldbreak.Sim.Combat.Context
             new FormationCombatContext { Bound = 1, Slot = post, Front = math.normalizesafe(front, fallbackFront) };
 
         /// <summary>
+        /// Trees break the ranks: in the forest a soldier fights on his own, without leash, shield wall or cover in the wall.
+        /// A retreat stays a retreat.
+        /// </summary>
+        public static FormationCombatContext InForest(FormationCombatContext ctx)
+        {
+            ctx.Bound = 0;
+            ctx.ShieldWall = 0;
+            ctx.TakingCover = 0;
+            return ctx;
+        }
+
+        /// <summary>
         /// May the soldier at <paramref name="self"/> pick (or keep) the enemy at <paramref name="enemy"/>?
         /// <paramref name="reach"/> is how far it fights from where it stands (its engage range, plus a margin to keep a target).
         /// </summary>

@@ -34,6 +34,16 @@ namespace Shieldbreak.Data
         [Tooltip("Fastest a slope can make a walker, as a factor.")]
         [Range(1f, 2f)] public float slopeSpeedMax = 1.25f;
 
+        [Header("Ground")]
+        [Tooltip("Factor on the speed in the forest.")]
+        [Range(0.1f, 1f)] public float forestSpeed = 0.7f;
+        [Tooltip("Factor on the speed in the swamp.")]
+        [Range(0.1f, 1f)] public float swampSpeed = 0.5f;
+        [Tooltip("Cost of a forest cell on the way (open ground = 1).")]
+        [Range(1, 254)] public int forestNavCost = 3;
+        [Tooltip("Cost of a swamp cell on the way (open ground = 1).")]
+        [Range(1, 254)] public int swampNavCost = 5;
+
         public AgentMoveSettings ToSettings() => new AgentMoveSettings
         {
             MaxSpeed = maxSpeed,
@@ -48,6 +58,10 @@ namespace Shieldbreak.Data
             DownhillBoost = downhillBoost,
             SlopeSpeedMin = slopeSpeedMin,
             SlopeSpeedMax = slopeSpeedMax,
+            ForestSpeed = forestSpeed,
+            SwampSpeed = swampSpeed,
+            ForestNavCost = forestNavCost,
+            SwampNavCost = swampNavCost,
         };
     }
 }

@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Shieldbreak.Data;
 using Shieldbreak.Sim.AI;
 using Shieldbreak.Sim.Agents;
+using Shieldbreak.Sim.Combat.Context;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
 using Shieldbreak.Sim.Formations;
@@ -17,7 +18,7 @@ using Terrain = Shieldbreak.Sim.Grid.Terrain;
 
 namespace Shieldbreak.Tests
 {
-    /// <summary>The height of the ground (M4 task 3): the field itself, walking, blows, arrows and the commander.</summary>
+    /// <summary>The ground (M4 tasks 3 and 4): height and areas, what they do to walking, ranks, blows and arrows, and the commander.</summary>
     public class HeightTests
     {
         const int Sword = 0, Bow = 2;
@@ -258,6 +259,147 @@ namespace Shieldbreak.Tests
             Assert.That(low.Hold, Is.LessThan(flat.Hold), "down there it does not");
             Assert.That(low.Frontal, Is.LessThan(flat.Frontal), "and neither does charging up");
             Assert.That(high.Frontal, Is.EqualTo(flat.Frontal), "going downhill costs nothing");
+        }
+
+        // ---- Forest and swamp ----
+
+        static CompanyScenarioDefinition.Area Area(GroundKind kind, float x, float y, float radius) => new CompanyScenarioDefinition.Area { kind = kind, centre = new Vector2(x, y), radius = radius };
+
+        [Test]
+        public void Area_MarksItsCells_AndTheirCost_ButLeavesWallsBlocked()
+        {
+            using var grid = new WorldGrid(new GridLayout(40, 40, float2.zero), Allocator.Persistent);
+            grid.SetCost(new int2(20, 20), new int2(20, 20), WorldGrid.Impassable);
+            grid.PaintArea(new float2(20f, 20f), 5f, GroundKind.Swamp, 5);
+            Assert.That(grid.KindAt(new float2(22f, 20f)), Is.EqualTo(GroundKind.Swamp));
+            Assert.That(grid.KindAt(new float2(30f, 20f)), Is.EqualTo(GroundKind.Open));
+            Assert.That(grid.NavCost[grid.Layout.ClampedCellIndex(new float2(22f, 20f))], Is.EqualTo(5));
+            Assert.That(grid.NavCost[grid.Layout.ClampedCellIndex(new float2(30f, 20f))], Is.EqualTo(WorldGrid.DefaultCost));
+            Assert.That(grid.IsPassable(new int2(20, 20)), Is.False);
+            Assert.That(grid.HasRelief, "the presentation builds this ground from the grid");
+        }
+
+        float MarchThrough(params CompanyScenarioDefinition.Area[] areas)
+        {
+            scenario.areas = areas;
+            scenario.units = new[] { Soldiers(0, new Vector2(48f, 20f), new Vector2(48f, 90f)) };
+            using var world = World();
+            world.SubmitFormationOrder(PlayerA, FormationOrder.MoveTo(0, new float2(48f, 70f), new float2(0f, 1f)));
+            while (world.Tick < 150 * 60 && math.distance(world.Formations[0].Position, new float2(48f, 70f)) > 0.5f) world.Step();
+            return world.Tick / 60f;
+        }
+
+        [Test]
+        public void Formation_IsSlowerInForestAndSwamp()
+        {
+            // Wall to wall, so there is no way round
+            float open = MarchThrough();
+            float forest = MarchThrough(Area(GroundKind.Forest, 48f, 45f, 200f));
+            float swamp = MarchThrough(Area(GroundKind.Swamp, 48f, 45f, 200f));
+            TestContext.WriteLine($"50 m: open {open:0.0} s, forest {forest:0.0} s, swamp {swamp:0.0} s");
+            Assert.That(forest, Is.GreaterThan(open * 1.25f));
+            Assert.That(swamp, Is.GreaterThan(forest * 1.25f));
+            Assert.That(forest, Is.LessThan(open * 1.6f), "the ranks coming apart do not slow the march twice");
+        }
+
+        [Test]
+        public void Formation_GoesRoundASwamp_WhenTheWayRoundIsWorthIt()
+        {
+            scenario.areas = new[] { Area(GroundKind.Swamp, 48f, 45f, 12f) };
+            scenario.units = new[] { Soldiers(0, new Vector2(48f, 20f), new Vector2(48f, 90f)) };
+            using var world = World();
+            world.SubmitFormationOrder(PlayerA, FormationOrder.MoveTo(0, new float2(48f, 70f), new float2(0f, 1f)));
+            float widest = 0f;
+            for (int t = 0; t < 90 * 60; t++)
+            {
+                world.Step();
+                widest = math.max(widest, math.abs(world.Formations[0].Position.x - 48f));
+            }
+            Assert.That(widest, Is.GreaterThan(10f), "round the swamp");
+            Assert.That(math.distance(world.Formations[0].Position, new float2(48f, 70f)), Is.LessThan(1f), "and on to the goal");
+        }
+
+        float SlotError(params CompanyScenarioDefinition.Area[] areas)
+        {
+            scenario.areas = areas;
+            scenario.units = new[] { Soldiers(0, new Vector2(48f, 40f), new Vector2(48f, 90f)) };
+            using var world = World();
+            for (int t = 0; t < 600; t++) world.Step();
+            var members = world.FormationMembers;
+            var f = world.Formations[0];
+            float sum = 0f;
+            for (int i = 1; i < world.AgentCount; i++) sum += math.distance(world.Agents[i].Position, f.ToWorld(members[i].Local));
+            return sum / f.MemberCount;
+        }
+
+        [Test]
+        public void Forest_BreaksTheRanks_AndLetsSoldiersFightOnTheirOwn()
+        {
+            float open = SlotError();
+            float forest = SlotError(Area(GroundKind.Forest, 48f, 40f, 30f));
+            TestContext.WriteLine($"average off the slot: open {open:0.00} m, forest {forest:0.00} m");
+            Assert.That(forest, Is.GreaterThan(open + 0.5f));
+
+            var wall = new FormationCombatContext { Bound = 1, ShieldWall = 1, TakingCover = 1, Slot = new float2(1f, 2f) };
+            var free = FormationCombatRules.InForest(wall);
+            Assert.That(free.Bound, Is.Zero);
+            Assert.That(free.ShieldWall, Is.Zero);
+            Assert.That(free.TakingCover, Is.Zero);
+            var retreat = FormationCombatRules.InForest(new FormationCombatContext { Disengaged = 1 });
+            Assert.That(retreat.Disengaged, Is.EqualTo(1), "a retreat stays a retreat");
+        }
+
+        /// <summary>Shooters at shooters: no shield in the way, so the hits count what the trees let through.</summary>
+        int ArrowHits(params CompanyScenarioDefinition.Area[] areas)
+        {
+            scenario.areas = areas;
+            scenario.units = new[]
+            {
+                Archers(0, new Vector2(48f, 34f), new Vector2(48f, 90f)),
+                Archers(1, new Vector2(48f, 62f), new Vector2(48f, 10f)),
+            };
+            using var world = World();
+            int hits = 0;
+            for (int t = 0; t < 1200; t++)
+            {
+                world.Step();
+                foreach (var e in world.LastEvents)
+                    if (e.Type == CombatEventType.Hit && world.Agents[e.Target].Team == 1) hits++;
+            }
+            return hits;
+        }
+
+        [Test]
+        public void Forest_StopsArrows_ASwampDoesNot()
+        {
+            int open = ArrowHits();
+            int forest = ArrowHits(Area(GroundKind.Forest, 48f, 62f, 16f));
+            int swamp = ArrowHits(Area(GroundKind.Swamp, 48f, 62f, 16f));
+            TestContext.WriteLine($"hits in 20 s: open {open}, forest {forest}, swamp {swamp}");
+            Assert.That(forest, Is.LessThan(open * 0.6f));
+            Assert.That(swamp, Is.GreaterThan(open * 0.6f));
+        }
+
+        [Test]
+        public void SameAreas_SameHash_OtherAreas_OtherHash()
+        {
+            ulong Battle(float radius)
+            {
+                scenario.areas = new[] { Area(GroundKind.Forest, 48f, 48f, radius) };
+                scenario.units = new[]
+                {
+                    Soldiers(0, new Vector2(48f, 30f), new Vector2(48f, 70f)),
+                    Archers(0, new Vector2(48f, 20f), new Vector2(48f, 70f)),
+                    Soldiers(1, new Vector2(48f, 66f), new Vector2(48f, 30f)),
+                };
+                using var world = World();
+                world.SubmitFormationOrder(PlayerA, FormationOrder.Charge(0));
+                for (int t = 0; t < 1800; t++) world.Step();
+                return world.ComputeHash();
+            }
+
+            Assert.That(Battle(14f), Is.EqualTo(Battle(14f)));
+            Assert.That(Battle(14f), Is.Not.EqualTo(Battle(12f)));
         }
 
         // ---- Determinism ----

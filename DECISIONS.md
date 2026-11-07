@@ -440,6 +440,19 @@ Anlass: Ohne einen Befehl gewann die Spielerseite 100 gegen 100 in 7 von 8 Läuf
 | Hat der Commander keine Infanterie mehr, stürmen seine Schützen mit der Zweitwaffe | Gefunden in `Battle_Hill`: Zwei Reste Schützen standen sich auf 36 m gegenüber, oft mit dem Hügel dazwischen, nach 5 Minuten war nichts entschieden | Pfeile zählen und abbrechen |
 | `GroundField` baut auf Karten mit Relief ein Mesh aus den Sim-Höhen (Zelle 3 m, flach schattiert, Farben aus der Palette), auf flachen Karten bleiben die Kacheln. `SimRunner.ToWorld` setzt alles auf den Boden | Die Form kommt aus Szenario-Daten zur Laufzeit, das kann die Asset-Pipeline nicht liefern. Palette und Stil bleiben ihre. Task 9 prüft, was die Pipeline ergänzen kann (Felsen, Gras) | Unity Terrain (eigene Datenhaltung, zweite Wahrheit) |
 
+## 2026-11-07 — M4 Task 4: Wald und Sumpf
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| `GroundKind` pro Zelle im `WorldGrid`; Flächen sind Daten im Szenario (Art, Mitte, Radius), mehrere Kreise ergeben jede Form | Ein Grid für alles, bewusst dieselbe Form wie die Hügel | Polygone (mehr Werkzeug für denselben Zweck) |
+| Wald und Sumpf sind Zellkosten plus Tempo: Wald 0,7 und Kosten 3, Sumpf 0,5 und Kosten 5. Gilt für Soldaten und den Anker der Formation | Kosten lassen A* selbst entscheiden, wann ein Umweg lohnt. Gemessen: 50 m dauern frei 41 s, im Wald 59 s, im Sumpf 82 s | – |
+| Einzelne Bäume kennt die Sim nicht, keine gesperrten Zellen im Wald | Baumstämme als Hindernisse würden Wege und Slots zerlegen und der Formation nur Stau bringen. Soldaten laufen durch gezeichnete Bäume, das fällt bei dieser Dichte kaum auf | Stämme als gesperrte Zellen |
+| Reihen lösen sich im Wald über zwei Regeln auf: Jeder Soldat steht bis 1,5 m neben seinem Slot, und er kämpft ohne Leine, Schildwall oder Deckung (`FormationCombatRules.InForest`). Der Rückzug bleibt Rückzug | Eine Formation im Wald soll sichtbar und spürbar keine sein. Die Streuung zählt als Slot, sonst bremst sie den Marsch doppelt (gemessen: 79 statt 59 s) | Formation im Wald auflösen |
+| Pfeile: Pro Meter unterhalb der Kronen (7 m) stoppt ein Baum den Pfeil mit 10 %. Die Würfel kommen aus Pfeil, Platz und Tick | So verschiebt die Zahl der Pfeile keine anderen Zufallszahlen. Gemessen: 20 s Schützen auf Schützen, frei 8 Treffer, im Wald 2, im Sumpf 8 | Pfeil-Zufall im Struct speichern |
+| Wer im Wald steht, verliert die Deckung der Schildwand: Hinter Schilden auf freiem Feld kassierten Soldaten weniger Treffer als im Wald (3 zu 6). Das bleibt so | Der Wald schützt gegen Pfeile von außen, kostet aber den Schildwall. Ein echter Tausch | – |
+| Bäume sind vorerst Kegel aus `GroundField`, per Instancing und in Palettenfarben. Dichte 6 % der Waldzellen | Task 9 bringt Modelle aus der Pipeline; bis dahin muss man den Wald sehen. Die Dichte hält Soldaten aus der Kommandoansicht erkennbar | Unsichtbarer Wald bis Task 9 |
+| Hauptmenü: Eine Seite „Schlacht wählen“ statt je eines Knopfes | Bei 720p reichte der Platz nicht mehr, Task 8 bringt weitere Karten | – |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

@@ -90,6 +90,8 @@ namespace Shieldbreak.Data
         [Min(0f)] public float screenBehindDistance = 8f;
         [Tooltip("Shooters keep up with their infantry: never further than this behind it towards the enemy (m); 0 = they do not follow.")]
         [Min(0f)] public float screenFollowDistance = 10f;
+        [Tooltip("In the forest a soldier stands up to this far off his slot (m): the ranks come apart.")]
+        [Min(0f)] public float forestScatter = 1.5f;
         [Tooltip("So many arrows make a holding formation with shields form a shield wall. 0 = never.")]
         [Min(0)] public int coverMinHits = 3;
         [Tooltip("This long after the last arrow it goes back to its form (ms).")]
@@ -142,6 +144,7 @@ namespace Shieldbreak.Data
             ScreenAdvanceDistance = screenAdvanceDistance,
             ScreenBehindDistance = screenBehindDistance,
             ScreenFollowDistance = screenFollowDistance,
+            ForestScatter = forestScatter,
             CoverMinHits = coverMinHits,
             CoverWindowTicks = Mathf.RoundToInt(coverWindowMs * SimConstants.TickRate / 1000f),
         };

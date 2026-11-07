@@ -2,6 +2,7 @@ using System;
 using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Core;
 using Shieldbreak.Sim.Formations;
+using GroundKind = Shieldbreak.Sim.Grid.GroundKind;
 using Shieldbreak.Sim.Orders;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -81,9 +82,19 @@ namespace Shieldbreak.Data
             public float height = 6f;
         }
 
+        [Serializable]
+        public class Area
+        {
+            public GroundKind kind = GroundKind.Forest;
+            public Vector2 centre;
+            [Min(1f)] public float radius = 20f;
+        }
+
         [Header("Ground")]
         [Tooltip("Round hills on the map; several add up. Empty = flat.")]
         public Hill[] hills = Array.Empty<Hill>();
+        [Tooltip("Round areas of forest or swamp; several make any shape, later ones paint over earlier ones.")]
+        public Area[] areas = Array.Empty<Area>();
 
         [Header("Formations")]
         public Unit[] units = Array.Empty<Unit>();
@@ -174,6 +185,7 @@ namespace Shieldbreak.Data
         public int Spawn(SimWorld world)
         {
             foreach (var hill in hills) world.AddHill(hill.centre, hill.radius, hill.height);
+            foreach (var area in areas) world.PaintArea(area.centre, area.radius, area.kind);
             float2 heroFacing = math.normalizesafe((float2)(heroFacesTowards - heroPosition), new float2(0f, 1f));
             int hero = world.SpawnAgent(0, heroPosition, agentRadius, heroFacing, HeroLoadout().x);
             world.SetAgentMotion(hero, heroSpeedScale, heroAccelScale);

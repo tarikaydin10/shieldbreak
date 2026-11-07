@@ -68,7 +68,7 @@ Spieler-Radialmenü und Commander-AI sind **zwei Clients derselben `FormationOrd
 - **Spatial Hash:** Agenten-IDs pro Zelle für Nachbar-Queries, Hit-Detection, Separation.
 - **Moral-Feld:** Panik-Wert pro Zelle, Diffusion pro Tick (`P += D·ΔP − k·P + Quellen − Senken`). Verluste = Quellen, Captains/Banner = Senken.
 
-Dazu die **Höhe** (`Terrain`, ab M4): ein Wert pro Zellecke, bilinear dazwischen. Agenten bleiben 2D; die Höhe liest jedes System bei Bedarf nach.
+Dazu die **Höhe** (`Terrain`, ab M4): ein Wert pro Zellecke, bilinear dazwischen. Agenten bleiben 2D; die Höhe liest jedes System bei Bedarf nach. Und die **Bodenart** (`GroundKind`): ein Wert pro Zelle, offen, Wald oder Sumpf.
 
 ### 3.5 Kampfsystem (Kern-Mechanik, M1): vier Schichten
 
@@ -251,7 +251,7 @@ M0 bis M3 sind abgeschlossen (Fun-Gates bestanden, M3 am 2026-11-07; die ältere
 1. **100 gegen 100** ✅ — `Data/Scenarios/Battle_100v100` (6 Formationen pro Seite, Karte 200 m) in der Szene `M2_Company`; `GroundField` hält den Boden unter jeder Karte. 0,37 ms pro Tick, im Build bei 1080p 257 bis 505 FPS. Tests: `BattleScenarioTests`.
 2. **Massen-Rendering** — Volle Figuren nur für die ~20 nächsten Soldaten (Abschnitt 3.2), der Rest per Instancing ohne GameObjects. Bei 200 Soldaten ist das Bild kein Engpass (Task 1); der Task zielt auf 150 gegen 150 und schwächere Rechner, Reihenfolge nach Task 6 möglich.
 3. **Höhe** ✅ — `Sim/Grid/Terrain`: Höhen auf den Zellecken des `WorldGrid`, Hügel als Daten im Szenario (`Battle_Hill`). Hang bremst Soldaten und Formationen, von oben trifft man härter und schießt weiter, Hügel fangen Pfeile ab, der Commander liest die Höhe und hält lieber oben. `GroundField` baut das Gelände aus den Sim-Höhen. Tests: `HeightTests`.
-4. **Wald und Gelände** — Zellkosten für Wald und Sumpf, Wald bremst und bricht die Ordnung, deckt gegen Pfeile; alles über das eine Grid.
+4. **Wald und Gelände** ✅ — `GroundKind` pro Zelle im `WorldGrid`, Flächen als Daten im Szenario (`Battle_Forest`). Wald und Sumpf bremsen und kosten auf dem Weg; im Wald lösen sich die Reihen auf, und Bäume fangen Pfeile ab. Bäume sind noch Kegel aus `GroundField`, die Modelle kommen mit Task 9. Tests: `HeightTests`.
 5. **Speer** — Archetyp Stangenwaffe (Stich, Hieb, Brace), steht in Abschnitt 3.5 seit M2 aus und ist der Gegenpol zur Reiterei.
 6. **Reiterei: Sim** — Pferd als Agent mit Trägheit, Reiter als Einheit, Lanze mit Couch (`ContactTrace`, Energie aus Relativgeschwindigkeit), Wucht in die Linie, Brace und Schildwall als Antwort.
 7. **Reiterei: Führung** — Formation, Commander, Reaktion „Schildwall bei Kavallerie“, der Held reitet (Pferd als GameObject, Schicht D „Beritten“).

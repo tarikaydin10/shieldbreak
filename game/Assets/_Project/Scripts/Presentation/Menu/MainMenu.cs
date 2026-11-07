@@ -14,7 +14,7 @@ namespace Shieldbreak.Presentation.Menu
     public class MainMenu : MonoBehaviour, IAdminStatus
     {
         public const string SceneName = "MainMenu";
-        enum Page { Home, Duel, Test, Controls, Options }
+        enum Page { Home, Duel, Battle, Test, Controls, Options }
 
         [Tooltip("Duel scenario for the setup page (presets, weapons).")]
         public DuelScenarioDefinition duel;
@@ -41,7 +41,7 @@ namespace Shieldbreak.Presentation.Menu
         {
             var screen = MenuStyle.BeginScaled();
             var rect = page == Page.Test ? MenuStyle.CentredPanel(screen, 1180, 900) :
-                MenuStyle.CentredPanel(screen, page == Page.Controls ? 860 : 620, page == Page.Home ? 715 : 745);
+                MenuStyle.CentredPanel(screen, page == Page.Controls ? 860 : 620, page == Page.Home ? 620 : 745);
             GUILayout.BeginArea(rect, MenuStyle.Panel);
             GUILayout.Label("SHIELDBREAK", MenuStyle.Title);
             GUILayout.Label($"{version} · Low-Poly-Schlachtsimulator · alles in Arbeit", MenuStyle.Subtitle);
@@ -50,6 +50,7 @@ namespace Shieldbreak.Presentation.Menu
             {
                 case Page.Home: DrawHome(); break;
                 case Page.Duel: DrawDuel(); break;
+                case Page.Battle: DrawBattle(); break;
                 case Page.Test: if (test.Draw(rect.height - 300f)) page = Page.Home; break;
                 case Page.Controls: if (controls.Draw(rect.height - 230f, showOnlyGameplay: true)) page = Page.Home; break;
                 case Page.Options: if (options.Draw()) page = Page.Home; break;
@@ -63,9 +64,7 @@ namespace Shieldbreak.Presentation.Menu
             if (MenuStyle.Big("Tutorial · die Steuerung Schritt für Schritt")) Launch("tutorial");
             if (MenuStyle.Big("Zuschauen · Bot gegen Bot")) Launch("spectate");
             if (MenuStyle.Big("Kompanie · Held mit eigener Truppe")) Launch("company");
-            if (MenuStyle.Big("Schlacht · 50 gegen 50")) Launch("battle");
-            if (MenuStyle.Big("Schlacht · 100 gegen 100")) Launch("battle-large");
-            if (MenuStyle.Big("Schlacht · am Hügel")) Launch("battle-hill");
+            if (MenuStyle.Big("Schlacht wählen · bis 100 gegen 100")) page = Page.Battle;
             GUILayout.Space(8);
             GUILayout.Label("WERKZEUGE", MenuStyle.Heading);
             if (MenuStyle.Big("Testmodus · alle Szenen mit Ziel, Steuerung und Prüfliste")) page = Page.Test;
@@ -79,6 +78,17 @@ namespace Shieldbreak.Presentation.Menu
             GUILayout.EndHorizontal();
             GUILayout.Space(6);
             GUILayout.Label("Im Spiel: Esc Pause-Menü · F1 Status und Admin", MenuStyle.Muted);
+        }
+
+        void DrawBattle()
+        {
+            GUILayout.Label("SCHLACHT", MenuStyle.Heading);
+            if (MenuStyle.Big("50 gegen 50 · offenes Feld")) Launch("battle");
+            if (MenuStyle.Big("100 gegen 100 · offenes Feld")) Launch("battle-large");
+            if (MenuStyle.Big("Am Hügel · 100 gegen 100")) Launch("battle-hill");
+            if (MenuStyle.Big("Am Wald · 100 gegen 100")) Launch("battle-forest");
+            GUILayout.Space(8);
+            if (MenuStyle.Small("Zurück", 120)) page = Page.Home;
         }
 
         void DrawDuel()
