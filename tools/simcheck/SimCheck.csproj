@@ -43,6 +43,7 @@
     <Compile Include="$(Game)Tests/EditMode/GridTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/HeightTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/PolearmTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/RoutRulesTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/AgentTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/FormationTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/NavTests.cs" />

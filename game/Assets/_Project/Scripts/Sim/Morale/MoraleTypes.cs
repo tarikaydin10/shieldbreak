@@ -53,16 +53,26 @@ namespace Shieldbreak.Sim.Morale
         public float PanicDrain;
         /// <summary>Factor on that loss while the soldier holds its place in a formation (not charging, not alone).</summary>
         public float FormationSteadiness;
+        /// <summary>The same factor in a shield wall: shoulder to shoulder, shields locked.</summary>
+        public float ShieldWallSteadiness;
+        /// <summary>Most panic a soldier feels: however many fall around him, it gets no worse. 0 = no limit.</summary>
+        public float PanicCap;
         /// <summary>Below this panic (confidence included) a soldier recovers...</summary>
         public float CalmPanic;
         /// <summary>...this much morale per second.</summary>
         public float Recovery;
-        /// <summary>At or below this morale the soldier routs (never comes back in v1).</summary>
+        /// <summary>Below this morale the soldier may rout, by chance (MoraleRules.BreakChance); he never comes back in v1.</summary>
         public float RoutThreshold;
         /// <summary>With fewer own fighters per enemy fighter than this, a side is outnumbered without hope...</summary>
         public float HopelessRatio;
         /// <summary>...and its soldiers lose this much morale per second, panic or not (the last few do not stand for ever).</summary>
         public float HopelessDrain;
+        /// <summary>A side may have lost this much more of its men than the enemy before it loses heart (0.15 = 15 points)...</summary>
+        public float LossGapTolerance;
+        /// <summary>...beyond that, morale lost per second per unit of the gap.</summary>
+        public float LossGapDrain;
+        /// <summary>Chance per second that a soldier at the threshold breaks; deeper below it, up to four times as much.</summary>
+        public float BreakChancePerSecond;
         /// <summary>A routing soldier runs away from the enemies within this range (m).</summary>
         public float FleeSenseRange;
         /// <summary>A routing soldier this close to the map edge leaves the field (m).</summary>
@@ -84,7 +94,11 @@ namespace Shieldbreak.Sim.Morale
             if (LeaderRadius < 0f || LeaderCalm < 0f || LeaderCalm * dt > 1f) throw new ArgumentException("LeaderRadius >= 0 and LeaderCalm in [0, 1/dt].");
             if (PanicDrain < 0f || Recovery < 0f || CalmPanic < 0f) throw new ArgumentException("PanicDrain, Recovery and CalmPanic must be >= 0.");
             if (FormationSteadiness < 0f || FormationSteadiness > 1f) throw new ArgumentException("FormationSteadiness must be in [0, 1].");
+            if (ShieldWallSteadiness < 0f || ShieldWallSteadiness > 1f) throw new ArgumentException("ShieldWallSteadiness must be in [0, 1].");
+            if (PanicCap < 0f) throw new ArgumentException("PanicCap must be >= 0.");
             if (RoutThreshold < 0f || RoutThreshold >= 1f) throw new ArgumentException("RoutThreshold must be in [0, 1).");
+            if (LossGapTolerance < 0f || LossGapDrain < 0f) throw new ArgumentException("LossGapTolerance and LossGapDrain must be >= 0.");
+            if (BreakChancePerSecond <= 0f) throw new ArgumentException("BreakChancePerSecond must be > 0, or nobody ever breaks.");
             if (HopelessRatio < 0f || HopelessDrain < 0f) throw new ArgumentException("HopelessRatio and HopelessDrain must be >= 0.");
             if (FleeSenseRange <= 0f || EdgeMargin < 0f) throw new ArgumentException("FleeSenseRange > 0 and EdgeMargin >= 0.");
         }

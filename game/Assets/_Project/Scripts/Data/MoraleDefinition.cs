@@ -32,7 +32,7 @@ namespace Shieldbreak.Data
         [Tooltip("Confidence (negative panic) for the other side where an enemy dies or breaks.")]
         [Min(0f)] public float killCourage = 0.5f;
         [Tooltip("Panic a fleeing soldier spreads around itself per second (rout is contagious).")]
-        [Min(0f)] public float routPanicPerSecond = 0.3f;
+        [Min(0f)] public float routPanicPerSecond = 0.15f;
         [Tooltip("The hero calms the own side within this radius (m)...")]
         [Min(0f)] public float leaderRadius = 8f;
         [Tooltip("...removing this share of the panic there per second.")]
@@ -43,16 +43,26 @@ namespace Shieldbreak.Data
         [Min(0f)] public float panicDrain = 2.5f;
         [Tooltip("Factor on that loss while the soldier holds its place in a formation (not when charging or alone).")]
         [Range(0f, 1f)] public float formationSteadiness = 0.7f;
+        [Tooltip("The same factor in a shield wall.")]
+        [Range(0f, 1f)] public float shieldWallSteadiness = 0.4f;
+        [Tooltip("Most panic a soldier feels: however many fall around him, it gets no worse. 0 = no limit.")]
+        [Min(0f)] public float panicCap = 0.15f;
         [Tooltip("Below this panic a soldier recovers...")]
         [Min(0f)] public float calmPanic = 0.02f;
         [Tooltip("...this much morale per second.")]
         [Min(0f)] public float recoveryPerSecond = 0.02f;
-        [Tooltip("At or below this morale the soldier routs: leaves its formation, stops fighting, runs from the enemy.")]
+        [Tooltip("Below this morale the soldier may break (by chance): leaves its formation, stops fighting, runs from the enemy.")]
         [Range(0f, 0.95f)] public float routThreshold = 0.2f;
         [Tooltip("With fewer own fighters per enemy fighter than this, a side is outnumbered without hope...")]
-        [Min(0f)] public float hopelessRatio = 0.4f;
+        [Min(0f)] public float hopelessRatio = 0.55f;
         [Tooltip("...and its soldiers lose this much morale per second, panic or not: the last few do not stand for ever.")]
         [Min(0f)] public float hopelessDrainPerSecond = 0.1f;
+        [Tooltip("A side may have lost this much more of its men than the enemy (0.15 = 15 points) before it loses heart...")]
+        [Range(0f, 1f)] public float lossGapTolerance = 0.25f;
+        [Tooltip("...beyond that, morale lost per second per unit of the gap.")]
+        [Min(0f)] public float lossGapDrainPerSecond = 0.15f;
+        [Tooltip("Below the rout threshold a soldier breaks with this chance per second; deeper below it, up to four times as much.")]
+        [Min(0.01f)] public float breakChancePerSecond = 0.8f;
 
         [Header("Flight")]
         [Tooltip("A fleeing soldier runs away from the enemies within this range (m).")]
@@ -76,11 +86,16 @@ namespace Shieldbreak.Data
             LeaderCalm = leaderCalm,
             PanicDrain = panicDrain,
             FormationSteadiness = formationSteadiness,
+            ShieldWallSteadiness = shieldWallSteadiness,
+            PanicCap = panicCap,
             CalmPanic = calmPanic,
             Recovery = recoveryPerSecond,
             RoutThreshold = routThreshold,
             HopelessRatio = hopelessRatio,
             HopelessDrain = hopelessDrainPerSecond,
+            LossGapTolerance = lossGapTolerance,
+            LossGapDrain = lossGapDrainPerSecond,
+            BreakChancePerSecond = breakChancePerSecond,
             FleeSenseRange = fleeSenseRange,
             EdgeMargin = edgeMargin,
         };

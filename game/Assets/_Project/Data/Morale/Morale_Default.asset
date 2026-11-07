@@ -20,15 +20,17 @@ MonoBehaviour:
   flankHitPanic: 0.3
   frontArcDeg: 120
   killCourage: 0.5
-  routPanicPerSecond: 0.3
+  routPanicPerSecond: 0.15
   leaderRadius: 8
   leaderCalm: 0.5
   panicDrain: 2.5
   formationSteadiness: 0.7
+  shieldWallSteadiness: 0.4
+  panicCap: 0.15
   calmPanic: 0.02
   recoveryPerSecond: 0.02
   routThreshold: 0.2
-  hopelessRatio: 0.4
+  hopelessRatio: 0.55
   hopelessDrainPerSecond: 0.1
   fleeSenseRange: 8
   edgeMargin: 1

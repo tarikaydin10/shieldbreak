@@ -212,13 +212,20 @@ namespace Shieldbreak.Sim.Morale
             {
                 int total = 0;
                 var fighters = int4.zero;
+                var everyone = int4.zero;
                 for (int i = 0; i < Count; i++)
                 {
                     var a = Agents[i];
-                    if (a.IsDead || a.IsRouting || (uint)a.Team >= SimConstants.MaxTeams) continue;
+                    if ((uint)a.Team >= SimConstants.MaxTeams) continue;
+                    everyone[a.Team]++;
+                    if (a.IsDead || a.IsRouting) continue;
                     fighters[a.Team]++;
                     total++;
                 }
+                // Share of each side that is gone: fallen, fled or running
+                var lost = float4.zero;
+                for (int team = 0; team < SimConstants.MaxTeams; team++)
+                    if (everyone[team] > 0) lost[team] = 1f - (float)fighters[team] / everyone[team];
                 for (int i = 0; i < Count; i++)
                 {
                     var a = Agents[i];
@@ -229,12 +236,26 @@ namespace Shieldbreak.Sim.Morale
                     var member = Members[i];
                     bool steady = member.Formation >= 0 && member.Formation < Formations.Length &&
                                   FormationCombatRules.For(member, Formations[member.Formation]).Bound == 1;
-                    m.Morale -= Settings.PanicDrain * panic * (steady && panic > 0f ? Settings.FormationSteadiness : 1f) * dt;
+                    float felt = Settings.PanicCap > 0f ? math.min(panic, Settings.PanicCap) : panic;
+                    float steadiness = 1f;
+                    if (steady && panic > 0f)
+                        steadiness = Formations[member.Formation].Type == FormationType.ShieldWall ? Settings.ShieldWallSteadiness : Settings.FormationSteadiness;
+                    m.Morale -= Settings.PanicDrain * felt * steadiness * dt;
                     int own = fighters[a.Team];
+                    float enemyLost = 0f;
+                    int enemySides = 0;
+                    for (int team = 0; team < SimConstants.MaxTeams; team++)
+                    {
+                        if (team == a.Team || everyone[team] == 0) continue;
+                        enemyLost += lost[team];
+                        enemySides++;
+                    }
+                    if (enemySides > 0) m.Morale -= MoraleRules.LossGapDrain(lost[a.Team], enemyLost / enemySides, Settings) * dt;
                     if (own < Settings.HopelessRatio * (total - own)) m.Morale -= Settings.HopelessDrain * dt;
                     else if (panic < Settings.CalmPanic) m.Morale += Settings.Recovery * dt;
                     m.Morale = math.clamp(m.Morale, 0f, 1f);
-                    if (m.Morale <= Settings.RoutThreshold)
+                    var dice = new SimRandom(((ulong)(uint)Tick << 32) ^ ((ulong)(uint)i * 0x9E3779B97F4A7C15UL) ^ 0x5851F42D4C957F2DUL);
+                    if (dice.NextFloat() < MoraleRules.BreakChance(m.Morale, Settings, dt))
                     {
                         // Seeing an enemy break steadies the other side like a kill
                         for (int team = 0; team < SimConstants.MaxTeams; team++)

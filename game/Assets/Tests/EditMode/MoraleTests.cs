@@ -193,7 +193,7 @@ namespace Shieldbreak.Tests
             Run(world, 30);
             for (int i = 0; i < 5; i++) world.AddPanic(0, world.Agents[i].Position, 3f);
             var log = new List<CombatEvent>();
-            Run(world, 60, log);
+            Run(world, 300, log);
             for (int i = 0; i < 5; i++)
             {
                 Assert.That(world.Agents[i].IsRouting, $"soldier {i} breaks under that much panic");
@@ -230,7 +230,7 @@ namespace Shieldbreak.Tests
             world.SpawnAgent(1, new float2(36f, 30f), 0.3f, West);
             world.AddPanic(0, new float2(30f, 30f), 3f);
             var log = new List<CombatEvent>();
-            Run(world, 30, log);
+            Run(world, 300, log);
             var rout = log.Find(e => e.Type == CombatEventType.Rout && e.Target == a);
             Assert.That(rout.Type, Is.EqualTo(CombatEventType.Rout));
             Assert.That(world.Grid.PanicAt(1, rout.Point.xz), Is.EqualTo(-TestScenarios.Morale.KillCourage).Within(1e-6f));
@@ -246,7 +246,7 @@ namespace Shieldbreak.Tests
                 world.SpawnAgent(1, new float2(36f, 30f), 0.3f, West);   // something to run from, never chases
                 int neighbour = world.SpawnAgent(0, new float2(28f, 32f), 0.3f, East, 0, L3);
                 world.AddPanic(0, world.Agents[runner].Position, 6f);
-                Run(world, 30);
+                Run(world, 300);
                 Assert.That(world.Agents[runner].IsRouting);
                 Run(world, 120);
                 return world.Morale[neighbour].Morale;
@@ -262,7 +262,7 @@ namespace Shieldbreak.Tests
             var own = new int[soldiers];
             for (int i = 0; i < soldiers; i++) own[i] = world.SpawnAgent(0, new float2(20f, 20f + i * 2f), 0.3f, East, 0, L3);
             for (int i = 0; i < 10; i++) world.SpawnAgent(1, new float2(60f, 20f + i * 2f), 0.3f, West);    // far away, never come
-            Run(world, 600);
+            Run(world, 1200);
             foreach (int a in own) Assert.That(world.Agents[a].IsRouting, Is.EqualTo(breaks), breaks ? "2 against 10" : "5 against 10 still has hope");
         }
 

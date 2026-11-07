@@ -466,6 +466,25 @@ Anlass (Tarik): Fragt nach Pferden, Städten, Quests und Wirtschaft und will wei
 
 Gemessen: Ein Stich auf 1,8 m hat 689 J und macht 56 Schaden, ein Stich gegen einen Block kostet mit dem Speer 37 Ausdauer statt 23 mit dem Zweihänder.
 
+## 2026-11-07 — Fluchtregeln nach Bannerlord
+
+Anlass (Tarik): Ein Screenshot nach 94 s: Der Feind hatte 45 Tote, 55 flohen, obwohl er noch 55 Mann gegen 64 hatte. „die schlacht muss erstmal ausgeführt werden“, TDD, Orientierung an Bannerlord, „es geht um Chance“, Verluste im Vergleich zum Gegner zählen.
+
+Bannerlord laut Entwickler-Blog (keine Zahlen veröffentlicht): Startmoral pro Soldat, Tote in der Nähe drücken sie (gedeckelt), Kills heben sie, der Schildwall dämpft, Skills des Kommandanten verändern die Abzüge, jeder Fliehende drückt die Umstehenden, daraus eine Kettenreaktion bis zum Bruch ganzer Formationen. Der Soldat flieht mit einer Wahrscheinlichkeit, nicht per Schalter.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Flucht ist **Zufall**: Unter der Schwelle bricht ein Soldat mit 0,8 pro Sekunde, tiefer darunter bis zum Vierfachen (`MoraleRules.BreakChance`). Die Würfel kommen aus Tick und Soldat | Soldaten gehen nacheinander statt im selben Tick, und jede Schlacht endet etwas anders | Feste Schwelle |
+| **Verlustgefälle:** Hat eine Seite einen um mehr als 25 Punkte größeren Anteil verloren als der Gegner, verliert jeder ihrer Soldaten 0,15 Moral pro Sekunde und Einheit des Gefälles (`MoraleRules.LossGapDrain`). Gleiche Verluste kosten nichts | Tarik: Wer 50 bis 60 % verliert, während der Gegner kaum etwas verliert, wankt. Erst mit 15 Punkten und 0,3 gemessen: Am Hügel und am Wald brach die Armee wieder bei 40 bis 50 Toten, weil Pfeile früh treffen | 15 Punkte, 0,3 |
+| **Panik gedeckelt** bei 0,15 (`panicCap`): Was ein Soldat spürt, wird bei vielen Toten um ihn nicht schlimmer | Bannerlord deckelt den Abzug pro Toten | Kein Deckel |
+| **Schildwall** dämpft stärker als die Linie: Faktor 0,4 statt 0,7 (`shieldWallSteadiness`) | Bannerlord: Im Schildwall wirken Abzüge schwächer. Größter Hebel der Messung: allein dadurch fielen beim Verlierer 79 statt 61 Mann | – |
+| Ansteckung durch Fliehende halbiert (0,3 auf 0,15 pro Sekunde); die Kettenreaktion bleibt | Mit 0,3 und 0,6 brach in manchen Schlachten die halbe Armee bei 50 Toten (Messreihe mit sechs Kombinationen) | 0,3; 0,6 |
+| **Hoffnungslos** schon unter 0,55 eigenen Kämpfern pro Feind statt unter 0,4 | Reste standen sonst ewig: 4 gegen 8 kämpften in der Kompanie nach 3 Minuten noch | 0,4 |
+| **Verworfen nach Tarik („ist das wirklich optimal?“):** Erst hatte ich eine harte Regel getestet, nach der ein Soldat nur bricht, wenn er vor Ort unterlegen ist | Sie hätte die Kettenreaktion abgewürgt, Linien hätten bis zum letzten Mann gestanden: realistisch gedacht, aber kein Spaß und nicht Bannerlord | Lokale Übermacht als Bedingung |
+| Ein „Wert des Generals“ kommt später (`IDEAS.md`) | Bannerlords Skills des Kommandanten verändern die Abzüge; bei uns wäre das ein Faktor auf `panicDrain` pro Seite | Jetzt bauen |
+
+Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 100 gegen 100 vorher 61 Tote im Schnitt, mindestens 47; jetzt 76, mindestens 71. Am Hügel 65 im Schnitt, einmal 48; am Wald 64, einmal 48. Es fliehen jeweils 20 bis 50. Kompanie: Der erste flieht nach 17 von 24 Toten statt nach 13.
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

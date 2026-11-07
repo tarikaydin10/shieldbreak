@@ -439,6 +439,9 @@ namespace Shieldbreak.Tests
             {
                 world.Step();
                 attacked = world.Formations[flanker].Reacting != 0 || world.Formations[flanker].MemberCount == 0;
+                // In contact on arrival it needs no reaction: its soldiers strike from where they stand
+                foreach (var e in world.LastEvents)
+                    if (e.Type == CombatEventType.AttackStart && e.Attacker >= 0 && world.FormationMembers[e.Attacker].Formation == flanker) attacked = true;
             }
             Assert.That(attacked, "the flanker attacks once it has arrived");
         }

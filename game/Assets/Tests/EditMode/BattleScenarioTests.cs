@@ -143,6 +143,67 @@ namespace Shieldbreak.Tests
             }
         }
 
+        /// <summary>How the end of a battle went, from the hero's command view (he does not end it by falling early).</summary>
+        struct Ending
+        {
+            public int LoserDead, LoserFled;
+            public float Seconds;
+        }
+
+        static Ending FightOut(CompanyScenarioDefinition scenario, int seed)
+        {
+            scenario.seed = seed;
+            using var world = World(scenario);
+            world.Submit(Player, InputCommandType.HeroUnattended, new int4(0, 1, 0, 0));
+            var ending = default(Ending);
+            var result = BattleResult.Undecided;
+            while (result == BattleResult.Undecided && world.Tick < 300 * 60)
+            {
+                world.Step();
+                result = BattleOutcome.Evaluate(world.Agents, 0, 0);
+            }
+            int loser = result == BattleResult.Victory ? 1 : 0;
+            for (int i = 1; i < world.AgentCount; i++)
+            {
+                var a = world.Agents[i];
+                if (a.Team != loser) continue;
+                if (a.HasFled || a.IsRouting) ending.LoserFled++;
+                else if (a.IsDead) ending.LoserDead++;
+            }
+            ending.Seconds = world.Tick / 60f;
+            return ending;
+        }
+
+        /// <summary>A hard fight first, then the chain reaction: most of the beaten army falls, and the rest still runs. Who breaks is chance, so now and then an army gives way sooner.</summary>
+        [TestCase("Battle_100v100")]
+        [TestCase("Battle_Hill")]
+        [TestCase("Battle_Forest")]
+        public void Battle_IsFoughtOut_ThenTheLoserBreaks(string name)
+        {
+            var scenario = Object.Instantiate(Load(name));
+            try
+            {
+                string line = "";
+                int dead = 0, fled = 0, early = 0;
+                for (int seed = 1; seed <= 6; seed++)
+                {
+                    var e = FightOut(scenario, seed);
+                    line += $" {e.LoserDead}+{e.LoserFled}@{e.Seconds:0}";
+                    dead += e.LoserDead;
+                    fled += e.LoserFled;
+                    if (e.LoserDead < 55) early++;
+                }
+                TestContext.WriteLine($"{name}: loser dead+fled@s:{line}");
+                Assert.That(dead / 6f, Is.GreaterThanOrEqualTo(60f), "most of the beaten army falls first");
+                Assert.That(early, Is.LessThanOrEqualTo(2), "by chance an army may give way sooner, but seldom");
+                Assert.That(fled / 6f, Is.GreaterThanOrEqualTo(10f), "and the rest breaks instead of dying to the last man");
+            }
+            finally
+            {
+                Object.DestroyImmediate(scenario);
+            }
+        }
+
         [TestCase("Battle_50v50", 40), TestCase("Battle_100v100", 45), TestCase("Battle_Hill", 50), TestCase("Battle_Forest", 50), Category("Performance")]
         public void Battle_MedianStepUnderBudget_WhileEverybodyFights(string name, int contactSeconds)
         {
