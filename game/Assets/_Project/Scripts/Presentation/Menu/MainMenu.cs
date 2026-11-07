@@ -18,7 +18,7 @@ namespace Shieldbreak.Presentation.Menu
 
         [Tooltip("Duel scenario for the setup page (presets, weapons).")]
         public DuelScenarioDefinition duel;
-        public string version = "M2 Kompanie";
+        public string version = "M3 Feldherr";
 
         Page page;
         readonly ControlsPage controls = new ControlsPage();
