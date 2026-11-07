@@ -256,6 +256,8 @@ namespace Shieldbreak.Sim.Formations
         public float ScreenAdvanceDistance;
         /// <summary>...and they fall back to this far (m) behind the own infantry.</summary>
         public float ScreenBehindDistance;
+        /// <summary>Shooters keep up with their infantry: never further than this (m) behind it towards the enemy, 0 = they do not follow.</summary>
+        public float ScreenFollowDistance;
         /// <summary>So many arrows make a holding formation with shields form a shield wall; 0 = never.</summary>
         public int CoverMinHits;
         /// <summary>This long after the last arrow it counts as out of fire and goes back to its form.</summary>

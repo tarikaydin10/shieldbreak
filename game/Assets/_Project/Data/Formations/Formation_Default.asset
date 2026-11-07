@@ -47,5 +47,6 @@ MonoBehaviour:
   screenFallbackDistance: 14
   screenAdvanceDistance: 34
   screenBehindDistance: 8
+  screenFollowDistance: 10
   coverMinHits: 3
   coverWindowMs: 5000

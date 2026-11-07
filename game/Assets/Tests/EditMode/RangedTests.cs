@@ -269,6 +269,35 @@ namespace Shieldbreak.Tests
             Assert.That(behind, Is.GreaterThan(1f), "behind the own line");
         }
 
+        /// <summary>Measured in the 100 v 100: shooters left at full range behind their own attack lost the battle for it.</summary>
+        [Test]
+        public void Screen_ShootersKeepUpWithTheirOwnAttack()
+        {
+            float Lag()
+            {
+                scenario.units = new[]
+                {
+                    Archers(0, new Vector2(48f, 26f), new Vector2(48f, 90f), start: FormationBehavior.Screen),
+                    Soldiers(0, new Vector2(48f, 40f), new Vector2(48f, 90f), start: FormationBehavior.Advance),
+                    Soldiers(1, new Vector2(48f, 84f), new Vector2(48f, 10f)),
+                };
+                using var world = World();
+                Run(world, 3000);
+                return world.Formations[1].Position.y - world.Formations[0].Position.y;
+            }
+
+            var definition = ScriptableObject.CreateInstance<FormationDefinition>();
+            created.Add(definition);
+            scenario.formation = definition;
+            float follow = definition.screenFollowDistance;
+            Assert.That(follow, Is.GreaterThan(0f));
+            float keepingUp = Lag();
+            definition.screenFollowDistance = 0f;
+            float leftBehind = Lag();
+            Assert.That(keepingUp, Is.LessThan(follow + 4f), "close behind the infantry");
+            Assert.That(leftBehind, Is.GreaterThan(keepingUp + 5f), "without it they stay at full range");
+        }
+
         [Test]
         public void UnderArrows_AHoldingFormation_TakesCover_AndGoesBackWhenTheyStop()
         {

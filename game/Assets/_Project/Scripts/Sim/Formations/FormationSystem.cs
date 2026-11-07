@@ -487,7 +487,13 @@ namespace Shieldbreak.Sim.Formations
             if (math.lengthsq(to) > 1e-8f) facing = math.normalize(to);
             f.TargetFacing = facing;
             if (contact > settings.ScreenAdvanceDistance) goal = f.Position + facing * (contact - settings.ScreenAdvanceDistance);
-            else if (contact < settings.ScreenFallbackDistance)
+            else if (contact >= settings.ScreenFallbackDistance)
+            {
+                // A bow is only as good as its range: shooters left behind by their own attack miss what they aim at
+                float behind = settings.ScreenFollowDistance > 0f ? LagBehindInfantry(f, facing) - settings.ScreenFollowDistance : 0f;
+                if (behind > 0f) goal = f.Position + facing * math.min(behind, contact - settings.ScreenFallbackDistance);
+            }
+            else
             {
                 goal = f.Position - facing * settings.RetreatDistance;
                 float bestSq = float.MaxValue;
@@ -504,6 +510,24 @@ namespace Shieldbreak.Sim.Formations
                 }
             }
             return true;
+        }
+
+        /// <summary>How far the nearest own infantry stands ahead of this formation along <paramref name="towards"/> (m).</summary>
+        float LagBehindInfantry(in FormationData f, float2 towards)
+        {
+            float lag = 0f, bestSq = float.MaxValue;
+            for (int g = 0; g < formationCount; g++)
+            {
+                var own = formations[g];
+                if (own.Team != f.Team || own.Ranged == 1 || own.MemberCount == 0) continue;
+                float dsq = math.distancesq(own.Position, f.Position);
+                if (dsq < bestSq)
+                {
+                    bestSq = dsq;
+                    lag = math.dot(own.Position - f.Position, towards);
+                }
+            }
+            return lag;
         }
 
         /// <summary>

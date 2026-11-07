@@ -418,6 +418,15 @@ Anlass (Tarik): Fun-Gate M3 mit Ja beantwortet.
 
 Gemessen: 0,37 ms pro Sim-Tick (Median, 200 Soldaten im Kampf, Budget 2 ms), p95 0,85 ms, Spitze 1,65 ms.
 
+## 2026-11-07 — Schützen folgen ihrer Infanterie
+
+Anlass: Ohne einen Befehl gewann die Spielerseite 100 gegen 100 in 7 von 8 Läufen. Rücken beide Seiten vor, ist es fair (3 von 8), der Vorteil lag also beim Halten. Der Verlauf zeigte: Die Schützen der haltenden Seite schießen auf den herankommenden Feind von 34 bis 14 m, die Schützen des Angreifers bleiben auf 34 m hinter ihrer Linie stehen. Der Zielfehler wächst mit der Distanz, die Flügel des Angreifers verlieren so vor dem Kontakt rund 30 % und fliehen dann in wenigen Sekunden.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| `screenFollowDistance` = 10 m: Abschirmende Schützen bleiben höchstens so weit hinter ihrer nächsten Infanterie, aber nie näher am Feind als `screenFallbackDistance` | Gilt für beide Seiten, also kein Sonderpfad des Kommandanten. Gemessen über 8 Läufe ohne Befehl: 100 gegen 100 von 7 auf 3 Siege; Spiegelduell mit vorrückender Spielerseite bleibt fair (5, 4 und 4 von 8) | 6 m: Schützen kamen so nah, dass die Kompanie auf 1 von 8 kippte |
+| Kein Sturm auf den letzten Metern und keine Flanken-Vorliebe gegen stehende Feinde | Beides gemessen und wieder entfernt: Sturm ab 16 m und Flanke allein änderten 100 gegen 100 nicht (7 von 8), zusammen mit dem Folgen wurde es schlechter (6 von 8) statt 3 von 8. Ohne Wirkung kein zusätzlicher Regler | Beide als Regler behalten |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt
