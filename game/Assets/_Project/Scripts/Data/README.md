@@ -14,7 +14,7 @@ ScriptableObject-Klassen. Jede wandelt ihre Werte in einen Sim-Struct um, damit 
 | `CombatTuningDefinition` | `CombatTuning` | Lebenspunkte, Stamina, Zeitfenster, Tödlichkeit (Feel-Preset) |
 | `BotRosterDefinition` | `BotProfile[]` | Bot-Stufen L1–L5, auch der Zielfehler |
 | `CombatDatabase` | `CombatSetup` | baut alle Kampf-Tabellen aus den obigen |
-| `CompanyScenarioDefinition` | `SimWorld` | Kompanie: Held (Spieler 0) mit Loadout und Tempo, eigene und feindliche Formationen (Typ, Größe, Stufe, Waffe, Startverhalten), Waffen, Preset, Formations- und Moral-Tuning, Kommandant des Feindes, Pfeile in der Luft; pro Einheit auch eine Zweitwaffe |
+| `CompanyScenarioDefinition` | `SimWorld` | Kompanie: Held (Spieler 0) mit Loadout und Tempo, eigene und feindliche Formationen (Typ, Größe, Stufe, Waffe, Startverhalten), Waffen, Preset, Formations- und Moral-Tuning, Kommandant des Feindes, Pfeile in der Luft, Befehlsreichweite (Experiment); pro Einheit auch eine Zweitwaffe |
 | `DuelScenarioDefinition` | `SimWorld` | Duell: Held mit Loadout gegen 1–3 Bots, Presets, Bot-Stufe und -Waffe, Zuschauermodus |
 | `ISimScenario` | – | Schnittstelle: ein Szenario baut eine `SimWorld` (Sandbox, Duell) |
 | `SceneCatalogDefinition` | – (nur Menü) | Szenen-Katalog: pro Eintrag Szene, Startart (Szene, Duell, Tutorial, Zuschauen), optional ein Ersatz-Szenario, Ziel, Eingabe-Maps, Prüfliste; Asset in `Resources/SceneCatalog` |

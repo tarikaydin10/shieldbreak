@@ -63,6 +63,8 @@ namespace Shieldbreak.Data
         public CommanderDefinition commander;
         [Tooltip("Arrows that can be in the air at once.")]
         [Min(0)] public int maxProjectiles = 128;
+        [Tooltip("Experiment: the player's orders reach formations this close to the hero (m). 0 = everywhere.")]
+        [Min(0f)] public float commandRange;
 
         [Header("Hero (player 0, team 0)")]
         public Vector2 heroPosition = new Vector2(48f, 30f);
@@ -119,6 +121,7 @@ namespace Shieldbreak.Data
             Morale = morale != null ? morale.ToSettings() : default,
             Commander = commander != null ? commander.ToSettings() : default,
             MaxProjectiles = maxProjectiles,
+            CommandRange = commandRange,
         };
 
         FormationSettings BuildFormationSettings()

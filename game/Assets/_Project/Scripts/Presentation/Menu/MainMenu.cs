@@ -41,7 +41,7 @@ namespace Shieldbreak.Presentation.Menu
         {
             var screen = MenuStyle.BeginScaled();
             var rect = page == Page.Test ? MenuStyle.CentredPanel(screen, 1180, 900) :
-                MenuStyle.CentredPanel(screen, page == Page.Controls ? 860 : 620, page == Page.Home ? 620 : 720);
+                MenuStyle.CentredPanel(screen, page == Page.Controls ? 860 : 620, page == Page.Home ? 690 : 720);
             GUILayout.BeginArea(rect, MenuStyle.Panel);
             GUILayout.Label("SHIELDBREAK", MenuStyle.Title);
             GUILayout.Label($"{version} · Low-Poly-Schlachtsimulator · alles in Arbeit", MenuStyle.Subtitle);
@@ -63,6 +63,7 @@ namespace Shieldbreak.Presentation.Menu
             if (MenuStyle.Big("Tutorial · die Steuerung Schritt für Schritt")) Launch("tutorial");
             if (MenuStyle.Big("Zuschauen · Bot gegen Bot")) Launch("spectate");
             if (MenuStyle.Big("Kompanie · Held mit eigener Truppe")) Launch("company");
+            if (MenuStyle.Big("Schlacht · 50 gegen 50")) Launch("battle");
             GUILayout.Space(8);
             GUILayout.Label("WERKZEUGE", MenuStyle.Heading);
             if (MenuStyle.Big("Testmodus · alle Szenen mit Ziel, Steuerung und Prüfliste")) page = Page.Test;

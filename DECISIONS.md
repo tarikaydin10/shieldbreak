@@ -383,6 +383,18 @@ Moral nach all dem neu gemessen (Kompanie, 12 Seeds): Beim Verlierer flieht der 
 
 Gemessen (Kompanie mit je 8 Schützen, 12 Seeds, Held tut nichts): Der Spieler gewinnt 8 von 12, im Schnitt 275 Schüsse pro Schlacht. Drei Schlachten waren nach 20 bis 40 s verloren: Pfeile treffen einen Helden, der stillsteht.
 
+## 2026-11-07 — M3 Task 6: 50 gegen 50, Befehlsreichweite
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| `Battle_50v50`: dasselbe `CompanyScenarioDefinition` und dieselbe Szene `M2_Company` wie die Kompanie, nur ein anderes Asset: Karte 140 m, je fünf Formationen (zwei Linien, Schildwall, Keil in Reserve, Schützen) und 50 Soldaten. Start über den Szenen-Katalog | Keine neue Szene, kein neuer Code: Szenarien sind Daten | Eigene Szene pro Größe |
+| Kommandoansicht für eine ganze Schlacht: WASD/rechter Stick verschiebt den Blick (`CommandViewCamera.Pan`), L/rechter Stick drücken lässt die Ansicht offen (V schließt sie) | Ohne das ist das Fun-Gate (b) nicht spielbar: Die Kamera klebte am Helden, V musste die ganze Zeit gehalten werden. Die Idee „Verschieben“ aus `IDEAS.md` ist damit erledigt | Eigener Feldherr-Modus (Phase 2) |
+| Figuren-Grenze von 64 auf 128 | Sonst wären bei über 100 Soldaten die übrigen nur Kapseln | VAT jetzt (M4) |
+| **Experiment Befehlsreichweite:** `commandRange` im Szenario (0 = aus). Befehle des Spielers erreichen nur Formationen bis so weit vom Helden; die Sim prüft das in `ApplyInput`, jeder Peer verwirft also dieselben Befehle. Die Commander-AI hat keinen Helden und keine Reichweite. `Battle_50v50_Range` setzt 45 m, die Kommandoansicht zeigt einen Ring, blasse Formationen und „außer Reichweite“ | CLAUDE.md: Parameter, kein Fundament; bleibt oder fliegt nach dem Playtest. Als eigenes Szenario lässt es sich im Vergleich spielen | Option im Menü (die Welt wird beim Start gebaut); Befehle verzögern statt verwerfen (mehr Sim-Zustand für ein Experiment) |
+| `-shotEntry <id>` im Smoke-Test startet einen Katalog-Eintrag; der Lauf loggt die Bildrate | Die Bildrate von über 100 Figuren misst kein EditMode-Test | – |
+
+Gemessen: 0,15 ms pro Sim-Tick (Median, 100 Soldaten im Kampf, Budget 2 ms), p95 0,37 ms. Im Build 151 FPS, langsamstes Bild 22 ms (1280×720 auf diesem Rechner, 50 s Schlacht). Mit Held in der Kommandoansicht und ohne einen einzigen Befehl dauert die Schlacht 72 bis 166 s, die Seite gewinnt 3 von 6; der Held fällt nur spät in verlorenen Schlachten. Ein Held, der als Spieler untätig stehen bleibt, verliert dagegen 6 von 6 nach rund 50 s.
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

@@ -8,6 +8,7 @@ namespace Shieldbreak.Presentation.Cameras
     /// camera to a high oblique view over the hero (looking the way the combat camera looked, a little ahead), and
     /// returns when Active ends. Runs after the ThirdPersonCamera and blends from wherever that one put the camera,
     /// so kicks and lag stay intact on the way back. Fog moves back with the height, so the field stays readable.
+    /// The view can be pushed over the field; coming back down forgets that.
     /// Pure presentation: the sim knows nothing about it.
     /// </summary>
     [DefaultExecutionOrder(100)]
@@ -29,6 +30,8 @@ namespace Shieldbreak.Presentation.Cameras
         public float lookAhead = 12f;
         [Tooltip("Fog start and end move back by this many metres per metre of height while the view is up.")]
         [Min(0f)] public float fogPushPerMetre = 1f;
+        [Tooltip("Speed of pushing the view over the field, in metres per second per metre of height.")]
+        [Min(0f)] public float panSpeedPerMetre = 1f;
 
         /// <summary>Set by the CommandView while the key is held.</summary>
         public bool Active { get; set; }
@@ -36,6 +39,7 @@ namespace Shieldbreak.Presentation.Cameras
         public float Blend { get; private set; }
 
         float fogStart, fogEnd;
+        Vector3 pan;
 
         public string AdminStatusLabel => "Kommandokamera";
         public string AdminStatus => Blend <= 0f ? "unten" : $"{height:0} m hoch, Blick {pitch:0}° · Mausrad: Höhe";
@@ -52,6 +56,13 @@ namespace Shieldbreak.Presentation.Cameras
             RenderSettings.fogEndDistance = fogEnd;
         }
 
+        /// <summary>Pushes the view over the field; x = right, y = forward as the camera looks. Higher up it goes faster.</summary>
+        public void Pan(Vector2 direction, float seconds)
+        {
+            float yaw = combatCamera != null ? combatCamera.Yaw : transform.eulerAngles.y;
+            pan += Quaternion.Euler(0f, yaw, 0f) * new Vector3(direction.x, 0f, direction.y) * (panSpeedPerMetre * height * seconds);
+        }
+
         /// <summary>Mouse wheel: up = higher.</summary>
         public void Zoom(float steps) => height = Mathf.Clamp(height - steps * zoomStep, heightLimits.x, heightLimits.y);
 
@@ -62,12 +73,13 @@ namespace Shieldbreak.Presentation.Cameras
             RenderSettings.fogStartDistance = fogStart + t * height * fogPushPerMetre;
             RenderSettings.fogEndDistance = fogEnd + t * height * fogPushPerMetre;
             var world = runner != null ? runner.World : null;
+            if (Blend <= 0f) pan = Vector3.zero;
             if (t <= 0f || world == null || runner.PlayerAgent < 0) return;
 
             float yaw = combatCamera != null ? combatCamera.Yaw : transform.eulerAngles.y;
             var flat = Quaternion.Euler(0f, yaw, 0f);
             var rotation = Quaternion.Euler(pitch, yaw, 0f);
-            Vector3 focus = SimRunner.ToWorld(runner.InterpolatedPosition(runner.PlayerAgent)) + flat * Vector3.forward * lookAhead;
+            Vector3 focus = SimRunner.ToWorld(runner.InterpolatedPosition(runner.PlayerAgent)) + flat * Vector3.forward * lookAhead + pan;
             Vector3 position = focus - rotation * Vector3.forward * (height / Mathf.Sin(pitch * Mathf.Deg2Rad));
             transform.SetPositionAndRotation(Vector3.Lerp(transform.position, position, t), Quaternion.Slerp(transform.rotation, rotation, t));
         }

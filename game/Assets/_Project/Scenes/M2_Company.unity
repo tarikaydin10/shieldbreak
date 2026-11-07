@@ -495,7 +495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Shieldbreak.Presentation::Shieldbreak.Presentation.CombatFigureRenderer
   runner: {fileID: 569493334}
   visual: {fileID: 11400000, guid: 5833f643bb5c2aa4ea5b6d259c919a56, type: 2}
-  maxFigures: 64
+  maxFigures: 128
   rightShoulder: {x: 0.22, y: 1.42, z: 0}
   leftShoulder: {x: -0.22, y: 1.42, z: 0}
   upperArmLength: 0.32

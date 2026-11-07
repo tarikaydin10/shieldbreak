@@ -65,7 +65,13 @@ namespace Shieldbreak.Presentation.Player
         static readonly string[] ThreatNames = { "", "Feind links!", "Feind rechts!", "Feind im Rücken!" };
 
         InputActionMap map;
-        InputAction hold, point, select, command, additive, zoom, padPointer, cycleStance, screenOrder;
+        InputAction hold, point, select, command, additive, zoom, padPointer, cycleStance, screenOrder, panView, lockView;
+        /// <summary>The view stays open without the key held (a whole battle from above).</summary>
+        bool locked;
+        /// <summary>The world the view was opened in: a restart builds a new one with the hero attended again.</summary>
+        SimWorld openedIn;
+        /// <summary>Targets of the last order that the command range kept out.</summary>
+        int outOfRange;
         /// <summary>Enemy formation under the pointer (a right-click advances on it), -1 = none.</summary>
         int hoveredEnemy = -1;
         readonly InputAction[] shapes = new InputAction[FormationLimits.TypeCount];
@@ -104,6 +110,8 @@ namespace Shieldbreak.Presentation.Player
             padPointer = map.FindAction("Cursor", true);
             cycleStance = map.FindAction("CycleStance", true);
             screenOrder = map.FindAction("Screen", true);
+            panView = map.FindAction("Pan", true);
+            lockView = map.FindAction("Lock", true);
             for (int t = 0; t < shapes.Length; t++) shapes[t] = map.FindAction(ShapeActions[t], true);
             map.Enable();
             RenderPipelineManager.endCameraRendering += Draw;
@@ -131,8 +139,18 @@ namespace Shieldbreak.Presentation.Player
                 return;
             }
             bool menus = AdminMenu.IsOpen || PauseMenu.IsOpen || ResultScreen.IsOpen || GamePause.IsPaused;
+            if (IsOpen && world != openedIn) Close(null);
             if (!IsOpen && hold.WasPressedThisFrame() && !menus && !RadialMenu.IsOpen) Open(world);
+            else if (IsOpen && locked)
+            {
+                if (hold.WasPressedThisFrame() && !menus) Close(world);
+            }
             else if (IsOpen && !hold.IsPressed()) Close(world);
+            if (IsOpen && lockView.WasPressedThisFrame() && !menus)
+            {
+                locked = !locked;
+                Toast(locked ? "Ansicht bleibt offen" : "Ansicht schließt beim Loslassen");
+            }
             // Outlines and labels also follow the field while the camera comes back down
             if (IsOpen || Alpha > 0f) Refresh(world);
             if (!IsOpen) return;
@@ -144,6 +162,7 @@ namespace Shieldbreak.Presentation.Player
                 selecting = commanding = drawingLine = false;
                 return;
             }
+            if (commandCamera != null) commandCamera.Pan(panView.ReadValue<Vector2>(), Time.unscaledDeltaTime);
             UpdatePointer();
 
             float wheel = zoom.ReadValue<float>();
@@ -188,6 +207,7 @@ namespace Shieldbreak.Presentation.Player
         void Open(SimWorld world)
         {
             IsOpen = true;
+            openedIn = world;
             world.Submit(LocalPlayer, InputCommandType.HeroUnattended, new int4(runner.PlayerAgent, 1, 0, 0));
             if (commandCamera != null) commandCamera.Active = true;
             pointer = lastMouse = point.ReadValue<Vector2>();
@@ -198,6 +218,7 @@ namespace Shieldbreak.Presentation.Player
         void Close(SimWorld world)
         {
             IsOpen = false;
+            locked = false;
             if (world != null && runner.PlayerAgent >= 0)
                 world.Submit(LocalPlayer, InputCommandType.HeroUnattended, new int4(runner.PlayerAgent, 0, 0, 0));
             if (commandCamera != null) commandCamera.Active = false;
@@ -346,8 +367,7 @@ namespace Shieldbreak.Presentation.Player
 
         void Issue(SimWorld world, float2 start, float2 end, bool drawn)
         {
-            Targets(world, scratch);
-            if (scratch.Count == 0) return;
+            if (!Reachable(world)) return;
             string who = selection.Count == 0 ? "Alle" : scratch.Count == 1 ? Name(world, scratch[0]) : $"{scratch.Count} Formationen";
 
             // A click on an enemy formation: advance on exactly that one
@@ -377,8 +397,7 @@ namespace Shieldbreak.Presentation.Player
 
         void IssueShape(SimWorld world, FormationType type)
         {
-            Targets(world, scratch);
-            if (scratch.Count == 0) return;
+            if (!Reachable(world)) return;
             foreach (int f in scratch) world.SubmitFormationOrder(LocalPlayer, FormationOrder.Reshape(f, type));
             Toast($"{(selection.Count == 0 ? "Alle" : scratch.Count == 1 ? Name(world, scratch[0]) : $"{scratch.Count} Formationen")}: {TypeNames[(int)type]}");
         }
@@ -386,7 +405,7 @@ namespace Shieldbreak.Presentation.Player
         /// <summary>Shooters among the targets go back to screening: keep their distance, fall back behind the infantry.</summary>
         void IssueScreen(SimWorld world)
         {
-            Targets(world, scratch);
+            if (!Reachable(world)) return;
             int given = 0;
             foreach (int f in scratch)
             {
@@ -400,15 +419,25 @@ namespace Shieldbreak.Presentation.Player
         /// <summary>Stance of the targets, one step on (Hold Ground → React → Aggressive), counted from the first of them.</summary>
         void IssueNextStance(SimWorld world)
         {
-            Targets(world, scratch);
-            if (scratch.Count == 0) return;
+            if (!Reachable(world)) return;
             var next = (FormationStance)(((int)world.Formations[scratch[0]].Stance + 1) % FormationLimits.StanceCount);
             foreach (int f in scratch) world.SubmitFormationOrder(LocalPlayer, FormationOrder.SetStance(f, next));
             Toast($"{(selection.Count == 0 ? "Alle" : scratch.Count == 1 ? Name(world, scratch[0]) : $"{scratch.Count} Formationen")}: {StanceNames[(int)next]}");
         }
 
+        /// <summary>The order's targets, without those out of command range (the sim would ignore those orders anyway). False = nobody to order.</summary>
+        bool Reachable(SimWorld world)
+        {
+            Targets(world, scratch);
+            outOfRange = scratch.RemoveAll(f => !world.InCommandRange(LocalPlayer, f));
+            if (scratch.Count > 0) return true;
+            if (outOfRange > 0) Toast("Außer Befehlsreichweite");
+            return false;
+        }
+
         void Toast(string text)
         {
+            if (outOfRange > 0 && scratch.Count > 0) text += $" · {outOfRange} außer Reichweite";
             toast = text;
             toastUntil = Time.unscaledTime + toastSeconds;
         }
@@ -437,11 +466,29 @@ namespace Shieldbreak.Presentation.Player
             var c = !IsOwn(world, f) ? enemyColor : selection.Contains(f) ? selectedColor : ownColor;
             // The enemy under the pointer lights up: a right-click attacks exactly this one
             if (f == hoveredEnemy && IsOpen) c = Color.Lerp(c, Color.white, 0.45f);
+            // Out of command range the formation fades: it does not hear you
+            if (IsOwn(world, f) && !world.InCommandRange(LocalPlayer, f)) c.a *= 0.35f;
             c.a *= alpha;
             return c;
         }
 
         float Alpha => commandCamera != null ? commandCamera.Blend : (IsOpen ? 1f : 0f);
+
+        /// <summary>The command range as a ring around the hero.</summary>
+        void RangeRing(SimWorld world, float alpha, float lift)
+        {
+            const int segments = 64;
+            var c = ownColor;
+            c.a *= alpha * 0.6f;
+            GL.Color(c);
+            Vector2 hero = world.Agents[runner.PlayerAgent].Position;
+            float r = world.Config.CommandRange;
+            for (int s = 0; s < segments; s++)
+            {
+                float a0 = s * Mathf.PI * 2f / segments, a1 = (s + 1) * Mathf.PI * 2f / segments;
+                GroundLines.Line(new Vector3(hero.x + Mathf.Cos(a0) * r, lift, hero.y + Mathf.Sin(a0) * r), new Vector3(hero.x + Mathf.Cos(a1) * r, lift, hero.y + Mathf.Sin(a1) * r));
+            }
+        }
 
         /// <summary>Outlines, facings, marches and targets of all formations, the hero and its post, the line being drawn.</summary>
         void Draw(ScriptableRenderContext context, Camera cam)
@@ -453,6 +500,7 @@ namespace Shieldbreak.Presentation.Player
             var formations = world.Formations;
             var settings = world.FormationSettings;
             GroundLines.Begin();
+            if (world.Config.CommandRange > 0f && runner.PlayerAgent >= 0) RangeRing(world, alpha, lift);
             for (int f = 0; f < formations.Length; f++)
             {
                 if (living[f] == 0) continue;
@@ -574,7 +622,7 @@ namespace Shieldbreak.Presentation.Player
                 string who = selection.Count == 0 ? "keine Auswahl: Befehle gehen an alle" : $"Auswahl: {selection.Count} Formation(en)";
                 string radial = GameInput.KeyboardBinding(GameInput.Action("Radial", "Open"));
                 string text = $"KOMMANDOANSICHT · {who}\nLinksklick: wählen (Shift: dazu) · Rechtsklick: hierher · rechts ziehen: Frontlinie · Rechtsklick auf Feind: vorrücken gegen ihn\n" +
-                              $"{radial} halten: Befehle an die Auswahl · 1–5: Form · {GameInput.KeyboardBinding(cycleStance)}: Haltung · {GameInput.KeyboardBinding(screenOrder)}: Schützen abschirmen · Mausrad: Höhe · {GameInput.KeyboardBinding(hold)} loslassen: zurück · Der Held zieht sich hinter die Linie zurück";
+                              $"{radial} halten: Befehle an die Auswahl · 1–5: Form · {GameInput.KeyboardBinding(cycleStance)}: Haltung · {GameInput.KeyboardBinding(screenOrder)}: Schützen abschirmen · WASD: Blick verschieben · {GameInput.KeyboardBinding(lockView)}: offen lassen · Mausrad: Höhe · {GameInput.KeyboardBinding(hold)} loslassen: zurück · Der Held zieht sich hinter die Linie zurück";
                 GUI.Label(new Rect(screen.x * 0.5f - 560f, screen.y - 104f, 1120f, 84f), text, hint);
             }
 

@@ -398,6 +398,14 @@
     {
       "action": "CommandView/Screen",
       "text": "Schützen in der Auswahl (ohne Auswahl: alle) gehen zurück ins Abschirmen: halten Abstand zum Feind, schießen und ziehen sich hinter die eigene Infanterie zurück, wenn er nahe kommt"
+    },
+    {
+      "action": "CommandView/Pan",
+      "text": "Blick über das Feld verschieben; zurück in den Kampf vergisst die Verschiebung"
+    },
+    {
+      "action": "CommandView/Lock",
+      "text": "Kommandoansicht offen lassen, ohne die Taste zu halten (eine ganze Schlacht von oben führen); nochmal die Kommando-Taste: zurück in den Kampf"
     }
   ]
 }
