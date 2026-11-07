@@ -59,6 +59,10 @@ namespace Shieldbreak.Sim.Morale
         public float Recovery;
         /// <summary>At or below this morale the soldier routs (never comes back in v1).</summary>
         public float RoutThreshold;
+        /// <summary>With fewer own fighters per enemy fighter than this, a side is outnumbered without hope...</summary>
+        public float HopelessRatio;
+        /// <summary>...and its soldiers lose this much morale per second, panic or not (the last few do not stand for ever).</summary>
+        public float HopelessDrain;
         /// <summary>A routing soldier runs away from the enemies within this range (m).</summary>
         public float FleeSenseRange;
         /// <summary>A routing soldier this close to the map edge leaves the field (m).</summary>
@@ -81,6 +85,7 @@ namespace Shieldbreak.Sim.Morale
             if (PanicDrain < 0f || Recovery < 0f || CalmPanic < 0f) throw new ArgumentException("PanicDrain, Recovery and CalmPanic must be >= 0.");
             if (FormationSteadiness < 0f || FormationSteadiness > 1f) throw new ArgumentException("FormationSteadiness must be in [0, 1].");
             if (RoutThreshold < 0f || RoutThreshold >= 1f) throw new ArgumentException("RoutThreshold must be in [0, 1).");
+            if (HopelessRatio < 0f || HopelessDrain < 0f) throw new ArgumentException("HopelessRatio and HopelessDrain must be >= 0.");
             if (FleeSenseRange <= 0f || EdgeMargin < 0f) throw new ArgumentException("FleeSenseRange > 0 and EdgeMargin >= 0.");
         }
     }

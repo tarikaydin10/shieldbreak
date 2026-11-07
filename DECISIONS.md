@@ -344,6 +344,15 @@ Anlass (Tarik): Die Pipeline soll auch den Zombie-Rundensurvival (Repo `deadhold
 
 Gemessen (12 Seeds, Stufe 3, Held tut nichts): ohne Kommandant gewinnt der Spieler 9 von 12, mit Kommandant 11 von 12; die Schlachten dauern 34 bis 129 s. Erste Taktik: 5× frontal, 7× Flanke. Der Kommandant ist also abwechslungsreich, aber in dieser Aufstellung nicht stark. Ursache vermutlich die Aufstellung (dichter Schildwall gegen Linie und Keil, der Held beruhigt seine Seite), nicht geprüft; Tuning ist Tariks Sache.
 
+## 2026-11-07 — Moral: Soldaten fliehen später
+
+Anlass (Tarik, nach dem Anspielen): „soldaten fliehen zu früh“.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| `panicDrain` von 5 auf 2,5, `routThreshold` von 0,25 auf 0,2 | Gemessen über 12 Kompanie-Schlachten mit Kommandant (Verlierer, 24 Soldaten): Der erste Soldat floh nach 2,9 Toten (12 %), die Seite war bei 12,7 Toten (53 %) gebrochen. Jetzt 8,8 (37 %) und 18,4 (77 %). Der Spieler gewinnt ohne eigenes Zutun 9 von 12 statt 11 von 12 | Noch weniger Panik: Mit `panicDrain` 2 flieht der erste erst nach 13,8 Toten, 1,5 und tiefer ist fast ein Kampf bis zum letzten Mann, Moral wäre kaum noch spürbar |
+| **Hoffnungslos unterlegen:** Hat eine Seite weniger als 0,4 eigene Kämpfer pro Feind (`hopelessRatio`), verlieren ihre Soldaten 0,1 Moral pro Sekunde (`hopelessDrainPerSecond`), auch ohne Panik; solange erholen sie sich nicht. Gilt für beide Seiten, Helden brechen nie | Weniger Panik hätte Stillstände gebracht: Reste wie 2 gegen 19 wichen zurück und standen ewig, weil dort niemand mehr stirbt. Bisher verdeckte das frühe Fliehen dieses Problem | Schlacht per Regel beenden (nimmt den Soldaten die Flucht); Kommandant lässt Reste aufgeben (bräche nur für AI-Seiten, wäre ein Sonderpfad) |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

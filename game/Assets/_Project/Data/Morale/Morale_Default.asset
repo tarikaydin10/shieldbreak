@@ -23,10 +23,12 @@ MonoBehaviour:
   routPanicPerSecond: 0.3
   leaderRadius: 8
   leaderCalm: 0.5
-  panicDrain: 5
+  panicDrain: 2.5
   formationSteadiness: 0.7
   calmPanic: 0.02
   recoveryPerSecond: 0.02
-  routThreshold: 0.25
+  routThreshold: 0.2
+  hopelessRatio: 0.4
+  hopelessDrainPerSecond: 0.1
   fleeSenseRange: 8
   edgeMargin: 1

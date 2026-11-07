@@ -219,8 +219,8 @@ namespace Shieldbreak.Tests
         [Test]
         public void Commander_TheWeakerSideStands()
         {
-            scenario.units[2].count = 4;
-            scenario.units[3].count = 4;
+            scenario.units[2].count = 8;
+            scenario.units[3].count = 8;
             using var world = World();
             Run(world, 600);
             var c = State(world);

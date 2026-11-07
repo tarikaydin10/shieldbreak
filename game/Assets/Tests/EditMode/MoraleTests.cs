@@ -245,13 +245,25 @@ namespace Shieldbreak.Tests
                 int runner = world.SpawnAgent(0, new float2(30f, 30f), 0.3f, East, 0, L3);
                 world.SpawnAgent(1, new float2(36f, 30f), 0.3f, West);   // something to run from, never chases
                 int neighbour = world.SpawnAgent(0, new float2(28f, 32f), 0.3f, East, 0, L3);
-                world.AddPanic(0, world.Agents[runner].Position, 2f);
+                world.AddPanic(0, world.Agents[runner].Position, 6f);
                 Run(world, 30);
                 Assert.That(world.Agents[runner].IsRouting);
                 Run(world, 120);
                 return world.Morale[neighbour].Morale;
             }
             Assert.That(NeighbourMorale(2f), Is.LessThan(NeighbourMorale(0f) - 0.02f));
+        }
+
+        [TestCase(2, true)]
+        [TestCase(5, false)]
+        public void OutnumberedWithoutHope_TheLastFewBreak_WithoutAnyPanic(int soldiers, bool breaks)
+        {
+            using var world = World(m => m);
+            var own = new int[soldiers];
+            for (int i = 0; i < soldiers; i++) own[i] = world.SpawnAgent(0, new float2(20f, 20f + i * 2f), 0.3f, East, 0, L3);
+            for (int i = 0; i < 10; i++) world.SpawnAgent(1, new float2(60f, 20f + i * 2f), 0.3f, West);    // far away, never come
+            Run(world, 600);
+            foreach (int a in own) Assert.That(world.Agents[a].IsRouting, Is.EqualTo(breaks), breaks ? "2 against 10" : "5 against 10 still has hope");
         }
 
         [Test]

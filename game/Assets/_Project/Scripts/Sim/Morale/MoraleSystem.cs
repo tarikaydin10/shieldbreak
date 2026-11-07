@@ -205,10 +205,20 @@ namespace Shieldbreak.Sim.Morale
 
             /// <summary>
             /// Bots lose morale under panic (less while holding their place in a formation), gain it from their side's
-            /// confidence, recover slowly when calm and rout at the threshold.
+            /// confidence, recover slowly when calm and rout at the threshold. A side outnumbered without hope loses
+            /// morale on top of that, whichever side it is.
             /// </summary>
             void UpdateMorale(float dt)
             {
+                int total = 0;
+                var fighters = int4.zero;
+                for (int i = 0; i < Count; i++)
+                {
+                    var a = Agents[i];
+                    if (a.IsDead || a.IsRouting || (uint)a.Team >= SimConstants.MaxTeams) continue;
+                    fighters[a.Team]++;
+                    total++;
+                }
                 for (int i = 0; i < Count; i++)
                 {
                     var a = Agents[i];
@@ -220,7 +230,9 @@ namespace Shieldbreak.Sim.Morale
                     bool steady = member.Formation >= 0 && member.Formation < Formations.Length &&
                                   FormationCombatRules.For(member, Formations[member.Formation]).Bound == 1;
                     m.Morale -= Settings.PanicDrain * panic * (steady && panic > 0f ? Settings.FormationSteadiness : 1f) * dt;
-                    if (panic < Settings.CalmPanic) m.Morale += Settings.Recovery * dt;
+                    int own = fighters[a.Team];
+                    if (own < Settings.HopelessRatio * (total - own)) m.Morale -= Settings.HopelessDrain * dt;
+                    else if (panic < Settings.CalmPanic) m.Morale += Settings.Recovery * dt;
                     m.Morale = math.clamp(m.Morale, 0f, 1f);
                     if (m.Morale <= Settings.RoutThreshold)
                     {

@@ -40,7 +40,7 @@ namespace Shieldbreak.Data
 
         [Header("Morale per soldier (1 = steady)")]
         [Tooltip("Morale lost per second per panic unit where the soldier stands (gained per unit of confidence).")]
-        [Min(0f)] public float panicDrain = 5f;
+        [Min(0f)] public float panicDrain = 2.5f;
         [Tooltip("Factor on that loss while the soldier holds its place in a formation (not when charging or alone).")]
         [Range(0f, 1f)] public float formationSteadiness = 0.7f;
         [Tooltip("Below this panic a soldier recovers...")]
@@ -48,7 +48,11 @@ namespace Shieldbreak.Data
         [Tooltip("...this much morale per second.")]
         [Min(0f)] public float recoveryPerSecond = 0.02f;
         [Tooltip("At or below this morale the soldier routs: leaves its formation, stops fighting, runs from the enemy.")]
-        [Range(0f, 0.95f)] public float routThreshold = 0.25f;
+        [Range(0f, 0.95f)] public float routThreshold = 0.2f;
+        [Tooltip("With fewer own fighters per enemy fighter than this, a side is outnumbered without hope...")]
+        [Min(0f)] public float hopelessRatio = 0.4f;
+        [Tooltip("...and its soldiers lose this much morale per second, panic or not: the last few do not stand for ever.")]
+        [Min(0f)] public float hopelessDrainPerSecond = 0.1f;
 
         [Header("Flight")]
         [Tooltip("A fleeing soldier runs away from the enemies within this range (m).")]
@@ -75,6 +79,8 @@ namespace Shieldbreak.Data
             CalmPanic = calmPanic,
             Recovery = recoveryPerSecond,
             RoutThreshold = routThreshold,
+            HopelessRatio = hopelessRatio,
+            HopelessDrain = hopelessDrainPerSecond,
             FleeSenseRange = fleeSenseRange,
             EdgeMargin = edgeMargin,
         };
