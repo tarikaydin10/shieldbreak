@@ -2183,6 +2183,34 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "CommanderDebug",
+            "id": "ff3648b5-50ae-4d05-b8c5-3c477bf7b98d",
+            "actions": [
+                {
+                    "name": "ToggleScores",
+                    "type": "Button",
+                    "id": "c9ccdd51-4e7b-43a7-828d-83fadc19b1c7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "ebfbae44-271e-41ed-8606-52070558d635",
+                    "path": "<Keyboard>/f3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleScores",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

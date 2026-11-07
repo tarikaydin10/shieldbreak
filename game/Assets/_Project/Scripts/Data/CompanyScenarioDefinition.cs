@@ -12,8 +12,8 @@ namespace Shieldbreak.Data
     /// <summary>
     /// M2 company battle: the player's hero (player 0) leads his own formations against bot formations, with combat
     /// and morale. The player orders his formations through the radial menu (and later the command view); the enemy
-    /// formations start with a behavior (no commander AI before M3). Spawning is scenario setup and runs identically
-    /// on every peer.
+    /// formations start with a behavior; with a commander they follow its tactics. Spawning is scenario setup and runs
+    /// identically on every peer.
     /// </summary>
     [CreateAssetMenu(menuName = "Shieldbreak/Company Scenario", fileName = "CompanyScenario")]
     public class CompanyScenarioDefinition : ScriptableObject, ISimScenario
@@ -22,7 +22,7 @@ namespace Shieldbreak.Data
         public class Unit
         {
             public string name = "Formation";
-            [Tooltip("0 = the player's side (player 0 commands it), 1 = the enemy (player 1, no human: keeps its start behavior).")]
+            [Tooltip("0 = the player's side (player 0 commands it), 1 = the enemy (player 1, no human: its commander leads it, or it keeps its start behavior).")]
             [Range(0, 1)] public int team;
             public FormationType formationType = FormationType.Line;
             [Min(1)] public int count = 12;
@@ -57,6 +57,8 @@ namespace Shieldbreak.Data
         public FormationDefinition formation;
         [Tooltip("Panic, morale and rout; empty = nobody breaks.")]
         public MoraleDefinition morale;
+        [Tooltip("AI commander of the enemy; empty = the enemy keeps its start behaviors.")]
+        public CommanderDefinition commander;
 
         [Header("Hero (player 0, team 0)")]
         public Vector2 heroPosition = new Vector2(48f, 30f);
@@ -111,6 +113,7 @@ namespace Shieldbreak.Data
             MaxFormations = units.Length,
             Formations = BuildFormationSettings(),
             Morale = morale != null ? morale.ToSettings() : default,
+            Commander = commander != null ? commander.ToSettings() : default,
         };
 
         FormationSettings BuildFormationSettings()
@@ -171,6 +174,7 @@ namespace Shieldbreak.Data
                 // Setup, not an input: every peer applies the same start behavior before tick 0
                 if (u.startBehavior != FormationBehavior.Hold) world.ApplyFormationOrder(FormationOrder.SetBehavior(f, u.startBehavior), owner);
             }
+            if (commander != null) world.AddCommander(EnemyId, 1);
             return hero;
         }
     }

@@ -5,13 +5,14 @@ using Shieldbreak.Presentation.Menu;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Morale;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Shieldbreak.Presentation.Player
 {
     /// <summary>
     /// Runs the M2 company battle: hitstop and camera kicks for the hero's impacts (same feel as the duel), the state
     /// of both sides in the F1 menu, and the result screen once the battle is decided (BattleOutcome: a side broke or
-    /// the hero fell). Objective and controls come from the scene catalog (SceneBriefing).
+    /// the hero fell). F3 shows the enemy commander's scores. Objective and controls come from the scene catalog (SceneBriefing).
     /// </summary>
     public class CompanyDirector : MonoBehaviour, IAdminStatus
     {
@@ -26,7 +27,10 @@ namespace Shieldbreak.Presentation.Player
         int decidedTick = -1, heroKills, hitsLanded, hitsTaken;
         float damageDealt, damageTaken, commandSeconds;
         SideCount own, enemy;
-        bool showing, counted;
+        bool showing, counted, showCommander;
+        InputActionMap map;
+        InputAction toggleCommander;
+        Texture2D pixel;
 
         public string AdminStatusLabel => "Kompanie";
         public string AdminStatus
@@ -38,20 +42,30 @@ namespace Shieldbreak.Presentation.Player
                 Count(out var mine, out var theirs);
                 var hero = runner.PlayerAgent >= 0 ? world.Combat[runner.PlayerAgent] : default;
                 string state = outcome == BattleResult.Undecided ? "läuft" : outcome == BattleResult.Victory ? "Sieg" : "Niederlage";
-                return $"Eigene {mine.Standing} kämpfend, {mine.Fled} geflohen · Feind {theirs.Standing} kämpfend, {theirs.Fled} geflohen · Held {hero.Health:0} HP · {state}";
+                string tactic = CommanderPanel.Summary(world);
+                return $"Eigene {mine.Standing} kämpfend, {mine.Fled} geflohen · Feind {theirs.Standing} kämpfend, {theirs.Fled} geflohen · Held {hero.Health:0} HP · {state}" + (tactic != null ? $" · Feind: {tactic}" : "");
             }
         }
 
         void OnEnable()
         {
+            map = GameInput.Map("CommanderDebug");
+            toggleCommander = map.FindAction("ToggleScores", true);
+            map.Enable();
             if (runner == null) return;
             runner.HitstopHook += OnTick;
             runner.WorldRebuilt += ResetBattle;
             ResetBattle();
         }
 
+        void OnDestroy()
+        {
+            if (pixel != null) Destroy(pixel);
+        }
+
         void OnDisable()
         {
+            map?.Disable();
             ResultScreen.IsOpen = false;
             if (runner == null) return;
             runner.HitstopHook -= OnTick;
@@ -71,6 +85,7 @@ namespace Shieldbreak.Presentation.Player
         void Update()
         {
             if (outcome == BattleResult.Undecided && CommandView.IsOpen) commandSeconds += Time.unscaledDeltaTime;
+            if (toggleCommander.WasPressedThisFrame()) showCommander = !showCommander;
         }
 
         /// <summary>After every tick: hero statistics, hitstop and camera kicks (as in the duel), the battle's outcome.</summary>
@@ -151,11 +166,21 @@ namespace Shieldbreak.Presentation.Player
         void OnGUI()
         {
             ResultScreen.IsOpen = showing;
+            if (showCommander && runner != null && runner.World != null && !PauseMenu.IsOpen && !AdminMenu.IsOpen)
+            {
+                if (pixel == null)
+                {
+                    pixel = new Texture2D(1, 1) { hideFlags = HideFlags.HideAndDontSave };
+                    pixel.SetPixel(0, 0, Color.white);
+                    pixel.Apply();
+                }
+                CommanderPanel.Draw(runner.World, pixel);
+            }
             if (!showing || runner == null || runner.World == null || PauseMenu.IsOpen || AdminMenu.IsOpen) return;
 
             // Result screen: who broke, what it cost, then clear choices
             var screen = MenuStyle.BeginScaled();
-            var rect = MenuStyle.CentredPanel(screen, 600, 500);
+            var rect = MenuStyle.CentredPanel(screen, 600, 530);
             GUILayout.BeginArea(rect, MenuStyle.Panel);
             var world = runner.World;
             int hero = runner.PlayerAgent;
@@ -174,6 +199,8 @@ namespace Shieldbreak.Presentation.Player
             MenuStyle.Row("Held", $"{heroKills} besiegt, {hitsLanded} Treffer ({damageDealt:0} Schaden)");
             MenuStyle.Row("Held getroffen", $"{hitsTaken} mal ({damageTaken:0} Schaden)");
             MenuStyle.Row("Kommandoansicht", $"{commandSeconds:0} s");
+            string enemyTactic = CommanderPanel.Summary(world);
+            if (enemyTactic != null) MenuStyle.Row("Feind zuletzt", enemyTactic);
             GUILayout.Space(12);
             if (MenuStyle.Big("Nochmal · gleiche Schlacht")) runner.Restart();
             if (MenuStyle.Big("Hauptmenü")) UnityEngine.SceneManagement.SceneManager.LoadScene(MainMenu.SceneName);

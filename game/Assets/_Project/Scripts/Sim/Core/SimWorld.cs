@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using Unity.Mathematics;
+using Shieldbreak.Sim.AI;
 using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat;
 using Shieldbreak.Sim.Combat.Archetypes;
@@ -29,6 +30,8 @@ namespace Shieldbreak.Sim.Core
         public FormationSettings Formations;
         /// <summary>Panic field, morale and rout; Enabled = 0 turns them off (duel).</summary>
         public MoraleSettings Morale;
+        /// <summary>How commanders of this world think; scenarios add them with AddCommander.</summary>
+        public CommanderSettings Commander;
     }
 
     /// <summary>
@@ -67,6 +70,7 @@ namespace Shieldbreak.Sim.Core
         readonly CombatSetup combatSetup;
         readonly FormationSystem formations;
         readonly MoraleSystem morale;
+        readonly CommanderSystem commanders;
 
         /// <param name="combatSetup">Weapons, attacks and rules; copied, so the caller keeps ownership. Null = no combat.</param>
         public SimWorld(SimConfig config, CombatSetup combatSetup = null)
@@ -101,6 +105,7 @@ namespace Shieldbreak.Sim.Core
             this.combatSetup = Copy(combatSetup);
             formations = new FormationSystem(config.MaxFormations, config.MaxAgents, config.Formations, config.Movement, Grid);
             morale = new MoraleSystem(config.MaxAgents, config.Morale, Grid);
+            commanders = new CommanderSystem(SimConstants.MaxPlayers, config.Commander, formations, config.Seed);
         }
 
         static CombatSetup Copy(CombatSetup source)
@@ -144,6 +149,12 @@ namespace Shieldbreak.Sim.Core
 
         public MoraleSettings MoraleSettings => morale.Settings;
         public bool HasMorale => morale.Enabled;
+
+        /// <summary>Commanders with their tactic, scores and what they read (presentation, debug). Valid until the next Step.</summary>
+        public NativeArray<CommanderState>.ReadOnly Commanders => commanders.Commanders;
+
+        /// <summary>Scenario setup: an AI commander takes over the formations of <paramref name="owner"/> (a player id nobody plays).</summary>
+        public void AddCommander(int owner, int team) => commanders.Add(owner, team);
 
         /// <summary>Remaining waypoints of a formation's path (debug overlay, command view). Valid until the next Step.</summary>
         public NativeArray<float2>.ReadOnly FormationPath(int formationId) => formations.RemainingPath(formationId);
@@ -348,6 +359,7 @@ namespace Shieldbreak.Sim.Core
             for (int i = 0; i < tickInputs.Length; i++)
                 ApplyInput(tickInputs[i]);
 
+            commanders.Step(Tick, agents, morale.Buffer, AgentCount);
             formations.Step(Tick, agents, combat, AgentCount, HasCombat);
             ApplyMoveIntents();
             PostUnattendedHeroes();
@@ -593,6 +605,7 @@ namespace Shieldbreak.Sim.Core
             formations.AddToHash(ref h, AgentCount);
             h.Add(Grid.Panic);
             morale.AddToHash(ref h, AgentCount);
+            commanders.AddToHash(ref h);
             return h.Value;
         }
 
@@ -604,6 +617,7 @@ namespace Shieldbreak.Sim.Core
             combatSetup.Dispose();
             formations.Dispose();
             morale.Dispose();
+            commanders.Dispose();
             if (tickInputs.IsCreated) tickInputs.Dispose();
             if (nextSequence.IsCreated) nextSequence.Dispose();
             if (playerAgent.IsCreated) playerAgent.Dispose();

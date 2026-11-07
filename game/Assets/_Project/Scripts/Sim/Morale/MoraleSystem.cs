@@ -40,6 +40,7 @@ namespace Shieldbreak.Sim.Morale
 
         public bool Enabled => settings.Enabled == 1;
         public MoraleSettings Settings => settings;
+        internal NativeArray<MoraleData> Buffer => morale;
         public NativeArray<MoraleData>.ReadOnly Agents(int count) => morale.GetSubArray(0, count).AsReadOnly();
 
         /// <summary>

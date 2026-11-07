@@ -10,6 +10,7 @@ Tunebare Werte als ScriptableObject-Assets. Im Inspector ändern, Play drücken;
 | `Weapons/` | `Weapon_OneHandShield`, `Weapon_TwoHand` |
 | `Combat/` | Presets `CombatTuning_Schwer/Mittel/Toedlich`, `BotRoster_Default` (L1–L5) |
 | `Morale/` | `Morale_Default` (Panik, Moral, Rout; in der Sandbox aktiv, im Duell nicht) |
+| `Commanders/` | `Commander_Default` (Feind-Kommandant: Denkintervall, Gewichte der Taktiken, Rauschen; in der Kompanie aktiv) |
 | `Visuals/` | `SoldierVisual_Default` |
 
 Szenen-Builder legen fehlende Assets an, überschreiben aber nie bestehende Werte.

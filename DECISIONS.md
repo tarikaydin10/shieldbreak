@@ -329,6 +329,21 @@ Anlass (Tarik): Die Pipeline soll auch den Zombie-Rundensurvival (Repo `deadhold
 | Kreis prüft nicht | Er hat keine Flanke, seine Slots schauen nach außen | – |
 | Beschuss (Schildwall) kommt mit Task 5, weil es noch keinen Fernkampf gibt | Nichts zum Testen | Stummel-Ereignis jetzt |
 
+## 2026-11-07 — M3 Task 3: Commander-Utility-AI
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| `Sim/AI/CommanderUtility` (reine Funktionen: lesen, bewerten, entscheiden) und `CommanderSystem` (Burst-Job, dann Befehle). Der Kommandant läuft zuerst im Tick und gibt `FormationOrder`s direkt als Besitzer seiner Formationen | CLAUDE.md 3.1: Spieler und AI sind zwei Clients derselben API. Er kann nichts, was ein Spieler nicht kann. Zustand samt Scores ist Sim-Zustand und geht in den Hash | Eigene Eingriffe in Formationen; Kommandant in der Presentation (bräche Lockstep) |
+| Fünf Taktiken: Halten, Frontalangriff, Flanke links, Flanke rechts, Rückzug. „Halten auf Höhe“ wird Halten, weil es noch keine Höhe gibt; Screening kommt mit dem Fernkampf (Task 5) | Nur was heute wirken kann | Taktiken ohne Grundlage |
+| Merkmale: Kämpfer pro Seite (Verhältnis), Moral, Frontbreiten, Abstand, wie offen jede Seite des Feindes ist. Alles ist auch für den Spieler sichtbar. Stärke zählt vorerst nur Köpfe; Lanchester (Task 4) wird das verbessern | Säule 4: kein Wissen, das ein Spieler nicht hätte | Bot-Stufen des Gegners mitlesen |
+| Schwierigkeit: Denkintervall (2,5 s), Rauschen auf den Scores, Flanke erlaubt oder nicht. Hysterese (+0,15) und Mindestdauer (8 s) gegen Hin und Her; ein Rückzug wartet nicht. Die erste Entscheidung ist frei | CLAUDE.md 3.7. Jede Zahl steht in `Commander_Default` | Stat-Boni |
+| Flanke: Die Formation, die am weitesten auf dieser Seite steht, marschiert ans Ende der feindlichen Linie (mit Abstand `flankMargin`), Haltung Aggressiv; die anderen rücken vor und binden. Am Ziel greift die Haltung sie selbst in die Flanke | Nutzt Task 1 und 2 statt neuer Regeln. Das Ziel wandert mit, solange sie marschiert | Eigenes Flanken-Verhalten in der Formation |
+| Befehle gehen nur an Formationen, die etwas anderes tun; eine Formation, die von selbst kämpft, bleibt in Ruhe, bis die Taktik wechselt | Wiederholte Befehle würden Märsche und Abklingzeiten zurücksetzen | Jede Entscheidung alle neu befehlen |
+| **Ungeduld:** Halten verliert pro Minute 0,6 Punkte. Gefunden per Messung: Bei gleicher Stärke kippte er durch das Rauschen auf Halten, die Hysterese hielt ihn dort, und beide Linien standen für immer 12 m auseinander (3 von 12 Schlachten nach 180 s unentschieden) | Säule 2: die Armee darf nie dumm werden. Test: `Company_EverySeed_IsDecided_NobodyStandsAndStares` | Höherer Grundwert für Angriff (hätte auch die schwächere Seite angreifen lassen) |
+| Scores: F3 in der Kompanie (`CommanderPanel`, Action-Map `CommanderDebug`), Taktik zusätzlich im F1-Menü und auf dem Ergebnisbildschirm. Die Sandbox hat noch keinen Kommandanten, das kommt mit dem 50-gegen-50-Szenario (Task 6) | Der Kommandant lebt in der Kompanie; die Anzeige gehört dorthin, wo man ihn trifft | – |
+
+Gemessen (12 Seeds, Stufe 3, Held tut nichts): ohne Kommandant gewinnt der Spieler 9 von 12, mit Kommandant 11 von 12; die Schlachten dauern 34 bis 129 s. Erste Taktik: 5× frontal, 7× Flanke. Der Kommandant ist also abwechslungsreich, aber in dieser Aufstellung nicht stark. Ursache vermutlich die Aufstellung (dichter Schildwall gegen Linie und Keil, der Held beruhigt seine Seite), nicht geprüft; Tuning ist Tariks Sache.
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

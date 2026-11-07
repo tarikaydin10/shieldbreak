@@ -48,6 +48,10 @@
     {
       "map": "Tutorial",
       "title": "Tutorial"
+    },
+    {
+      "map": "CommanderDebug",
+      "title": "Feind-Kommandant (Debug)"
     }
   ],
   "entries": [
@@ -386,6 +390,10 @@
     {
       "action": "CommandView/CycleStance",
       "text": "Haltung der Auswahl wechseln (ohne Auswahl: alle): Stellung halten → Reagieren (greift Feinde an, die bis 10 m herankommen) → Aggressiv (bis 30 m, dann weiter zum nächsten)"
+    },
+    {
+      "action": "CommanderDebug/ToggleScores",
+      "text": "Anzeige des feindlichen Kommandanten ein oder aus: aktuelle Taktik, Scores aller Taktiken, was er vom Feld liest"
     }
   ]
 }

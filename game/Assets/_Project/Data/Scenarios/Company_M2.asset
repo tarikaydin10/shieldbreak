@@ -23,6 +23,7 @@ MonoBehaviour:
   roster: {fileID: 11400000, guid: 50d1c94144ec20f4da5d2d9a64a39b87, type: 2}
   formation: {fileID: 11400000, guid: 3e7842487fbf4f639292949532d67ba7, type: 2}
   morale: {fileID: 11400000, guid: 5b1b1f6f611648b899c8fd3d3241bf82, type: 2}
+  commander: {fileID: 11400000, guid: bd3de31d08fa4c728b81128ab473dc1f, type: 2}
   heroPosition: {x: 48, y: 30}
   heroFacesTowards: {x: 48, y: 70}
   heroLoadout: 0000000001000000
