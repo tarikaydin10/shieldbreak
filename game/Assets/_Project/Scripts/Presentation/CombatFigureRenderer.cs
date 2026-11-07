@@ -55,7 +55,7 @@ namespace Shieldbreak.Presentation
 
         class Figure
         {
-            public Transform root, body, helmet, shield, upperR, foreR, upperL, foreL, weapon, weapon2;
+            public Transform root, body, helmet, shield, upperR, foreR, upperL, foreL, weapon, weapon2, weapon3;
             public float shieldT, flinch, deadTime = -1f;
             /// <summary>Local axis the body falls around (away from the killer) and how sideways that fall is.</summary>
             public Vector3 fallAxis = Vector3.back;
@@ -110,6 +110,7 @@ namespace Shieldbreak.Presentation
             f.foreL = Part(f.root, "ForearmL", visual.forearms[team]);
             f.weapon = Part(f.root, "Weapon", visual.oneHandWeapon);
             f.weapon2 = Part(f.root, "TwoHandWeapon", visual.twoHandWeapon);
+            f.weapon3 = Part(f.root, "Polearm", visual.polearmWeapon);
             return f;
         }
 
@@ -206,7 +207,8 @@ namespace Shieldbreak.Presentation
                 bool switching = hasCombat && c.State == CombatState.Switching;
                 float switchT = switching ? Mathf.Clamp01((c.StateTick - 1 + runner.Alpha) / setup.Tuning.WeaponSwitchTicks) : 1f;
                 int shownWeapon = switching && switchT < 0.5f ? c.PreviousWeaponId : c.WeaponId;
-                bool twoHand = hasCombat && setup.Weapons[shownWeapon].Archetype == WeaponArchetype.TwoHand;
+                bool polearm = hasCombat && setup.Weapons[shownWeapon].Archetype == WeaponArchetype.Polearm;
+                bool twoHand = polearm || (hasCombat && setup.Weapons[shownWeapon].Archetype == WeaponArchetype.TwoHand);
                 bool carriesShield = !hasCombat || LoadoutHasShield(c, setup);
 
                 // Weapon pose from the sim's attack table (guard pose when not attacking)
@@ -296,8 +298,9 @@ namespace Shieldbreak.Presentation
                 Vector3 bladeWorld = bodyToWorld.MultiplyVector((Vector3)blade).normalized;
                 Vector3 right = f.root.right;
                 f.weapon.gameObject.SetActive(!twoHand);
-                f.weapon2.gameObject.SetActive(twoHand);
-                PlaceWeapon(twoHand ? f.weapon2 : f.weapon, twoHand ? visual.twoHandWeapon : visual.oneHandWeapon, handWorld, bladeWorld, right);
+                f.weapon2.gameObject.SetActive(twoHand && !polearm);
+                f.weapon3.gameObject.SetActive(polearm);
+                PlaceWeapon(polearm ? f.weapon3 : twoHand ? f.weapon2 : f.weapon, polearm ? visual.polearmWeapon : twoHand ? visual.twoHandWeapon : visual.oneHandWeapon, handWorld, bladeWorld, right);
                 Vector3 shoulderR = bodyToWorld.MultiplyPoint3x4(rightShoulder);
                 Vector3 elbowR = SolveElbow(shoulderR, handWorld, upperArmLength, forearmLength, bodyToWorld.MultiplyVector(rightElbowHint));
                 PlaceLimb(f.upperR, shoulderR, elbowR);

@@ -48,6 +48,8 @@ namespace Shieldbreak.Data
                     PointFactor = def.pointFactor,
                     BlockArcDeg = def.blockArcDeg,
                     BlockPressure = def.blockPressure,
+                    BlockCost = def.blockCost,
+                    EngageBonus = def.engageBonus,
                     FirstAttack = attackIndex,
                     ProjectileSpeed = def.projectileSpeed,
                     ProjectileGravity = def.projectileGravity,

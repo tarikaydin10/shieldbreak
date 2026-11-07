@@ -453,6 +453,19 @@ Anlass: Ohne einen Befehl gewann die Spielerseite 100 gegen 100 in 7 von 8 Läuf
 | Bäume sind vorerst Kegel aus `GroundField`, per Instancing und in Palettenfarben. Dichte 6 % der Waldzellen | Task 9 bringt Modelle aus der Pipeline; bis dahin muss man den Wald sehen. Die Dichte hält Soldaten aus der Kommandoansicht erkennbar | Unsichtbarer Wald bis Task 9 |
 | Hauptmenü: Eine Seite „Schlacht wählen“ statt je eines Knopfes | Bei 720p reichte der Platz nicht mehr, Task 8 bringt weitere Karten | – |
 
+## 2026-11-07 — M4 Task 5: Speer
+
+Anlass (Tarik): Fragt nach Pferden, Städten, Quests und Wirtschaft und will weiter. Reihenfolge bleibt: Speer, Reiterei, Karten, Modelle, dann M4b. Der Speer steht vorn, weil die Infanterie sonst nichts gegen Pferde hätte.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Archetyp `Polearm` auf derselben Grammatik: Stich (auch für die Richtung Oben), Hieb links und rechts, Special Rundumschlag als gewöhnlicher Angriff mit bis zu 4 Zielen (mehr fasst die Trefferliste nicht). Griff bei 95 cm vom Ende, 1,35 m Klinge vor der Hand, wie im Modell | Die Grammatik trägt ohne Änderung: kein neuer Resolver, `ThrustTrace` ist hier eine `SwingTrace` mit geradem Weg. Das Modell `WPN_spear_basic` lag seit M0 bereit | Eigener Resolver für Stiche |
+| Zwei neue Werte im `WeaponDefinition`: `blockCost` (1,6) macht den Speer zum schwachen Schild, `engageBonus` (0,7 m) lässt Bots aus größerem Abstand kämpfen | Die Reichweite nützt nur, wenn Bots sie auch nutzen; der schwache Block gehört laut 3.5 zur Waffe | Reichweite pro Bot-Stufe |
+| Speere haben keine Schilde und stehen in den großen Schlachten als rechte Linie, auf beiden Seiten. Der Held trägt einen Speer im dritten Slot | Sichtbar und spielbar, ohne neue Szenarien. Die Stärke im Vergleich zum Schwert ist noch nicht austariert | Eigenes Szenario |
+| Brace erst mit der Reiterei | Es wirkt nur gegen herankommende Reiter und lässt sich vorher nicht testen | Brace jetzt ohne Gegner |
+
+Gemessen: Ein Stich auf 1,8 m hat 689 J und macht 56 Schaden, ein Stich gegen einen Block kostet mit dem Speer 37 Ausdauer statt 23 mit dem Zweihänder.
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

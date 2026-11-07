@@ -15,6 +15,8 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         public const int TwoHand = 1;
         /// <summary>Shoots: windup = draw, release = loose, recovery = nock the next arrow. Cannot block; the side arm is for melee.</summary>
         public const int Bow = 2;
+        /// <summary>Long reach, a weak block; special: sweep (strikes everyone in the arc). Brace against cavalry comes with the cavalry.</summary>
+        public const int Polearm = 3;
     }
 
     /// <summary>How an attack finds its targets (CLAUDE.md 3.5, Schicht B).</summary>
@@ -41,6 +43,10 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         public float BlockArcDeg;
         /// <summary>Multiplier on the stamina a blocker loses against this weapon (two-handers press harder).</summary>
         public float BlockPressure;
+        /// <summary>Multiplier on the stamina the wielder loses when blocking with this weapon (a pole is a poor shield).</summary>
+        public float BlockCost;
+        /// <summary>A bot fights from this much further away than with a sword (m).</summary>
+        public float EngageBonus;
         /// <summary>Index of the first of four AttackData entries (Overhead, Left, Right, Thrust), followed by the special attack for archetypes that have one.</summary>
         public int FirstAttack;
         /// <summary>Bow: speed of the arrow across the ground (m/s).</summary>
@@ -54,7 +60,7 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         /// <summary>Bow: an enemy closer than this (m) makes a bot draw its side arm.</summary>
         public float MinRange;
 
-        public bool HasSpecialAttack => Archetype == WeaponArchetype.TwoHand;
+        public bool HasSpecialAttack => Archetype == WeaponArchetype.TwoHand || Archetype == WeaponArchetype.Polearm;
         public bool IsRanged => Archetype == WeaponArchetype.Bow;
 
         /// <summary>Attack table index for a direction; AttackDirection.Special maps to the special attack if the archetype has one.</summary>

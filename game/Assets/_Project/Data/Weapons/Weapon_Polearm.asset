@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 257911d03888eaccb4b11d544ad53766, type: 3}
+  m_Name: Weapon_Polearm
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.WeaponDefinition
+  archetype: 3
+  displayName: Speer
+  mass: 2.2
+  edgeFactor: 0.6
+  pointFactor: 3.5
+  blockArcDeg: 90
+  blockPressure: 1
+  blockCost: 1.6
+  engageBonus: 0.7
+  attacks:
+  - {fileID: 11400000, guid: 51446a128a8056b28c46099a4f6d415e, type: 2}
+  - {fileID: 11400000, guid: b492033f763c9099e11bdb99df932a71, type: 2}
+  - {fileID: 11400000, guid: 861d2a6edd83f88739b176ccbb63eb65, type: 2}
+  - {fileID: 11400000, guid: 51446a128a8056b28c46099a4f6d415e, type: 2}
+  specialAttack: {fileID: 11400000, guid: cc4a5a861c5d48b979e4bda2dcc37834, type: 2}

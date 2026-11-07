@@ -49,6 +49,8 @@ namespace Shieldbreak.Data
         public Part oneHandWeapon = new Part();
         [Tooltip("Two-hand weapon drawn in both hands (grip centre at the origin, blade along +Y).")]
         public Part twoHandWeapon = new Part();
+        [Tooltip("Spear: held like a two-hand weapon, pivot on the grip.")]
+        public Part polearmWeapon = new Part();
         [Tooltip("The off hand holds a two-hand grip this far below the main hand (m).")]
         [Min(0f)] public float twoHandGripSpacing = 0.15f;
         [Tooltip("Two-hand block: main hand and blade direction in the soldier frame (weapon across the body).")]

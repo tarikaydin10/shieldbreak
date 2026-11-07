@@ -1,6 +1,7 @@
 using Unity.Mathematics;
 using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat;
+using Shieldbreak.Sim.Combat.Archetypes;
 using Shieldbreak.Sim.Combat.Context;
 using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
@@ -98,16 +99,17 @@ namespace Shieldbreak.Sim.AI
 
             // Keep engage distance (further back while waiting for a token), face the enemy, sprint to close in
             // In formation the bot steps out of its slot at most the leash and does not sprint
-            float keep = tokenFree ? p.EngageRange : p.EngageRange + rules.WaitingDistance;
+            float engage = p.EngageRange + job.Weapon(c).EngageBonus;
+            float keep = tokenFree ? engage : engage + rules.WaitingDistance;
             me.FaceAgent = c.BotTarget;
             me.Target = FormationCombatRules.Leashed(ctx, formationRules, enemy.Position - dir * keep);
             job.SetAgent(i, me);
-            c.Sprinting = FormationCombatRules.AllowsSprint(ctx) && c.State == CombatState.Idle && c.BlockHeld == 0 && dist > p.EngageRange + 3f ? 1 : 0;
+            c.Sprinting = FormationCombatRules.AllowsSprint(ctx) && c.State == CombatState.Idle && c.BlockHeld == 0 && dist > engage + 3f ? 1 : 0;
 
             // Threat: the enemy swings at us (faces us, close enough; a lunging attack reaches further)
             var enemyAttack = job.Attack(ec);
             bool threat = (ec.State == CombatState.Windup || ec.State == CombatState.Release) &&
-                          math.dot(enemy.Facing, -dir) > 0.5f && dist < p.EngageRange + 1.2f + enemyAttack.LungeDistance;
+                          math.dot(enemy.Facing, -dir) > 0.5f && dist < p.EngageRange + 1.2f + job.Weapon(ec).EngageBonus + enemyAttack.LungeDistance;
             if (threat)
             {
                 int start = tick - ec.StateTick;
@@ -160,16 +162,17 @@ namespace Shieldbreak.Sim.AI
                 c.BotNextDecisionTick = tick + p.DecisionIntervalTicks;
                 var weapon = job.Weapon(c);
                 // Two-hand leap: from just outside the engage range the lunge closes the gap and adds to the blow
-                bool leapBand = weapon.HasSpecialAttack && dist > p.EngageRange + 0.35f && dist <= p.EngageRange + 1.3f;
+                bool leapBand = weapon.Archetype == WeaponArchetype.TwoHand && dist > engage + 0.35f && dist <= engage + 1.3f;
                 if (c.State == CombatState.Idle && !threat && tokenFree && leapBand && rng.NextFloat() < p.SpecialChance)
                 {
                     if (CombatSystem.TrySpecial(ref c, tick, weapon, rules, job.EventList, i)) job.ClaimAttackToken(c.BotTarget);
                 }
-                else if (c.State == CombatState.Idle && !threat && tokenFree && dist <= p.EngageRange + 0.35f)
+                else if (c.State == CombatState.Idle && !threat && tokenFree && dist <= engage + 0.35f)
                 {
                     // A raised enemy block invites the special (shield bash breaks it, the leap presses it); otherwise
-                    // attack, more often into an opening
-                    if (ec.BlockHeld == 1 && dist <= rules.SpecialRange + 0.4f && rng.NextFloat() < p.SpecialChance)
+                    // attack, more often into an opening. A spear has no need of a raised block: its sweep clears the arc
+                    bool specialFits = weapon.Archetype == WeaponArchetype.Polearm || (ec.BlockHeld == 1 && dist <= rules.SpecialRange + 0.4f);
+                    if (specialFits && rng.NextFloat() < p.SpecialChance)
                     {
                         if (CombatSystem.TrySpecial(ref c, tick, weapon, rules, job.EventList, i) && c.State == CombatState.Windup) job.ClaimAttackToken(c.BotTarget);
                     }

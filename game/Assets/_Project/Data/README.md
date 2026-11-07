@@ -5,6 +5,7 @@ Tunebare Werte als ScriptableObject-Assets. Im Inspector ändern, Play drücken;
 | Ordner | Assets |
 |---|---|
 | `Agents/` | `AgentMovement_Default` |
+| `Weapons/`, `Attacks/` | Auch `Weapon_Polearm` und `Polearm_*` (Stich, Hieb, Rundumschlag) |
 | `Scenarios/` | `Duel_M1`, `Company_M2`, `Battle_50v50`, `Battle_100v100`, `Battle_Hill` (mit Hügeln), `Battle_Forest` (Wald und Sumpf), `Sandbox_20v20`, `Stress_250v250` |
 | `Attacks/` | `OneHand_Overhead/Left/Right/Thrust`, `TwoHand_Overhead/Left/Right/Thrust/Leap`, `Bow_Shot`, `Attack_OneHand_Overhead` (Hieb-Prototyp) |
 | `Weapons/` | `Weapon_OneHandShield`, `Weapon_TwoHand`, `Weapon_Bow` |

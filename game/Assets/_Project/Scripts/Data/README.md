@@ -10,7 +10,7 @@ ScriptableObject-Klassen. Jede wandelt ihre Werte in einen Sim-Struct um, damit 
 | `CommanderDefinition` | `CommanderSettings` | Feind-Kommandant: Denkintervall, Mindestdauer, Hysterese, Rauschen, Flanke erlaubt, Gewichte aller Taktiken, Ungeduld, Prognose (Wert von Held und Stufe, Moral, Flanke, Tötungsrate); Schwierigkeit nur über diese Werte, nie über Stats |
 | `MoraleDefinition` | `MoraleSettings` | Panik-Feld (Diffusion, Abklingen), Quellen und Senken (Tote, Flankentreffer, Kills, Fliehende, Held), Moral pro Soldat (Verlust, Formation dämpft, Erholung, Rout-Schwelle, hoffnungslose Unterzahl), Flucht |
 | `AttackDefinition` | `AttackData` + Keys | Klinge oder Pfeil, Phasen in ms, Waffenbahn-Keyframes, Klinge, Ziele pro Hieb, Ausfallschritt; Startwerte Einhand, Zweihand, Sprung-Hieb |
-| `WeaponDefinition` | `WeaponData` | Archetyp, Masse, Schneide/Spitze, Blockbogen, 4 Angriffe + Spezial-Angriff; Bogen: Pfeiltempo, Fall, Reichweite, Abstand für die Zweitwaffe |
+| `WeaponDefinition` | `WeaponData` | Archetyp, Masse, Schneide/Spitze, Blockbogen, Blockkosten, Kampfabstand der Bots, 4 Angriffe + Spezial-Angriff; Bogen: Pfeiltempo, Fall, Reichweite, Abstand für die Zweitwaffe |
 | `CombatTuningDefinition` | `CombatTuning` | Lebenspunkte, Stamina, Zeitfenster, Tödlichkeit (Feel-Preset) |
 | `BotRosterDefinition` | `BotProfile[]` | Bot-Stufen L1–L5, auch der Zielfehler |
 | `CombatDatabase` | `CombatSetup` | baut alle Kampf-Tabellen aus den obigen |

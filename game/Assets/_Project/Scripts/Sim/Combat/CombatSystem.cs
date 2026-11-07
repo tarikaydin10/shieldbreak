@@ -719,7 +719,7 @@ namespace Shieldbreak.Sim.Combat
                 float arc = Weapons[target.WeaponId].BlockArcDeg;
                 if (target.BlockHeld == 1 && target.State == CombatState.Idle && math.dot(toArcher, targetAgent.Facing) >= math.cos(math.radians(arc * 0.5f)))
                 {
-                    target.Stamina -= effective * Tuning.BlockStaminaPerJoule * weapon.BlockPressure;
+                    target.Stamina -= effective * Tuning.BlockStaminaPerJoule * weapon.BlockPressure * Weapons[target.WeaponId].BlockCost;
                     target.LastStaminaUseTick = Tick;
                     if (target.Stamina <= 0f)
                     {
@@ -776,7 +776,7 @@ namespace Shieldbreak.Sim.Combat
                             attacker.Knockback += Push(j, i, effective * Tuning.KnockbackPerJoule * Tuning.BlockKnockbackScale);
                             return true;
                         }
-                        target.Stamina -= effective * Tuning.BlockStaminaPerJoule * weapon.BlockPressure;
+                        target.Stamina -= effective * Tuning.BlockStaminaPerJoule * weapon.BlockPressure * Weapons[target.WeaponId].BlockCost;
                         target.LastStaminaUseTick = Tick;
                         target.Knockback += Push(i, j, effective * Tuning.KnockbackPerJoule * Tuning.BlockKnockbackScale);
                         if (target.Stamina <= 0f)

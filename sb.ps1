@@ -3,7 +3,7 @@
 #   .\sb.ps1            zeigt diese Hilfe                       (Mac: ./sb.ps1 ...)
 #   .\sb.ps1 play       Spiel starten (baut vorher, falls kein Build da ist)
 #   .\sb.ps1 build      spielbaren Build erzeugen (Windows: builds\M1-duel\SHIELDBREAK.exe, Mac: builds/M1-duel/SHIELDBREAK.app)
-#   .\sb.ps1 test       alle Tests (262, inkl. Determinismus); Unity darf offen bleiben
+#   .\sb.ps1 test       alle Tests (269, inkl. Determinismus); Unity darf offen bleiben
 #   .\sb.ps1 assets     Low-Poly-Modelle aus art/specs neu bauen und prüfen (assetforge, Submodul tools/assetgen)
 #   .\sb.ps1 setup      einmalig nach dem Klonen: Submodul, Werkzeuge, Unity-Pakete
 # Die Skripte in tools\ sind die Innereien; du brauchst sie nicht direkt.

@@ -17,7 +17,7 @@ namespace Shieldbreak.Tests
     /// </summary>
     static class TestCombat
     {
-        public const int OneHand = 0, TwoHand = 1;
+        public const int OneHand = 0, TwoHand = 1, Polearm = 2;
 
         public static CombatSetup Setup(Action<CombatTuningDefinition> tune = null)
         {
@@ -60,9 +60,23 @@ namespace Shieldbreak.Tests
             twoHand.specialAttack.ApplyLeapDefaults();
             created.Add(twoHand.specialAttack);
 
+            var polearm = ScriptableObject.CreateInstance<WeaponDefinition>();
+            created.Add(polearm);
+            polearm.ApplyPolearmDefaults();
+            for (int d = 0; d < AttackDirection.Count; d++)
+            {
+                var attack = ScriptableObject.CreateInstance<AttackDefinition>();
+                attack.ApplyPolearmDefaults(d);
+                polearm.attacks[d] = attack;
+                created.Add(attack);
+            }
+            polearm.specialAttack = ScriptableObject.CreateInstance<AttackDefinition>();
+            polearm.specialAttack.ApplySweepDefaults();
+            created.Add(polearm.specialAttack);
+
             tuning = ScriptableObject.CreateInstance<CombatTuningDefinition>();
             created.Add(tuning);
-            return new[] { oneHand, twoHand };
+            return new[] { oneHand, twoHand, polearm };
         }
 
         public static SimWorld World(CombatSetup setup, int maxAgents, int size = 32, ulong seed = 1) =>

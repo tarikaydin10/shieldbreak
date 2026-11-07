@@ -42,6 +42,7 @@ Dead
 |---|---|---|---|
 | Einhand + Schild | Schild, 120° | Schildstoß: bricht jeden Block, sonst Taumeln | schnell, gut geschützt |
 | Zweihand | Waffe, 90° | Sprung-Hieb: Ausfallschritt 1,4 m, Körpertempo geht in die Energie | trifft härter, Block kostet den Gegner 2,5× Stamina, lange Erholung |
+| Stangenwaffe | Waffe, 90°, kostet beim Blocken 1,6-mal so viel Ausdauer | Rundumschlag: bis 4 Ziele im Bogen, lange Erholung | Reichweite: Bots kämpfen 0,7 m weiter weg; Stich und Hieb, kein Schild |
 
 Der Held trägt ein Loadout (bis 4 Slots, Tasten 1–4). Ein gezogener Zweihänder hängt den Schild auf den Rücken.
 

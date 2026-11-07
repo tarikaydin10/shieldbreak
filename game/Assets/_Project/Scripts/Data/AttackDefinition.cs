@@ -172,6 +172,67 @@ namespace Shieldbreak.Data
             lungeEndPose = 0.62f;
         }
 
+        void Polearm(float windup, float release, float recovery, float recoveryStart, int targets, Key[] path)
+        {
+            windupMs = windup;
+            releaseMs = release;
+            recoveryMs = recovery;
+            releaseStartPose = 0.55f;
+            recoveryStartPose = recoveryStart;
+            bladeLength = 1.35f;
+            socketCount = 4;
+            maxTargets = targets;
+            lungeDistance = 0f;
+            keys = path;
+        }
+
+        /// <summary>
+        /// Spear: a thrust that goes for the reach (overhead and thrust are the same thing here) and a wide cut to each side.
+        /// Grip at 95 cm from the butt, so 1.35 m of the 2.3 m spear lie ahead of the hand.
+        /// </summary>
+        public void ApplyPolearmDefaults(int direction)
+        {
+            if (direction == AttackDirection.Left)
+                Polearm(420f, 160f, 350f, 0.75f, 2, new[]
+            {
+                K(0f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.InOut, 2.5f),
+                K(0.55f, new Vector3(-0.3f, 1.35f, 0.1f), new Vector3(-0.95f, 0.2f, -0.25f), Ease.InOut, 2f),
+                K(0.7f, new Vector3(-0.05f, 1.3f, 0.4f), new Vector3(0.2f, 0.05f, 0.98f), Ease.Out, 2f),
+                K(0.85f, new Vector3(0.2f, 1.3f, 0.3f), new Vector3(0.95f, 0f, 0.3f), Ease.InOut, 2f),
+                K(1f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.Linear, 1f),
+            });
+            else if (direction == AttackDirection.Right)
+                Polearm(420f, 160f, 350f, 0.75f, 2, new[]
+            {
+                K(0f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.InOut, 2.5f),
+                K(0.55f, new Vector3(0.3f, 1.35f, 0.1f), new Vector3(0.95f, 0.2f, -0.25f), Ease.InOut, 2f),
+                K(0.7f, new Vector3(0.05f, 1.3f, 0.4f), new Vector3(-0.2f, 0.05f, 0.98f), Ease.Out, 2f),
+                K(0.85f, new Vector3(-0.2f, 1.3f, 0.3f), new Vector3(-0.95f, 0f, 0.3f), Ease.InOut, 2f),
+                K(1f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.Linear, 1f),
+            });
+            else
+                Polearm(380f, 130f, 300f, 0.75f, 1, new[]
+            {
+                K(0f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.InOut, 2.5f),
+                K(0.55f, new Vector3(0.18f, 1.2f, -0.25f), new Vector3(0f, 0.05f, 1f), Ease.InOut, 2f),
+                K(0.7f, new Vector3(0.12f, 1.3f, 0.55f), new Vector3(0f, 0f, 1f), Ease.Out, 2f),
+                K(0.85f, new Vector3(0.12f, 1.3f, 0.7f), new Vector3(0f, 0f, 1f), Ease.InOut, 2f),
+                K(1f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.Linear, 1f),
+            });
+        }
+
+        /// <summary>Spear special: the sweep, from behind the right shoulder round the whole front. Slow, and it leaves the wielder open.</summary>
+        public void ApplySweepDefaults() =>
+            Polearm(480f, 230f, 650f, 0.82f, 4, new[]
+            {
+                K(0f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.InOut, 2.5f),
+                K(0.55f, new Vector3(0.28f, 1.3f, -0.1f), new Vector3(0.75f, 0.1f, -0.65f), Ease.InOut, 2f),
+                K(0.64f, new Vector3(0.2f, 1.3f, 0.25f), new Vector3(0.95f, 0.05f, 0.3f), Ease.Linear, 1f),
+                K(0.72f, new Vector3(0f, 1.3f, 0.35f), new Vector3(0f, 0.05f, 1f), Ease.Linear, 1f),
+                K(0.82f, new Vector3(-0.2f, 1.3f, 0.25f), new Vector3(-0.95f, 0.05f, 0.3f), Ease.InOut, 2f),
+                K(1f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.Linear, 1f),
+            });
+
         public AttackData ToAttackData(int firstKey) => new AttackData
         {
             Timing = ToTiming(),
