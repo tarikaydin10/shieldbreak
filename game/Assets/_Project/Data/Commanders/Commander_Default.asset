@@ -17,9 +17,10 @@ MonoBehaviour:
   hysteresis: 0.15
   scoreNoise: 0.1
   allowFlank: 1
-  holdBase: 0.4
+  holdBase: 0.35
   holdPerAdvantage: 0.6
   holdImpatiencePerMinute: 0.6
+  contactDistance: 6
   frontalBase: 0.5
   frontalPerAdvantage: 0.5
   frontalPerMorale: 0.5
@@ -34,3 +35,8 @@ MonoBehaviour:
   retreatPerWeakness: 4
   retreatMorale: 0.35
   retreatPerPanic: 3
+  heroStrength: 4
+  strengthPerLevel: 1.3
+  moraleWeight: 0.5
+  flankShare: 0.5
+  killRate: 0.06

@@ -7,7 +7,8 @@ Die deterministische Simulation. Gleicher Seed und gleiche Eingaben ergeben auf 
 - kein `UnityEngine`, `Mathf`, `Time`, `System.Random`, `DateTime`; nur `Unity.Mathematics`
 - Zufall nur über `SimRandom`, Zeit nur über `SimWorld.Tick` und `SimConstants.DT` (60 Hz)
 - jede Eingabe als `InputCommand` über die `InputQueue`, auch im Singleplayer
-- Zustand in Structs ohne Padding (wird roh gehasht), Burst-Jobs mit `FloatMode.Deterministic`
+- Zustand in Structs ohne Padding (wird roh gehasht), Burst-Jobs mit `FloatMode.Deterministic` und `CompileSynchronously = true` (nie Mono und Burst im selben Lauf)
+- keine feste Zugreihenfolge, die eine Seite bevorzugt: `CombatSystem` wechselt die Richtung jeden Tick, Bots lesen einander aus dem Schnappschuss `Seen`
 
 ## Ein Tick (`SimWorld.Step`)
 
@@ -28,7 +29,7 @@ Ohne Unity prüfen: `tools/simcheck/run.sh` (siehe [README](../../../../../tools
 | `Grid/` | `WorldGrid` (Kosten pro 1-m-Zelle, 255 = gesperrt, `Version` bei jeder Änderung; Panik pro Team und Zelle), `SpatialHash` (Nachbarsuche per Counting-Sort) |
 | `Agents/` | `AgentData`, `AgentSystem` (Bewegung als Burst-Jobs) |
 | [Combat/](Combat/README.md) | Kampf-Grammatik, Waffen, Treffererkennung, Kampf in Formation (`Context/`) |
-| `AI/` | `BotBrain`: Nahkampf-Bots auf derselben Grammatik wie der Spieler; `CommanderUtility` (lesen, bewerten, entscheiden; rein und testbar), `CommanderSystem` (Burst-Job, dann Befehle als Besitzer der Formationen) |
+| `AI/` | `BotBrain`: Nahkampf-Bots auf derselben Grammatik wie der Spieler; `CommanderUtility` (lesen, bewerten, entscheiden; rein und testbar), `CommanderSystem` (Burst-Job, dann Befehle als Besitzer der Formationen), `Lanchester` (Prognose Nahkampf nach dem linearen Gesetz) |
 | `Formations/` | `FormationData` (mit Verhalten und Haltung), `SlotGenerator` (5 Typen), `SlotAssignment` (Ungarische Methode, exakt), `FormationSystem` (Haltung: eine haltende, angekommene Formation rückt von selbst gegen nahe Feinde vor, `FormationStance`; Bedrohungen: `FaceThreat` dreht die Front zu Feinden in Flanke oder Rücken) |
 | `Orders/` | `FormationOrder`: die eine Befehls-API für Spieler (über `InputQueue`) und Commander-AI (direkt): Bewegen/Ausrichten, Form, Breite, Verhalten (Vorrücken und Angriff wahlweise gegen eine bestimmte feindliche Formation); `FormationLinePlanner`: Frontlinie oder Zielpunkt → Befehle für mehrere Formationen nebeneinander; `QuickOrders`: Schnellbefehle ohne Kartenpunkt (Radialmenü) und welche Formationen ein Spieler befehligt |
 | `Nav/` | `GridAStar`: A* für Formationsanker, ganzzahlige Kosten, Abstandsfeld zu Hindernissen (breite Fronten meiden enge Lücken), Glätten zu wenigen Wegpunkten |

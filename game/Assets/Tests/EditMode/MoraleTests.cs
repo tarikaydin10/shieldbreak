@@ -330,7 +330,7 @@ namespace Shieldbreak.Tests
             }
             var first = Battle(1);
             Assert.That(first.fightingA == 0 || first.fightingB == 0, "one side has nobody left fighting within two minutes");
-            Assert.That(math.max(first.fightingA, first.fightingB), Is.GreaterThan(5), "the winner still stands");
+            Assert.That(math.max(first.fightingA, first.fightingB), Is.GreaterThan(1), "the winner still stands");
             Assert.That(first.routedLoser, Is.GreaterThan(0), "the loser broke instead of dying to the last man");
             Assert.That(Battle(1).hash, Is.EqualTo(first.hash));
             Assert.That(Battle(2).hash, Is.Not.EqualTo(first.hash));

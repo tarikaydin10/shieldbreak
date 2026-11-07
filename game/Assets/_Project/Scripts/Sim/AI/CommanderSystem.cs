@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Shieldbreak.Sim.Agents;
+using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
 using Shieldbreak.Sim.Formations;
 using Shieldbreak.Sim.Morale;
@@ -51,7 +52,7 @@ namespace Shieldbreak.Sim.AI
             };
         }
 
-        public void Step(int tick, NativeArray<AgentData> agents, NativeArray<MoraleData> morale, int agentCount)
+        public void Step(int tick, NativeArray<AgentData> agents, NativeArray<MoraleData> morale, NativeArray<CombatData> combat, int agentCount)
         {
             if (count == 0) return;
             new DecideJob
@@ -65,6 +66,7 @@ namespace Shieldbreak.Sim.AI
                 Commanders = commanders,
                 Agents = agents,
                 Morale = morale,
+                Combat = combat,
                 Formations = formations.FormationBuffer,
             }.Schedule().Complete();
 
@@ -164,7 +166,7 @@ namespace Shieldbreak.Sim.AI
             if (commanders.IsCreated) commanders.Dispose();
         }
 
-        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
         struct DecideJob : IJob
         {
             public int Tick, Count, AgentCount, FormationCount;
@@ -173,6 +175,7 @@ namespace Shieldbreak.Sim.AI
             public NativeArray<CommanderState> Commanders;
             [ReadOnly] public NativeArray<AgentData> Agents;
             [ReadOnly] public NativeArray<MoraleData> Morale;
+            [ReadOnly] public NativeArray<CombatData> Combat;
             [ReadOnly] public NativeArray<FormationData> Formations;
 
             public void Execute()
@@ -182,12 +185,13 @@ namespace Shieldbreak.Sim.AI
                     var state = Commanders[c];
                     if (Tick < state.NextDecisionTick) continue;
                     state.NextDecisionTick = Tick + Settings.DecisionIntervalTicks;
-                    state.Features = CommanderUtility.Read(state.Team, state.Owner, Agents, Morale, AgentCount, Formations, FormationCount, FormationSettings);
+                    state.Features = CommanderUtility.Read(state.Team, state.Owner, Agents, Morale, Combat, AgentCount, Formations, FormationCount, FormationSettings, Settings);
                     if (state.Features.OwnFighters > 0 && state.Features.EnemyFighters > 0)
                     {
                         var rng = new SimRandom { State = state.Rng };
-                        int holding = state.Tactic == CommanderTactic.Hold && state.AppliedTactic >= 0 ? Tick - state.TacticTick : 0;
-                        state.Scores = CommanderUtility.Score(state.Features, Settings, holding);
+                        bool attacking = state.Tactic != CommanderTactic.Hold && state.Tactic != CommanderTactic.Retreat;
+                        if (attacking && state.Features.Distance < Settings.ContactDistance) state.LastFightTick = Tick;
+                        state.Scores = CommanderUtility.Score(state.Features, Settings, Tick - state.LastFightTick, state.Tactic);
                         // The first decision is free: there is no plan yet to stick to
                         var rules = Settings;
                         if (state.AppliedTactic < 0) rules.Hysteresis = rules.MinTacticTicks = 0;
@@ -197,6 +201,7 @@ namespace Shieldbreak.Sim.AI
                         {
                             state.Tactic = chosen;
                             state.TacticTick = Tick;
+                            state.TacticChanges++;
                         }
                         state.Execute = 1;
                     }

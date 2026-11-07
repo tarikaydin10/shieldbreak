@@ -746,7 +746,7 @@ namespace Shieldbreak.Sim.Formations
             return math.clamp(p, layout.Origin + inset, layout.Origin + new float2(layout.Width, layout.Height) * SimConstants.CellSize - inset);
         }
 
-        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
         struct PathJob : IJob
         {
             public GridAStar AStar;
@@ -767,7 +767,7 @@ namespace Shieldbreak.Sim.Formations
             }
         }
 
-        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
         struct ReformJob : IJob
         {
             public int Count;

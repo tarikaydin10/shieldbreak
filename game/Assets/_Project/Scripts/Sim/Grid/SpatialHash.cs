@@ -86,7 +86,7 @@ namespace Shieldbreak.Sim.Grid
             if (AgentCell.IsCreated) AgentCell.Dispose();
         }
 
-        [BurstCompile]
+        [BurstCompile(CompileSynchronously = true)]
         struct BuildJob : IJob
         {
             public GridLayout Layout;

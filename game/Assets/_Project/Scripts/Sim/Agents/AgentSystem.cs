@@ -52,7 +52,7 @@ namespace Shieldbreak.Sim.Agents
             return math.normalizesafe(new float2(from.x * c - from.y * s, from.x * s + from.y * c), to);
         }
 
-        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
         struct GatherPositionsJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<AgentData> Agents;
@@ -61,7 +61,7 @@ namespace Shieldbreak.Sim.Agents
             public void Execute(int i) => Positions[i] = Agents[i].Position;
         }
 
-        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
         struct SteeringJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<AgentData> Agents;
@@ -172,7 +172,7 @@ namespace Shieldbreak.Sim.Agents
             }
         }
 
-        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
         struct IntegrateJob : IJobParallelFor
         {
             public NativeArray<AgentData> Agents;

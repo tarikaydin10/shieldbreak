@@ -95,6 +95,7 @@ MonoBehaviour:
     - "Mauszeiger auf eine feindliche Formation: Sie leuchtet auf, daneben steht Rechtsklick: angreifen"
     - "Mehrmals neu starten und verschieden aufstellen: Der Feind greift nicht immer gleich an, er flankiert auch; F3 zeigt seine Taktik und warum"
     - "Stell deine Truppe breit auf oder lass eine Seite offen: Der Feind nutzt das (F3: Feind offen links, rechts) und schickt eine Formation um dich herum"
+    - "F3: Die Prognose passt zur Lage; stell dich dünner oder breiter auf und sie ändert sich, fallen Soldaten, sinkt sie"
     - "Nach einer Niederlage kannst du sagen, was du hättest anders machen müssen; der Feind hat nichts getan, was du nicht auch könntest"
     - "R in der Kommandoansicht: Die Haltung wechselt (Stellung halten, Reagieren, Aggressiv) und steht in der Beschriftung; mit Stellung halten bleibt die Formation stehen, auch wenn der Feind nahe ist"
   - id: sandbox

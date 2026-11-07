@@ -25,7 +25,7 @@ namespace Shieldbreak.Sim.Combat
     public static class CombatSystem
     {
         public static void Step(int tick, NativeArray<AgentData> agents, NativeArray<CombatData> combat, int count,
-            in SpatialHash spatial, CombatSetup setup, NativeList<CombatEvent> events, NativeArray<int> attackerScratch,
+            in SpatialHash spatial, CombatSetup setup, NativeList<CombatEvent> events, NativeArray<int> attackerScratch, NativeArray<CombatData> seenScratch,
             NativeArray<FormationData> formations, NativeArray<FormationMember> members, in FormationSettings formationSettings)
         {
             if (count == 0 || !setup.Weapons.IsCreated || setup.Weapons.Length == 0) return;
@@ -45,6 +45,7 @@ namespace Shieldbreak.Sim.Combat
                 Tuning = setup.Tuning,
                 Events = events,
                 AttackersOn = attackerScratch,
+                Seen = seenScratch,
                 Formations = formations,
                 Members = members,
                 FormationSettings = formationSettings,
@@ -210,7 +211,7 @@ namespace Shieldbreak.Sim.Combat
             stepDirection == StepDirection.Left ? new float2(-1f, 0f) :
             stepDirection == StepDirection.Right ? new float2(1f, 0f) : new float2(0f, 1f);
 
-        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
         internal struct CombatJob : IJob
         {
             public int Tick;
@@ -228,6 +229,8 @@ namespace Shieldbreak.Sim.Combat
             public NativeList<CombatEvent> Events;
             /// <summary>Bots currently swinging at each agent (attack tokens).</summary>
             public NativeArray<int> AttackersOn;
+            /// <summary>Everybody's combat state at the start of the tick: what the bots see of each other.</summary>
+            public NativeArray<CombatData> Seen;
             [ReadOnly] public NativeArray<FormationData> Formations;
             [ReadOnly] public NativeArray<FormationMember> Members;
             public FormationSettings FormationSettings;
@@ -236,6 +239,8 @@ namespace Shieldbreak.Sim.Combat
 
             public void Execute()
             {
+                NativeArray<CombatData>.Copy(Combat, Seen, Count);
+
                 // Attack tokens: count bots already swinging at each target
                 for (int i = 0; i < Count; i++) AttackersOn[i] = 0;
                 for (int i = 0; i < Count; i++)
@@ -245,8 +250,13 @@ namespace Shieldbreak.Sim.Combat
                         AttackersOn[c.BotTarget]++;
                 }
 
-                for (int i = 0; i < Count; i++)
+                // Whoever acts first in a tick strikes first. Over thousands of ticks that decides battles (measured: 11 against
+                // 6 soldiers left of the same force), so the direction alternates and no agent id has the first move for
+                // good. Bots read each other from Seen, so what they see does not depend on the direction either.
+                bool ascending = (Tick & 1) == 0;
+                for (int turn = 0; turn < Count; turn++)
                 {
+                    int i = ascending ? turn : Count - 1 - turn;
                     var c = Combat[i];
                     ApplyKnockback(i, ref c);
                     if (c.State == CombatState.Dead)
@@ -672,7 +682,8 @@ namespace Shieldbreak.Sim.Combat
             public int CurrentTick => Tick;
             public CombatTuning Rules => Tuning;
             public AgentData Agent(int i) => Agents[i];
-            public CombatData CombatOf(int i) => Combat[i];
+            /// <summary>How an agent stood at the start of the tick (for bots: all see the same moment).</summary>
+            public CombatData CombatOf(int i) => Seen[i];
             public void SetAgent(int i, AgentData a) => Agents[i] = a;
             public AttackData Attack(in CombatData c) => AttackOf(c);
             public WeaponData Weapon(in CombatData c) => Weapons[c.WeaponId];

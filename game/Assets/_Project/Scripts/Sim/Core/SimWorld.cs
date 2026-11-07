@@ -56,6 +56,7 @@ namespace Shieldbreak.Sim.Core
         /// <summary>1 while the player is in the command view and the hero's bot brain fights (HeroUnattended).</summary>
         NativeArray<int> playerUnattended;
         NativeArray<int> attackerScratch;
+        NativeArray<CombatData> seenScratch;
         // Running hash of every applied command; diverging input streams show up in the world hash
         // immediately, before they cause visible divergence.
         ulong appliedInputHash;
@@ -101,6 +102,7 @@ namespace Shieldbreak.Sim.Core
             facingScratch = new NativeArray<float2>(config.MaxAgents, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             events = new NativeList<CombatEvent>(64, Allocator.Persistent);
             attackerScratch = new NativeArray<int>(config.MaxAgents, Allocator.Persistent);
+            seenScratch = new NativeArray<CombatData>(config.MaxAgents, Allocator.Persistent);
 
             this.combatSetup = Copy(combatSetup);
             formations = new FormationSystem(config.MaxFormations, config.MaxAgents, config.Formations, config.Movement, Grid);
@@ -152,6 +154,7 @@ namespace Shieldbreak.Sim.Core
 
         /// <summary>Commanders with their tactic, scores and what they read (presentation, debug). Valid until the next Step.</summary>
         public NativeArray<CommanderState>.ReadOnly Commanders => commanders.Commanders;
+        public CommanderSettings CommanderSettings => commanders.Settings;
 
         /// <summary>Scenario setup: an AI commander takes over the formations of <paramref name="owner"/> (a player id nobody plays).</summary>
         public void AddCommander(int owner, int team) => commanders.Add(owner, team);
@@ -359,12 +362,12 @@ namespace Shieldbreak.Sim.Core
             for (int i = 0; i < tickInputs.Length; i++)
                 ApplyInput(tickInputs[i]);
 
-            commanders.Step(Tick, agents, morale.Buffer, AgentCount);
+            commanders.Step(Tick, agents, morale.Buffer, combat, AgentCount);
             formations.Step(Tick, agents, combat, AgentCount, HasCombat);
             ApplyMoveIntents();
             PostUnattendedHeroes();
             AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement, Grid.NavCost);
-            CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch,
+            CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch, seenScratch,
                 formations.FormationBuffer, formations.MemberBuffer, formations.Settings);
             morale.Step(Tick, agents, combat, AgentCount, events, spatial, playerAgent, formations.FormationBuffer, formations.MemberBuffer);
 
@@ -625,6 +628,7 @@ namespace Shieldbreak.Sim.Core
             if (playerSprint.IsCreated) playerSprint.Dispose();
             if (playerUnattended.IsCreated) playerUnattended.Dispose();
             if (attackerScratch.IsCreated) attackerScratch.Dispose();
+            if (seenScratch.IsCreated) seenScratch.Dispose();
             if (agents.IsCreated) agents.Dispose();
             if (combat.IsCreated) combat.Dispose();
             if (positionScratch.IsCreated) positionScratch.Dispose();

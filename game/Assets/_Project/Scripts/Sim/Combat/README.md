@@ -69,6 +69,6 @@ Ein dauerhaft erhobener Schild im Schildwall wurde ausprobiert und verworfen: De
 | `Archetypes/` | `WeaponData`, `AttackData`, `CombatSetup` (alle Tabellen) |
 | `Resolvers/` | `WeaponPath` (Waffenbahn aus Keyframes), `SwingTrace` (Geometrie, Durchdringung) |
 | `Context/` | `FormationCombatRules`: Leine, Frontbogen, Selbstverteidigung, Schildwall, Angriff, Rückzug, unbeaufsichtigter Held |
-| `CombatSystem.cs` | der Kampf-Job, ein Tick in Agenten-Reihenfolge |
+| `CombatSystem.cs` | der Kampf-Job, ein Tick; die Richtung wechselt jeden Tick, Bots sehen einander im Zustand vom Tick-Anfang, damit keine Agenten-ID einen Vorteil hat |
 
 Werte (Schaden, Fenster, Stamina, Bot-Stufen) kommen aus ScriptableObjects in `Scripts/Data`. Tests: `CombatTests`, `CombatVerbTests`, `TwoHandTests`, `AttackTests`, `FormationCombatTests`. Papier-Test gegen Bogen und Lanze: [docs/combat](../../../../../../docs/combat/papier-test-bogen-lanze.md).

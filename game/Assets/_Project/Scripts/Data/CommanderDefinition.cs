@@ -24,11 +24,13 @@ namespace Shieldbreak.Data
         public bool allowFlank = true;
 
         [Header("Hold")]
-        public float holdBase = 0.4f;
+        public float holdBase = 0.35f;
         [Tooltip("Taken off per unit of strength advantage (1 = twice the enemy): the weaker side prefers to stand.")]
         public float holdPerAdvantage = 0.6f;
-        [Tooltip("Taken off per minute spent holding: nobody stands opposite the enemy for ever.")]
+        [Tooltip("Taken off holding and retreating per minute since the last fight: nobody stands opposite the enemy for ever.")]
         [Min(0f)] public float holdImpatiencePerMinute = 0.6f;
+        [Tooltip("Attacking closer than this counts as a fight: it ends the impatience (m).")]
+        [Min(0f)] public float contactDistance = 6f;
 
         [Header("Frontal attack")]
         public float frontalBase = 0.5f;
@@ -51,12 +53,24 @@ namespace Shieldbreak.Data
         [Min(0f)] public float flankRetargetDistance = 4f;
 
         [Header("Retreat")]
-        [Tooltip("Below this strength ratio (own per enemy) the commander thinks of retreat.")]
+        [Tooltip("Below this forecast balance (own fighting power per enemy's) the commander thinks of retreat.")]
         [Min(0f)] public float retreatRatio = 0.5f;
         public float retreatPerWeakness = 4f;
         [Tooltip("Below this average morale (0–1) the commander thinks of retreat.")]
         [Range(0f, 1f)] public float retreatMorale = 0.35f;
         public float retreatPerPanic = 3f;
+
+        [Header("Forecast (Lanchester, melee)")]
+        [Tooltip("A hero is worth this many line soldiers (3 to 5).")]
+        [Min(0.1f)] public float heroStrength = 4f;
+        [Tooltip("What one bot level of the own soldiers is worth, as a factor (level 3 = 1). Enemy soldiers count as average.")]
+        [Min(0.1f)] public float strengthPerLevel = 1.3f;
+        [Tooltip("How much morale counts: 1 = a soldier is worth his morale, 0 = morale does not count.")]
+        [Range(0f, 1f)] public float moraleWeight = 0.5f;
+        [Tooltip("How much of a front overlapping the enemy's counts as contact.")]
+        [Range(0f, 1f)] public float flankShare = 0.5f;
+        [Tooltip("Soldiers one soldier in contact kills per second: only for the forecast duration.")]
+        [Min(0.001f)] public float killRate = 0.06f;
 
         static int Ticks(float ms) => Mathf.Max(1, Mathf.RoundToInt(ms * SimConstants.TickRate / 1000f));
 
@@ -70,6 +84,7 @@ namespace Shieldbreak.Data
             HoldBase = holdBase,
             HoldPerAdvantage = holdPerAdvantage,
             HoldImpatiencePerTick = holdImpatiencePerMinute / (60f * SimConstants.TickRate),
+            ContactDistance = contactDistance,
             FrontalBase = frontalBase,
             FrontalPerAdvantage = frontalPerAdvantage,
             FrontalPerMorale = frontalPerMorale,
@@ -84,6 +99,11 @@ namespace Shieldbreak.Data
             RetreatPerWeakness = retreatPerWeakness,
             RetreatMorale = retreatMorale,
             RetreatPerPanic = retreatPerPanic,
+            HeroStrength = heroStrength,
+            StrengthPerLevel = strengthPerLevel,
+            MoraleWeight = moraleWeight,
+            FlankShare = flankShare,
+            KillRate = killRate,
         };
     }
 }

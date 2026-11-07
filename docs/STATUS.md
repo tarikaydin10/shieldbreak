@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-07**, Meilenstein **M3 Feldherr**, Task 3 von 7 fertig: **Haltung** (Stellung halten, Reagieren, Aggressiv), **Bedrohungen** und ein **Kommandant für den Feind**. Formationen greifen von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst, und sie drehen die Front, wenn der Feind in Flanke oder Rücken steht. Der Feind in der Kompanie entscheidet jetzt selbst: angreifen, flankieren, halten oder zurückweichen, sichtbar auf F3. Die Reaktion auf Beschuss kommt mit dem Fernkampf (Task 5). **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-07**, Meilenstein **M3 Feldherr**, Task 4 von 7 fertig: **Haltung** (Stellung halten, Reagieren, Aggressiv), **Bedrohungen**, ein **Kommandant für den Feind** und eine **Prognose** (Lanchester), mit der er Schlachten einschätzt. Soldaten fliehen deutlich später, und die zuerst erzeugte Seite hat keinen versteckten Vorteil mehr. Formationen greifen von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst, und sie drehen die Front, wenn der Feind in Flanke oder Rücken steht. Der Feind in der Kompanie entscheidet jetzt selbst: angreifen, flankieren, halten oder zurückweichen, sichtbar auf F3. Die Reaktion auf Beschuss kommt mit dem Fernkampf (Task 5). **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
 
 ## Sofort spielen
 
@@ -21,7 +21,7 @@ Hauptmenü → **Testmodus**. Links alles, was es gibt, rechts für den gewählt
 | Eintrag | Szene | Prüfpunkte |
 |---|---|---|
 | Duell, Tutorial, Zuschauen | `M1_Duel` | 6, 3, 3 |
-| Kompanie, mit Kommandoansicht, Haltung, Feind-Kommandant und Ergebnis | `M2_Company` | 21 |
+| Kompanie, mit Kommandoansicht, Haltung, Feind-Kommandant und Ergebnis | `M2_Company` | 22 |
 | Sandbox: Formationen und Moral | `M0_Sandbox` | 10 |
 | Stresstest: 250 gegen 250 (vorher nicht erreichbar) | `M0_Sandbox` mit `Stress_250v250` | 3 |
 | Prototyp: Oben-Hieb, Prototyp: Look und Kameras | `Proto_Animation`, `Proto_Style` | 4, 2 |
@@ -79,7 +79,7 @@ Der gegebene Befehl steht kurz oben im Bild; F1 zeigt Ziel, letzten Befehl und d
 | Mausrad | Kamera höher oder tiefer (18–60 m) |
 | linker Stick | Gamepad: Zeiger bewegen |
 
-**Der Feind hat einen Kommandanten.** Er schaut alle 2,5 s aufs Feld und bewertet fünf Taktiken: Halten, Frontalangriff, Flanke links, Flanke rechts, Rückzug. Er liest nur, was du auch siehst (Stärke, Moral, Frontbreiten, Abstand, welche Seite offen ist), und befiehlt über dieselbe Befehls-API wie du. Bei einer Flanke läuft seine äußere Formation ans Ende deiner Linie und greift dort von selbst an, die andere bindet dich. **F3** zeigt seine Taktik, die Scores aller Taktiken und was er liest; die Taktik steht auch im F1-Menü und auf dem Ergebnisbildschirm.
+**Der Feind hat einen Kommandanten.** Er schaut alle 2,5 s aufs Feld und bewertet fünf Taktiken: Halten, Frontalangriff, Flanke links, Flanke rechts, Rückzug. Er liest nur, was du auch siehst (Stärke, Moral, Frontbreiten, Abstand, welche Seite offen ist), und befiehlt über dieselbe Befehls-API wie du. Die Lage schätzt er mit dem linearen Gesetz von Lanchester: Stärke mal Soldaten im Kontakt, dein Held zählt als 4, feindliche Soldaten hält er für Durchschnitt. Bei einer Flanke läuft seine äußere Formation ans Ende deiner Linie und greift dort von selbst an, die andere bindet dich. **F3** zeigt seine Taktik, die Scores aller Taktiken, was er liest, die Prognose (über 1 = er rechnet mit dem Sieg) und dieselbe Prognose für jede seiner Formationen gegen die nächste feindliche; die Taktik steht auch im F1-Menü und auf dem Ergebnisbildschirm.
 
 ## Formationen in der Sandbox (`M0_Sandbox`)
 
@@ -106,7 +106,7 @@ Kampf in Formation: Beim Halten, Vorrücken und Folgen bleiben die Soldaten an e
 
 **Moral:** Wer stirbt, erschreckt die Seinen in der Nähe; Panik breitet sich aus und klingt ab. Treffer von der Seite oder von hinten erschrecken, Fliehende stecken an. Kills und ein brechender Feind ermutigen. Wer hoffnungslos unterlegen ist (weniger als 0,4 eigene Kämpfer pro Feind), verliert laufend Mut, auch ohne Panik; so stehen die letzten Reste nicht ewig. Unter 20 % Moral bricht ein Soldat: Er verlässt seine Formation, wehrt sich nicht mehr, rennt vom Feind weg und verlässt am Kartenrand das Feld. In einer haltenden, vorrückenden oder folgenden Formation sinkt die Moral langsamer als im Sturmangriff oder allein. Overlay (M): Panik pro Team als rote bzw. lila Fläche, Zuversicht grün, ein Balken unter jedem Soldaten, der nicht mehr voll bei Mut ist, Fliehende mit orangem Ring; die Beschriftung zeigt die Moral der Formation. Der Held beruhigt seine Seite im Umkreis von 8 m (in der Kompanie; die Sandbox hat keinen Helden).
 
-Gemessen (Kompanie 24 gegen 24 mit Kommandant, 12 Schlachten): Beim Verlierer flieht der erste Soldat nach rund 9 Toten (37 %), die Seite ist bei rund 18 Toten (77 %) gebrochen; eine Schlacht dauert im Schnitt 59 s. Vor dem 2026-11-07 waren es 3 und 13 Tote.
+Gemessen (Kompanie 24 gegen 24 mit Kommandant, 12 Schlachten): Beim Verlierer flieht der erste Soldat nach rund 13 Toten (53 %), rund 18 (74 %) sind am Ende tot; eine Schlacht dauert im Schnitt 59 s. Vor dem 2026-11-07 floh der erste nach 3 Toten.
 
 Gemessen ohne Unity, noch ohne Moral (je 10 Gefechte, 20 gegen 20, Stufe 3; Siege A:B):
 
@@ -151,7 +151,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 | Was | Befehl / Vorgehen |
 |---|---|
-| Alle EditMode-Tests (208, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
+| Alle EditMode-Tests (217, inkl. Determinismus) | `.\sb.ps1 test` (Mac: `./sb.ps1 test`; Unity darf offen bleiben); in Unity: Test Runner. [Was welche Klasse prüft](../game/Assets/Tests/EditMode/README.md) |
 | Build-Smoke-Test mit Screenshot | Hauptmenü: `SHIELDBREAK.exe -shot out.png -shotDelay 2` (Mac: `SHIELDBREAK.app/Contents/MacOS/SHIELDBREAK -shot …`). Duell: `-shotScene M1_Duel -duelSpectator -duelOpponents 2 -duelBotWeapon -1 -duelHeroWeapon 1 -shot out.png -shotDelay 4`. Tutorial: `-shotScene M1_Duel -duelTutorial` |
 | Assets reproduzierbar | `.\sb.ps1 assets` (baut und prüft) |
 | Von Hand: alle Szenen | Hauptmenü → Testmodus (Prüflisten pro Szene, siehe oben) |
@@ -182,7 +182,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - Fliehende suchen keinen Weg um Mauern, sie weichen nur lokal aus und gleiten an der Wand entlang (wie alle Soldaten, CLAUDE.md 3.6)
 - Vorrücken und Angriff wählen die nächste feindliche Formation selbst, außer man zeigt in der Kommandoansicht per Rechtsklick auf eine. Freier Angriff auf ein bestimmtes Ziel: erst Rechtsklick auf den Feind, dann Radialmenü → Angriff (das Ziel bleibt)
 - **Kommandoansicht (Tarik):** Taste V/LB, Höhe 35 m, Blickwinkel, Zeitlupe 0,3× und „ohne Auswahl = alle“ sind ein erster Vorschlag (`DECISIONS.md` 2026-10-21). Die Kamera folgt dem Helden; Verschieben über das Feld steht in `IDEAS.md`
-- **Feind-Kommandant (Tarik):** Er ist abwechslungsreich, aber noch nicht stark: Ein Held, der nichts tut, gewinnt 9 von 12 Schlachten. Vermutlich liegt es an der Aufstellung (dein dichter Schildwall gegen Linie und Keil, der Held beruhigt seine Seite), geprüft ist das nicht. Die Stärke zählt bisher nur Köpfe, Lanchester (Task 4) soll das verbessern. Alle Gewichte stehen in `Commander_Default`
+- **Feind-Kommandant (Tarik):** Ein Held, der nichts tut, gewinnt 9 von 12 Schlachten. Prognose und faire Zugreihenfolge sind drin, das liegt also eher an der Aufstellung: dein dichter Schildwall gegen Linie und Keil (Prognose für den Feind unter 1), geprüft ist das nicht. Zum Nachstellen: Aufstellung in `Company_M2`, Gewichte in `Commander_Default`, F3 zeigt die Prognose
 - **Bedrohungen (Tarik):** 8 m, 3 Feinde und 3 s Abklingzeit sind ein erster Vorschlag (`DECISIONS.md` 2026-11-06). Formationen im befohlenen Vorrücken drehen sich nicht; der Kommandant gibt meist genau solche Befehle, dein Flankenangriff trifft ihn also weiter voll
 - **Haltung (Tarik):** Reagieren ist Standard. Dann läuft eine haltende Linie einem anrückenden Feind 10 m entgegen und verliert den Vorteil des Haltens; wer ihn will, stellt R auf Stellung halten. Ob Reagieren der richtige Standard ist und ob 10 m und 30 m passen, beim Spielen entscheiden (`DECISIONS.md` 2026-11-01). Die Sandbox hat noch keine Taste für die Haltung (H setzt Stellung halten)
 - Formationen und Hindernisse: Beim Umformen laufen Soldaten geradeaus zum neuen Slot, ein Slot hinter einer Wand wird erst erreicht, wenn die Formation weiterzieht (nur lokales Steering, CLAUDE.md 3.6). Hindernisse sind nur im Overlay sichtbar (keine Meshes vor M4)
@@ -191,6 +191,6 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 ## Aktueller Meilenstein
 
-**M3 Feldherr** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Haltung (Standing Orders) · ✅ 2 Formation-AI: Bedrohungen (Beschuss folgt mit Task 5) · ✅ 3 Commander-Utility-AI · 4 Lanchester · 5 Fernkampf (Bogen) · 6 50 gegen 50, Befehlsreichweite · 7 Fun-Gate M3 (inkl. Feldherr-Test). M2 Kompanie: alle 8 Tasks fertig, Fun-Gate bestanden.
+**M3 Feldherr** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 Haltung (Standing Orders) · ✅ 2 Formation-AI: Bedrohungen (Beschuss folgt mit Task 5) · ✅ 3 Commander-Utility-AI · ✅ 4 Lanchester · 5 Fernkampf (Bogen) · 6 50 gegen 50, Befehlsreichweite · 7 Fun-Gate M3 (inkl. Feldherr-Test). M2 Kompanie: alle 8 Tasks fertig, Fun-Gate bestanden.
 
 **Neu im Plan (2026-11-01):** Nach M4 kommt **M4b Kriegszug**, eine leichte Meta in Richtung Bannerlord: Story-Einführung, Städte zum Kaufen und Verkaufen (Rüstung, Waffen, Pferde, Rekruten), Schlachten gegen Banditen und Rivalen. Es gibt keine Weltkarte. Begründung in `DECISIONS.md` 2026-11-01, Plan in CLAUDE.md 6. Davor bleiben M2 und M3 unverändert.

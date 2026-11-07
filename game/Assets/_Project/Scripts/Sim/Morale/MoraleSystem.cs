@@ -79,7 +79,7 @@ namespace Shieldbreak.Sim.Morale
             if (scratch.IsCreated) scratch.Dispose();
         }
 
-        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard)]
+        [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
         struct MoraleJob : IJob
         {
             /// <summary>A routing soldier steers to a point this far ahead on its flight line (m).</summary>

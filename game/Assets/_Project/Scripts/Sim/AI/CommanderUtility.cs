@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Mathematics;
 using Shieldbreak.Sim.Agents;
+using Shieldbreak.Sim.Combat.Grammar;
 using Shieldbreak.Sim.Core;
 using Shieldbreak.Sim.Formations;
 using Shieldbreak.Sim.Morale;
@@ -39,8 +40,10 @@ namespace Shieldbreak.Sim.AI
         public float HoldBase;
         /// <summary>Taken off per unit of strength advantage: the weaker side prefers to stand.</summary>
         public float HoldPerAdvantage;
-        /// <summary>Taken off per tick spent holding: nobody stands opposite the enemy for ever.</summary>
+        /// <summary>Taken off holding and retreating per tick since the last fight: nobody stands opposite the enemy for ever.</summary>
         public float HoldImpatiencePerTick;
+        /// <summary>Attacking closer than this (m) counts as a fight: it ends the impatience.</summary>
+        public float ContactDistance;
         public float FrontalBase;
         public float FrontalPerAdvantage;
         public float FrontalPerMorale;
@@ -50,31 +53,44 @@ namespace Shieldbreak.Sim.AI
         public float FlankPerWidth;
         /// <summary>Per unit of how empty that side of the enemy is.</summary>
         public float FlankPerOpenSide;
-        /// <summary>Closer than this (m) to the enemy there is no room left to go round him.</summary>
+        /// <summary>Closer than this (m) to the enemy there is no room left to set off round him; a flank under way goes on.</summary>
         public float FlankMinDistance;
         /// <summary>The flanking formation stops this far (m) beyond the end of the enemy's line.</summary>
         public float FlankMargin;
         /// <summary>The flanking formation is sent on anew when its goal moved further than this (m).</summary>
         public float FlankRetargetDistance;
-        /// <summary>Below this strength ratio the commander thinks of retreat.</summary>
+        /// <summary>Below this forecast balance the commander thinks of retreat.</summary>
         public float RetreatRatio;
         public float RetreatPerWeakness;
         /// <summary>Below this average morale the commander thinks of retreat.</summary>
         public float RetreatMorale;
         public float RetreatPerPanic;
 
+        /// <summary>A hero is worth this many line soldiers (CLAUDE.md: 3 to 5).</summary>
+        public float HeroStrength;
+        /// <summary>What one bot level is worth, as a factor (level 3 = 1).</summary>
+        public float StrengthPerLevel;
+        /// <summary>How much morale counts: 1 = a soldier is worth his morale, 0 = morale does not count.</summary>
+        public float MoraleWeight;
+        /// <summary>How much of a front overlapping the enemy's counts as contact.</summary>
+        public float FlankShare;
+        /// <summary>Soldiers one soldier in contact kills per second.</summary>
+        public float KillRate;
+
         public void Validate()
         {
             if (DecisionIntervalTicks < 1 || MinTacticTicks < 0) throw new ArgumentException("Require DecisionIntervalTicks >= 1 and MinTacticTicks >= 0.");
             if (Hysteresis < 0f || ScoreNoise < 0f) throw new ArgumentException("Require Hysteresis >= 0 and ScoreNoise >= 0.");
-            if (FlankMinDistance < 0f || FlankMargin < 0f || FlankRetargetDistance < 0f) throw new ArgumentException("Flank distances must be >= 0.");
+            if (FlankMinDistance < 0f || FlankMargin < 0f || FlankRetargetDistance < 0f || ContactDistance < 0f) throw new ArgumentException("Flank and contact distances must be >= 0.");
             if (RetreatRatio < 0f || RetreatMorale < 0f) throw new ArgumentException("Require RetreatRatio >= 0 and RetreatMorale >= 0.");
             if (HoldImpatiencePerTick < 0f) throw new ArgumentException("HoldImpatiencePerTick must be >= 0.");
+            if (HeroStrength <= 0f || StrengthPerLevel <= 0f || KillRate <= 0f) throw new ArgumentException("HeroStrength, StrengthPerLevel and KillRate must be positive.");
+            if (MoraleWeight < 0f || MoraleWeight > 1f || FlankShare < 0f || FlankShare > 1f) throw new ArgumentException("MoraleWeight and FlankShare must be in [0, 1].");
         }
     }
 
     /// <summary>
-    /// What a commander sees: only what a player could read off the field. 76 bytes, no padding (hashed raw with the state).
+    /// What a commander sees: only what a player could read off the field. 92 bytes, no padding (hashed raw with the state).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CommanderFeatures
@@ -84,6 +100,14 @@ namespace Shieldbreak.Sim.AI
         public int OwnFormations;
         /// <summary>Own fighters per enemy fighter.</summary>
         public float Ratio;
+        /// <summary>Lanchester: own fighting power per enemy fighting power, above 1 the own side should win.</summary>
+        public float Balance;
+        /// <summary>Lanchester: share of the own soldiers that fight would cost.</summary>
+        public float OwnLossShare;
+        /// <summary>Lanchester: how long it would last from contact (s).</summary>
+        public float ForecastSeconds;
+        /// <summary>The own side in line-soldier strength.</summary>
+        public float OwnStrength;
         public float OwnMorale;
         public float EnemyMorale;
         /// <summary>Sum of the front widths per side (m).</summary>
@@ -140,7 +164,7 @@ namespace Shieldbreak.Sim.AI
         }
     }
 
-    /// <summary>One commander. Sim state, hashed raw: 136 bytes, no padding.</summary>
+    /// <summary>One commander. Sim state, hashed raw: 160 bytes, no padding.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CommanderState
     {
@@ -154,6 +178,10 @@ namespace Shieldbreak.Sim.AI
         public int NextDecisionTick;
         /// <summary>Tick the current tactic was chosen.</summary>
         public int TacticTick;
+        /// <summary>Last decision tick attacking within reach of the enemy: since then the side has not fought.</summary>
+        public int LastFightTick;
+        /// <summary>How often the tactic changed (debug).</summary>
+        public int TacticChanges;
         /// <summary>Formation sent round the enemy, -1 = none.</summary>
         public int Flanker;
         /// <summary>1 = decided this tick: the orders follow (set by the job, read by CommanderSystem).</summary>
@@ -170,15 +198,18 @@ namespace Shieldbreak.Sim.AI
     public static class CommanderUtility
     {
         public const int TacticCount = 5;
+        const float MinimumScore = 0.01f;
 
         /// <summary>
         /// Reads the field from one team's side. Everything here is visible to a player too: positions, formations
         /// and morale bars. With nobody left on one side the counts say so and the rest stays zero.
         /// </summary>
-        public static CommanderFeatures Read(int team, int owner, NativeArray<AgentData> agents, NativeArray<MoraleData> morale, int count,
-            NativeArray<FormationData> formations, int formationCount, in FormationSettings formationSettings)
+        public static CommanderFeatures Read(int team, int owner, NativeArray<AgentData> agents, NativeArray<MoraleData> morale, NativeArray<CombatData> combat, int count,
+            NativeArray<FormationData> formations, int formationCount, in FormationSettings formationSettings, in CommanderSettings settings)
         {
             var f = default(CommanderFeatures);
+            var ownSide = default(LanchesterSide);
+            var enemySide = default(LanchesterSide);
             float ownMorale = 0f, enemyMorale = 0f;
             for (int i = 0; i < count; i++)
             {
@@ -189,12 +220,14 @@ namespace Shieldbreak.Sim.AI
                     f.OwnFighters++;
                     f.OwnCentre += a.Position;
                     ownMorale += morale[i].Morale;
+                    ownSide.AddSoldier(Worth(a, combat[i].BotProfile, morale[i].Morale, true, settings));
                 }
                 else
                 {
                     f.EnemyFighters++;
                     f.EnemyCentre += a.Position;
                     enemyMorale += morale[i].Morale;
+                    enemySide.AddSoldier(Worth(a, combat[i].BotProfile, morale[i].Morale, false, settings));
                 }
             }
             if (f.OwnFighters == 0 || f.EnemyFighters == 0) return f;
@@ -232,12 +265,15 @@ namespace Shieldbreak.Sim.AI
                 var own = formations[a];
                 if (own.MemberCount == 0) continue;
                 float width = FormationLinePlanner.FrontWidth(own.Type, own.Files, own.MemberCount, formationSettings);
+                float inFront = FrontSoldiers(own, width, formationSettings);
                 if (own.Team != team)
                 {
                     f.EnemyFront += width;
+                    enemySide.AddFront(width, inFront);
                     continue;
                 }
                 f.OwnFront += width;
+                ownSide.AddFront(width, inFront);
                 if (own.Owner == owner) f.OwnFormations++;
                 for (int b = 0; b < formationCount; b++)
                 {
@@ -246,28 +282,58 @@ namespace Shieldbreak.Sim.AI
                 }
             }
             f.Distance = math.sqrt(nearestSq);
+            var forecast = Lanchester.Melee(ownSide, enemySide, settings.FlankShare, settings.KillRate);
+            f.Balance = forecast.Balance;
+            f.OwnLossShare = forecast.OwnLossShare;
+            f.ForecastSeconds = forecast.Seconds;
+            f.OwnStrength = ownSide.Strength;
             return f;
         }
 
         /// <summary>
-        /// The scores from what was read, before noise and hysteresis. A tactic that is not possible scores 0.
-        /// <paramref name="ticksHolding"/>: how long the side has been holding, 0 under any other tactic.
+        /// What a commander takes a soldier to be worth. It knows its own soldiers' levels; enemy line soldiers it takes
+        /// for average, because a player could not read their level off the field either. A hero stands out on any side.
+        /// Heroes are the agents without a bot brain (or, in the command view, with the flag), and their worth ignores morale.
         /// </summary>
-        public static CommanderScores Score(in CommanderFeatures f, in CommanderSettings s, int ticksHolding = 0)
+        public static float Worth(in AgentData a, int botProfile, float morale, bool own, in CommanderSettings s)
         {
-            float advantage = math.clamp(f.Ratio - 1f, -1f, 1f);
+            if (botProfile <= 0 || (a.Flags & AgentFlags.Unattended) != 0) return s.HeroStrength;
+            float worth = 1f;
+            if (own)
+            {
+                // Per level above or below 3; multiplied out, so no pow in the sim
+                for (int level = botProfile; level > 3; level--) worth *= s.StrengthPerLevel;
+                for (int level = botProfile; level < 3; level++) worth /= s.StrengthPerLevel;
+            }
+            return worth * (1f - s.MoraleWeight * (1f - morale));
+        }
+
+        /// <summary>Soldiers standing in the front of a formation <paramref name="width"/> wide.</summary>
+        public static float FrontSoldiers(in FormationData f, float width, in FormationSettings settings) =>
+            math.min(width / settings.Spacing(f.Type).Lateral + 1f, f.MemberCount);
+        /// <summary>
+        /// The scores from what was read, before noise and hysteresis. A tactic that is not possible scores 0.
+        /// <paramref name="ticksPassive"/>: how long the side has not fought. Marching out to attack does not end that, so
+        /// a side that finally sets off does not turn round on the way.
+        /// </summary>
+        public static CommanderScores Score(in CommanderFeatures f, in CommanderSettings s, int ticksPassive = 0, CommanderTactic current = CommanderTactic.Hold)
+        {
+            float advantage = math.clamp(f.Balance - 1f, -1f, 1f);
             float moraleEdge = f.OwnMorale - f.EnemyMorale;
             var scores = default(CommanderScores);
-            scores.Hold = s.HoldBase - s.HoldPerAdvantage * advantage - s.HoldImpatiencePerTick * ticksHolding;
-            scores.Frontal = s.FrontalBase + s.FrontalPerAdvantage * advantage + s.FrontalPerMorale * moraleEdge;
-            if (s.AllowFlank == 1 && f.OwnFormations >= 2 && f.Distance >= s.FlankMinDistance)
+            float impatience = s.HoldImpatiencePerTick * ticksPassive;
+            scores.Hold = s.HoldBase - s.HoldPerAdvantage * advantage - impatience;
+            // Always possible, however bad: a side that has nothing left can still turn and fight
+            scores.Frontal = math.max(MinimumScore, s.FrontalBase + s.FrontalPerAdvantage * advantage + s.FrontalPerMorale * moraleEdge);
+            bool flanking = current == CommanderTactic.FlankLeft || current == CommanderTactic.FlankRight;
+            if (s.AllowFlank == 1 && f.OwnFormations >= 2 && (f.Distance >= s.FlankMinDistance || flanking))
             {
                 float widthEdge = f.EnemyFront > 0f ? math.clamp(f.OwnFront / f.EnemyFront - 1f, -1f, 1f) : 0f;
                 float flank = s.FlankBase + s.FlankPerAdvantage * advantage + s.FlankPerWidth * widthEdge;
                 scores.FlankLeft = flank + s.FlankPerOpenSide * (f.OpenLeft - 0.5f) * 2f;
                 scores.FlankRight = flank + s.FlankPerOpenSide * (f.OpenRight - 0.5f) * 2f;
             }
-            scores.Retreat = s.RetreatPerWeakness * math.max(0f, s.RetreatRatio - f.Ratio) + s.RetreatPerPanic * math.max(0f, s.RetreatMorale - f.OwnMorale);
+            scores.Retreat = math.max(0f, s.RetreatPerWeakness * math.max(0f, s.RetreatRatio - f.Balance) + s.RetreatPerPanic * math.max(0f, s.RetreatMorale - f.OwnMorale) - impatience);
             return scores;
         }
 
@@ -285,7 +351,8 @@ namespace Shieldbreak.Sim.AI
                 // A tactic that is not possible stays out of the race
                 if (scores[tactic] > 0f) scores[tactic] += noise;
             }
-            scores[current] += s.Hysteresis;
+            // Only a plan that still makes sense is worth sticking to
+            if (scores[current] > 0f) scores[current] += s.Hysteresis;
             var best = current;
             for (int t = 0; t < TacticCount; t++)
                 if (scores[(CommanderTactic)t] > scores[best]) best = (CommanderTactic)t;
