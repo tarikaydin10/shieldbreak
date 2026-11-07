@@ -17,6 +17,7 @@ namespace Shieldbreak.Data
         {
             [Tooltip("Shield on the arm; special: shield bash")] OneHandShield = WeaponArchetype.OneHandShield,
             [Tooltip("Both hands on the weapon; special: leaping overhead")] TwoHand = WeaponArchetype.TwoHand,
+            [Tooltip("Shoots arrows; no block, a side arm for melee")] Bow = WeaponArchetype.Bow,
         }
 
         [Tooltip("Decides the special move and how the soldier holds the weapon (CLAUDE.md 3.5, Schicht B).")]
@@ -38,7 +39,29 @@ namespace Shieldbreak.Data
         [Tooltip("Special attack of archetypes that have one (two-hand: leaping overhead). Unused for one-hand + shield.")]
         public AttackDefinition specialAttack;
 
+        [Header("Bow (mass is the arrow, point factor its head)")]
+        [Tooltip("Speed of the arrow across the ground (m/s).")]
+        [Min(1f)] public float projectileSpeed = 45f;
+        [Tooltip("Fall of the arrow (m/s²).")]
+        [Min(0f)] public float projectileGravity = 9.81f;
+        [Tooltip("Furthest a bot shoots (m).")]
+        [Min(1f)] public float maxRange = 40f;
+        [Tooltip("An enemy closer than this makes a bot draw its side arm (m).")]
+        [Min(0f)] public float minRange = 5f;
+
         public bool HasSpecialAttack => archetype == Archetype.TwoHand;
+
+        /// <summary>Starting values of the war bow: an arrow of 100 g hits a torso for about a quarter of a soldier's health.</summary>
+        public void ApplyBowDefaults()
+        {
+            archetype = Archetype.Bow;
+            displayName = "Bogen";
+            mass = 0.1f;
+            edgeFactor = 0f;
+            pointFactor = 3.5f;
+            blockArcDeg = 30f;
+            blockPressure = 0.4f;
+        }
 
         /// <summary>Starting values of the two-hand sword (preset "Mittel"): heavier, 90° weapon block, presses a blocker hard.</summary>
         public void ApplyTwoHandDefaults()

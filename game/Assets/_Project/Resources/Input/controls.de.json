@@ -394,6 +394,10 @@
     {
       "action": "CommanderDebug/ToggleScores",
       "text": "Anzeige des feindlichen Kommandanten ein oder aus: aktuelle Taktik, Scores aller Taktiken, was er vom Feld liest"
+    },
+    {
+      "action": "CommandView/Screen",
+      "text": "Schützen in der Auswahl (ohne Auswahl: alle) gehen zurück ins Abschirmen: halten Abstand zum Feind, schießen und ziehen sich hinter die eigene Infanterie zurück, wenn er nahe kommt"
     }
   ]
 }

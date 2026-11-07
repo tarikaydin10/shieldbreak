@@ -49,6 +49,10 @@ namespace Shieldbreak.Data
                     BlockArcDeg = def.blockArcDeg,
                     BlockPressure = def.blockPressure,
                     FirstAttack = attackIndex,
+                    ProjectileSpeed = def.projectileSpeed,
+                    ProjectileGravity = def.projectileGravity,
+                    MaxRange = def.maxRange,
+                    MinRange = def.minRange,
                 };
                 var table = def.HasSpecialAttack ? new List<AttackDefinition>(def.attacks) { def.specialAttack } : new List<AttackDefinition>(def.attacks);
                 foreach (var a in table)

@@ -111,6 +111,15 @@ namespace Shieldbreak.Sim.Formations
             return id;
         }
 
+        /// <summary>Scenario setup: what the soldiers of a formation carry decides what it can do.</summary>
+        public void SetArms(int formation, bool ranged, bool shields)
+        {
+            var f = formations[formation];
+            f.Ranged = ranged ? 1 : 0;
+            f.Shields = shields ? 1 : 0;
+            formations[formation] = f;
+        }
+
         /// <summary>Scenario setup: adds the agent; slots are reassigned around the anchor on the next tick.</summary>
         public void Add(int formation, int agent, int team)
         {
@@ -193,6 +202,7 @@ namespace Shieldbreak.Sim.Formations
             if ((order.Flags & FormationOrderFlags.Shape) != 0 && (uint)order.Type < FormationLimits.TypeCount && order.Type != f.Type)
             {
                 f.Type = order.Type;
+                f.CoverType = 0;
                 f.Reform = FormationData.ReformAroundMembers;
                 changed = true;
             }
@@ -336,6 +346,7 @@ namespace Shieldbreak.Sim.Formations
         /// </summary>
         void UpdateBehavior(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
         {
+            TakeCover(ref f, tick, agents, agentCount);
             FaceThreat(ref f, tick, agents, agentCount);
             if (f.Behavior == FormationBehavior.Hold)
             {
@@ -383,6 +394,14 @@ namespace Shieldbreak.Sim.Formations
                 }
                 facing = to / distance;
                 goal = agents[leader].Position - facing * settings.FollowDistance;
+            }
+            else if (f.Behavior == FormationBehavior.Screen)
+            {
+                if (!ScreenGoal(ref f, agents, agentCount, out goal, out facing))
+                {
+                    if (math.distancesq(f.Destination, f.Position) > 1e-8f) Stop(ref f);
+                    return;
+                }
             }
             else
             {
@@ -452,6 +471,73 @@ namespace Shieldbreak.Sim.Formations
             f.TargetFormation = target;
             f.Reacting = (int)f.Stance;
             f.NextBehaviorTick = tick;
+        }
+
+        /// <summary>
+        /// Screening (CLAUDE.md 3.6): shooters keep their distance. In range they stand and shoot, too far away they
+        /// move up, and when the enemy comes too close they fall back behind the nearest own infantry, or simply away.
+        /// Returns false with no enemy left.
+        /// </summary>
+        bool ScreenGoal(ref FormationData f, NativeArray<AgentData> agents, int agentCount, out float2 goal, out float2 facing)
+        {
+            goal = f.Destination;
+            facing = f.Facing;
+            if (!FindEnemy(f, agents, agentCount, out float2 aim, out float contact)) return false;
+            float2 to = aim - f.Position;
+            if (math.lengthsq(to) > 1e-8f) facing = math.normalize(to);
+            f.TargetFacing = facing;
+            if (contact > settings.ScreenAdvanceDistance) goal = f.Position + facing * (contact - settings.ScreenAdvanceDistance);
+            else if (contact < settings.ScreenFallbackDistance)
+            {
+                goal = f.Position - facing * settings.RetreatDistance;
+                float bestSq = float.MaxValue;
+                for (int g = 0; g < formationCount; g++)
+                {
+                    var own = formations[g];
+                    if (own.Team != f.Team || own.Ranged == 1 || own.MemberCount == 0) continue;
+                    float dsq = math.distancesq(own.Position, f.Position);
+                    if (dsq < bestSq)
+                    {
+                        bestSq = dsq;
+                        goal = own.Position - own.Facing * settings.ScreenBehindDistance;
+                    }
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Under arrows a holding formation with shields closes up into a shield wall facing the archers, as long as
+        /// nobody is at hand; its soldiers then keep the shields up. When the arrows stop it goes back to its form.
+        /// </summary>
+        void TakeCover(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
+        {
+            if (f.ArrowHits == 0 || settings.CoverMinHits <= 0) return;
+            if (tick - f.UnderFireTick > settings.CoverWindowTicks)
+            {
+                f.ArrowHits = 0;
+                f.FireDirection = float2.zero;
+                if (f.CoverType == 0) return;
+                f.Type = (FormationType)(f.CoverType - 1);
+                f.CoverType = 0;
+                f.Reform = FormationData.ReformAroundMembers;
+                f.NextReformTick = tick;
+                return;
+            }
+            if (f.CoverType != 0 || f.Shields == 0 || f.Type == FormationType.ShieldWall || f.ArrowHits < settings.CoverMinHits) return;
+            if (f.Behavior != FormationBehavior.Hold || !Arrived(f)) return;
+            float nearSq = settings.ThreatDistance * settings.ThreatDistance;
+            for (int j = 0; j < agentCount; j++)
+            {
+                var enemy = agents[j];
+                if (enemy.Team != f.Team && !enemy.IsDead && !enemy.IsRouting && math.distancesq(enemy.Position, f.Position) < nearSq) return;
+            }
+            f.CoverType = (int)f.Type + 1;
+            f.Type = FormationType.ShieldWall;
+            f.Reform = FormationData.ReformAroundMembers;
+            f.NextReformTick = tick;
+            f.TargetFacing = math.normalizesafe(f.FireDirection, f.Facing);
+            f.NextThreatTick = tick + settings.ThreatCooldownTicks;
         }
 
         static bool Arrived(in FormationData f) => f.NeedsPath == 0 && f.PathIndex >= f.PathCount && math.distancesq(f.Destination, f.Position) < 0.25f;

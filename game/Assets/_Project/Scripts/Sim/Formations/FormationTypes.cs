@@ -30,6 +30,8 @@ namespace Shieldbreak.Sim.Formations
         Follow = 3,
         /// <summary>Fall back away from the enemy without fighting, then hold facing it.</summary>
         Retreat = 4,
+        /// <summary>Shooters: stay in range of the enemy, and fall back behind the own infantry when he comes too close.</summary>
+        Screen = 5,
     }
 
     /// <summary>
@@ -58,7 +60,7 @@ namespace Shieldbreak.Sim.Formations
     public static class FormationLimits
     {
         public const int TypeCount = 5;
-        public const int BehaviorCount = 5;
+        public const int BehaviorCount = 6;
         public const int StanceCount = 3;
         /// <summary>Upper bound per formation; slot assignment is O(n³) and runs only on reforms.</summary>
         public const int MaxMembers = 256;
@@ -128,6 +130,17 @@ namespace Shieldbreak.Sim.Formations
         /// <summary>Tick of the last turn to a threat (with ThreatSide: what the overlay shows).</summary>
         public int ThreatTick;
         public FormationThreatSide ThreatSide;
+        /// <summary>1 = shooters: they stay out of melee tactics and the commander does not send them round the enemy.</summary>
+        public int Ranged;
+        /// <summary>1 = its soldiers carry shields and can take cover from arrows.</summary>
+        public int Shields;
+        /// <summary>Tick the last arrow struck a soldier of the formation.</summary>
+        public int UnderFireTick;
+        /// <summary>Arrows that struck since it last was out of fire; sum of the directions they came from.</summary>
+        public int ArrowHits;
+        public float2 FireDirection;
+        /// <summary>Type + 1 the formation goes back to when the arrows stop, 0 = not taking cover.</summary>
+        public int CoverType;
 
         public const int ReformNone = 0, ReformKeepAnchor = 1, ReformAroundMembers = 2;
 
@@ -237,6 +250,16 @@ namespace Shieldbreak.Sim.Formations
         public int ThreatMinEnemies;
         /// <summary>Ticks after a turn or an order before the formation looks for threats again.</summary>
         public int ThreatCooldownTicks;
+        /// <summary>Screen: closer than this (m) to the enemy the shooters fall back...</summary>
+        public float ScreenFallbackDistance;
+        /// <summary>...further than this they move up into range...</summary>
+        public float ScreenAdvanceDistance;
+        /// <summary>...and they fall back to this far (m) behind the own infantry.</summary>
+        public float ScreenBehindDistance;
+        /// <summary>So many arrows make a holding formation with shields form a shield wall; 0 = never.</summary>
+        public int CoverMinHits;
+        /// <summary>This long after the last arrow it counts as out of fire and goes back to its form.</summary>
+        public int CoverWindowTicks;
 
         public FormationSpacing Spacing(FormationType type) => type switch
         {
@@ -271,6 +294,8 @@ namespace Shieldbreak.Sim.Formations
             if (HeroUnattendedLevel < 0 || HeroRetreatGap < 0f) throw new ArgumentException("Require HeroUnattendedLevel >= 0 and HeroRetreatGap >= 0.");
             if ((uint)DefaultStance >= FormationLimits.StanceCount || ReactDistance < 0f || AggressiveDistance < 0f) throw new ArgumentException("Require a valid DefaultStance and ReactDistance, AggressiveDistance >= 0.");
             if (ThreatDistance < 0f || ThreatMinEnemies < 1 && ThreatDistance > 0f || ThreatCooldownTicks < 0) throw new ArgumentException("Require ThreatDistance >= 0, ThreatMinEnemies >= 1 and ThreatCooldownTicks >= 0.");
+            if (ScreenFallbackDistance < 0f || ScreenAdvanceDistance < ScreenFallbackDistance || ScreenBehindDistance < 0f) throw new ArgumentException("Screen distances: 0 <= fallback <= advance, behind >= 0.");
+            if (CoverMinHits < 0 || CoverWindowTicks < 0) throw new ArgumentException("CoverMinHits and CoverWindowTicks must be >= 0.");
         }
     }
 }

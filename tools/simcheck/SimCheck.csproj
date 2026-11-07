@@ -49,6 +49,7 @@
     <Compile Include="$(Game)Tests/EditMode/MoraleTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/CompanyTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/CommanderTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/RangedTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/HeroUnattendedTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/TestCombat.cs" />
     <Compile Include="$(Game)Tests/EditMode/CombatTests.cs" />

@@ -98,6 +98,16 @@ namespace Shieldbreak.Sim.AI
             {
                 var f = all[id];
                 if (f.Owner != c.Owner || f.MemberCount == 0) continue;
+                if (f.Ranged == 1)
+                {
+                    // Shooters follow the retreat and otherwise screen, whatever the line does
+                    if (c.Tactic == CommanderTactic.Retreat)
+                    {
+                        if (changed) Give(c, FormationOrder.Retreat(id));
+                    }
+                    else if (f.Behavior != FormationBehavior.Screen) Give(c, FormationOrder.SetBehavior(id, FormationBehavior.Screen));
+                    continue;
+                }
                 if (id == c.Flanker) SendRound(c, f, changed);
                 else if (c.Tactic == CommanderTactic.Hold) StandFast(c, f, changed);
                 else if (c.Tactic == CommanderTactic.Retreat)
@@ -121,7 +131,7 @@ namespace Shieldbreak.Sim.AI
             for (int id = 0; id < all.Length; id++)
             {
                 var f = all[id];
-                if (f.Owner != c.Owner || f.MemberCount == 0) continue;
+                if (f.Owner != c.Owner || f.MemberCount == 0 || f.Ranged == 1) continue;
                 float reach = math.dot(f.Position - c.Features.OwnCentre, outwards);
                 if (reach > bestOut)
                 {

@@ -69,7 +69,7 @@ MonoBehaviour:
     launch: 0
     scenario: {fileID: 0}
     briefingOnStart: 1
-    objective: "Du bist Held und Anführer zugleich: deine Linie (links) und dein Schildwall (rechts) gegen eine feindliche Linie und einen Keil unter einem Kommandanten, der angreift, flankiert oder hält, je nachdem, wie es steht. Befiehl schnell über das Radialmenü (F halten) oder mit Überblick aus der Kommandoansicht (V halten), und kämpfe selbst. Ziel: Der Feind bricht und flieht, bevor deine Leute es tun. Fällst du, ist die Schlacht verloren. Danach zeigt ein Ergebnisbildschirm, was passiert ist."
+    objective: "Du bist Held und Anführer zugleich: deine Linie (links) und dein Schildwall (rechts) gegen eine feindliche Linie und einen Keil unter einem Kommandanten, der angreift, flankiert oder hält, je nachdem, wie es steht. Befiehl schnell über das Radialmenü (F halten) oder mit Überblick aus der Kommandoansicht (V halten), und kämpfe selbst. Beide Seiten haben Bogenschützen. Ziel: Der Feind bricht und flieht, bevor deine Leute es tun. Fällst du, ist die Schlacht verloren. Danach zeigt ein Ergebnisbildschirm, was passiert ist."
     controlMaps:
     - Radial
     - CommandView
@@ -97,6 +97,9 @@ MonoBehaviour:
     - "Stell deine Truppe breit auf oder lass eine Seite offen: Der Feind nutzt das (F3: Feind offen links, rechts) und schickt eine Formation um dich herum"
     - "F3: Die Prognose passt zur Lage; stell dich dünner oder breiter auf und sie ändert sich, fallen Soldaten, sinkt sie"
     - "Nach einer Niederlage kannst du sagen, was du hättest anders machen müssen; der Feind hat nichts getan, was du nicht auch könntest"
+    - "Beide Seiten haben Schützen: Pfeile fliegen sichtbar im Bogen über die eigenen Reihen, Schützen bleiben stehen und treffen die eigenen Leute nicht"
+    - "Kommt der Feind nah an deine Schützen, fallen sie hinter die Infanterie zurück; steht er direkt vor ihnen, ziehen sie das Schwert (T holt sie ins Abschirmen zurück)"
+    - "Lass eine Formation unter Beschuss halten: Sie dreht sich zu den Schützen, bildet den Schildwall (Beschriftung: unter Beschuss), die Pfeile prallen am Schild ab, und danach geht sie in ihre Form zurück"
     - "R in der Kommandoansicht: Die Haltung wechselt (Stellung halten, Reagieren, Aggressiv) und steht in der Beschriftung; mit Stellung halten bleibt die Formation stehen, auch wenn der Feind nahe ist"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"

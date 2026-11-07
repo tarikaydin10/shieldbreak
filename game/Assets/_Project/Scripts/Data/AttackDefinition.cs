@@ -42,6 +42,8 @@ namespace Shieldbreak.Data
         [Range(2, 6)] public int socketCount = 4;
         [Tooltip("Targets one swing can hit: overhead and thrust 1, side cuts several in a row.")]
         [Range(1, 4)] public int maxTargets = 1;
+        [Tooltip("Off: the blade sweeps (SwingTrace). On: an arrow leaves at the start of the release, nothing sweeps.")]
+        public bool shootsProjectile;
 
         [Header("Lunge (root motion only for attack lunges)")]
         [Tooltip("Forward distance the attacker travels during the attack (m); its speed adds to the hit energy.")]
@@ -178,6 +180,7 @@ namespace Shieldbreak.Data
             BladeLength = bladeLength,
             SocketCount = socketCount,
             MaxTargets = maxTargets,
+            Resolver = shootsProjectile ? AttackResolver.Projectile : AttackResolver.SwingTrace,
             LungeDistance = lungeDistance,
             LungeStartPose = lungeStartPose,
             LungeEndPose = lungeEndPose,

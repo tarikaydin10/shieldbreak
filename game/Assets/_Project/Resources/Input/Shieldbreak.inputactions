@@ -1816,6 +1816,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Screen",
+                    "type": "Button",
+                    "id": "bb255f0f-fa6d-4233-94a9-705c21f1034a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -2003,6 +2012,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "CycleStance",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f927f922-fb10-4f78-bfde-63f3e71ac54f",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Screen",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9efd0d62-ad95-4814-a67d-7639799f2c87",
+                    "path": "<Gamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Screen",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

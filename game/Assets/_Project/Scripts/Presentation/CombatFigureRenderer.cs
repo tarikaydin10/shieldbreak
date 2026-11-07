@@ -19,7 +19,11 @@ namespace Shieldbreak.Presentation
     {
         public SimRunner runner;
         public SoldierVisualDefinition visual;
-        [Min(1)] public int maxFigures = 32;
+        [Min(1)] public int maxFigures = 64;
+        [Tooltip("Length and thickness of an arrow in flight (m); larger than life, so it reads from afar.")]
+        public Vector2 arrowSize = new Vector2(1f, 0.05f);
+        [Tooltip("Colour of an arrow (wood_dark of the palette): a cube's UVs would span the whole palette texture.")]
+        public Color arrowColor = new Color(0.29f, 0.184f, 0.133f);
 
         [Header("Body (soldier frame: x right, y up, z forward)")]
         public Vector3 rightShoulder = new Vector3(0.22f, 1.42f, 0f);
@@ -109,6 +113,55 @@ namespace Shieldbreak.Presentation
             return f;
         }
 
+        readonly List<Transform> arrows = new List<Transform>();
+        Material arrowMaterial;
+        Texture2D arrowTexture;
+
+        /// <summary>Arrows are plain stretched cubes until M4 (CLAUDE.md: no assets before), one per flying arrow, along their flight.</summary>
+        void DrawArrows(Sim.Core.SimWorld world)
+        {
+            var flying = world.Projectiles;
+            int shown = 0;
+            for (int p = 0; p < flying.Length; p++)
+            {
+                var arrow = flying[p];
+                if (arrow.Active == 0) continue;
+                if (shown == arrows.Count)
+                {
+                    var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    Destroy(go.GetComponent<Collider>());
+                    go.transform.SetParent(transform, false);
+                    go.transform.localScale = new Vector3(arrowSize.y, arrowSize.y, arrowSize.x);
+                    go.GetComponent<MeshRenderer>().sharedMaterial = ArrowMaterial();
+                    arrows.Add(go.transform);
+                }
+                var t = arrows[shown++];
+                if (!t.gameObject.activeSelf) t.gameObject.SetActive(true);
+                // One tick behind the sim's position by the interpolation alpha
+                Vector3 velocity = new Vector3(arrow.Velocity.x, arrow.Velocity.y, arrow.Velocity.z);
+                Vector3 at = new Vector3(arrow.Position.x, arrow.Position.y, arrow.Position.z) - velocity * ((1f - runner.Alpha) * Sim.Core.SimConstants.DT);
+                t.SetPositionAndRotation(at, Quaternion.LookRotation(velocity));
+            }
+            for (int a = shown; a < arrows.Count; a++)
+                if (arrows[a].gameObject.activeSelf) arrows[a].gameObject.SetActive(false);
+        }
+
+        Material ArrowMaterial()
+        {
+            if (arrowMaterial != null) return arrowMaterial;
+            arrowTexture = new Texture2D(1, 1) { hideFlags = HideFlags.HideAndDontSave };
+            arrowTexture.SetPixel(0, 0, arrowColor);
+            arrowTexture.Apply();
+            arrowMaterial = new Material(visual.material) { hideFlags = HideFlags.HideAndDontSave, mainTexture = arrowTexture };
+            return arrowMaterial;
+        }
+
+        void OnDestroy()
+        {
+            if (arrowMaterial != null) Destroy(arrowMaterial);
+            if (arrowTexture != null) Destroy(arrowTexture);
+        }
+
         void LateUpdate()
         {
             var world = runner != null ? runner.World : null;
@@ -132,6 +185,8 @@ namespace Shieldbreak.Presentation
                     figures[e.Target].fallSideways = Mathf.Abs(local.x);
                 }
             }
+
+            DrawArrows(world);
 
             float dt = Time.unscaledDeltaTime;
             var setup = world.CombatSetup;

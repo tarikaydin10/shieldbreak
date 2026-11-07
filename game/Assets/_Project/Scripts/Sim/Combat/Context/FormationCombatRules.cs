@@ -12,6 +12,8 @@ namespace Shieldbreak.Sim.Combat.Context
         public int Disengaged;
         /// <summary>1 = shield wall: answers a seen attack with the shield, never with a dodge step out of the wall.</summary>
         public int ShieldWall;
+        /// <summary>1 = the formation took cover from arrows: shields stay up while nobody is at hand.</summary>
+        public int TakingCover;
         /// <summary>World position of the soldier's slot.</summary>
         public float2 Slot;
         /// <summary>Direction the slot faces (the formation's front; outwards for a circle).</summary>
@@ -38,6 +40,7 @@ namespace Shieldbreak.Sim.Combat.Context
             }
             ctx.Bound = 1;
             ctx.ShieldWall = formation.Type == FormationType.ShieldWall ? 1 : 0;
+            ctx.TakingCover = formation.CoverType != 0 ? 1 : 0;
             ctx.Slot = formation.ToWorld(member.Local);
             ctx.Front = FormationData.Rotate(member.LocalFacing, formation.Facing);
             return ctx;

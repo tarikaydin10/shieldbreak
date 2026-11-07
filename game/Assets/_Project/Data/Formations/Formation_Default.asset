@@ -44,3 +44,8 @@ MonoBehaviour:
   threatDistance: 8
   threatMinEnemies: 3
   threatCooldownMs: 3000
+  screenFallbackDistance: 14
+  screenAdvanceDistance: 34
+  screenBehindDistance: 8
+  coverMinHits: 3
+  coverWindowMs: 5000

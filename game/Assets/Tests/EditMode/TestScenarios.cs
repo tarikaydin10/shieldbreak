@@ -58,6 +58,11 @@ namespace Shieldbreak.Tests
             ThreatDistance = 8f,
             ThreatMinEnemies = 3,
             ThreatCooldownTicks = 180,
+            ScreenFallbackDistance = 14f,
+            ScreenAdvanceDistance = 34f,
+            ScreenBehindDistance = 8f,
+            CoverMinHits = 3,
+            CoverWindowTicks = 300,
         };
 
         /// <summary>Mirrors the MoraleDefinition defaults (Morale_Default).</summary>

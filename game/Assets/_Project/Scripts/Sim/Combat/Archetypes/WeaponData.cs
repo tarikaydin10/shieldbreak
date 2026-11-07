@@ -13,6 +13,15 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         public const int OneHandShield = 0;
         /// <summary>Both hands on the weapon, 90° block, heavy block pressure; special: leaping overhead (an attack with a lunge).</summary>
         public const int TwoHand = 1;
+        /// <summary>Shoots: windup = draw, release = loose, recovery = nock the next arrow. Cannot block; the side arm is for melee.</summary>
+        public const int Bow = 2;
+    }
+
+    /// <summary>How an attack finds its targets (CLAUDE.md 3.5, Schicht B).</summary>
+    public static class AttackResolver
+    {
+        public const int SwingTrace = 0;
+        public const int Projectile = 1;
     }
 
     /// <summary>
@@ -34,8 +43,17 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         public float BlockPressure;
         /// <summary>Index of the first of four AttackData entries (Overhead, Left, Right, Thrust), followed by the special attack for archetypes that have one.</summary>
         public int FirstAttack;
+        /// <summary>Bow: speed of the arrow across the ground (m/s).</summary>
+        public float ProjectileSpeed;
+        /// <summary>Bow: fall of the arrow (m/s²).</summary>
+        public float ProjectileGravity;
+        /// <summary>Bow: furthest a bot shoots (m).</summary>
+        public float MaxRange;
+        /// <summary>Bow: an enemy closer than this (m) makes a bot draw its side arm.</summary>
+        public float MinRange;
 
         public bool HasSpecialAttack => Archetype == WeaponArchetype.TwoHand;
+        public bool IsRanged => Archetype == WeaponArchetype.Bow;
 
         /// <summary>Attack table index for a direction; AttackDirection.Special maps to the special attack if the archetype has one.</summary>
         public int AttackIndex(int direction) =>
@@ -55,6 +73,8 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         public float LungeDistance;
         public float LungeStartPose;
         public float LungeEndPose;
+        /// <summary>AttackResolver: the blade sweeps, or an arrow leaves at the start of the release.</summary>
+        public int Resolver;
     }
 
     /// <summary>

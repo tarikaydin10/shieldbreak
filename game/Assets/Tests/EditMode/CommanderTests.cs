@@ -542,6 +542,56 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void Company_WithArchers_IsDecided_AndTheCommanderScreensThem()
+        {
+            var bow = ScriptableObject.CreateInstance<WeaponDefinition>();
+            bow.ApplyBowDefaults();
+            var shot = ScriptableObject.CreateInstance<AttackDefinition>();
+            shot.ApplyDefaults(AttackDirection.Thrust);
+            shot.windupMs = 900f;
+            shot.releaseMs = 100f;
+            shot.recoveryMs = 900f;
+            shot.shootsProjectile = true;
+            for (int d = 0; d < AttackDirection.Count; d++) bow.attacks[d] = shot;
+            created.Add(bow);
+            created.Add(shot);
+            scenario.weapons = new[] { scenario.weapons[0], scenario.weapons[1], bow };
+            CompanyScenarioDefinition.Unit Archers(int team, float y, float towards) => new CompanyScenarioDefinition.Unit
+            {
+                name = "S", team = team, formationType = FormationType.Loose, count = 8, files = 8, weapon = 2, sideWeapon = 0, botLevel = 3,
+                front = new Vector2(48f, y), faceTowards = new Vector2(48f, towards), startBehavior = FormationBehavior.Screen,
+            };
+            var units = new List<CompanyScenarioDefinition.Unit>(scenario.units) { Archers(0, 23f, 70f), Archers(1, 73f, 30f) };
+            scenario.units = units.ToArray();
+            commander.scoreNoise = 0.1f;
+            int wins = 0, shots = 0, deaths = 0;
+            string line = "";
+            for (int seed = 1; seed <= 12; seed++)
+            {
+                scenario.seed = seed;
+                using var world = World();
+                var result = BattleResult.Undecided;
+                while (result == BattleResult.Undecided && world.Tick < 240 * 60)
+                {
+                    world.Step();
+                    Assert.That(world.Formations[5].Behavior, Is.Not.EqualTo(FormationBehavior.Advance), "the commander never sends shooters into the line");
+                    Assert.That(world.Commanders[0].Flanker, Is.Not.EqualTo(5));
+                    foreach (var e in world.LastEvents)
+                    {
+                        if (e.Type == CombatEventType.Shot) shots++;
+                        if (e.Type == CombatEventType.Death) deaths++;
+                    }
+                    result = BattleOutcome.Evaluate(world.Agents, 0, 0);
+                }
+                Assert.That(result, Is.Not.EqualTo(BattleResult.Undecided), $"seed {seed}");
+                if (result == BattleResult.Victory) wins++;
+                line += $" {result.ToString()[0]}{world.Tick / 60}";
+            }
+            Assert.That(shots, Is.GreaterThan(100));
+            TestContext.WriteLine($"with archers: idle hero wins {wins}/12:{line}; {shots / 12} shots and {deaths / 12} dead per battle");
+        }
+
+        [Test]
         public void Company_WithACommander_IsDecided_AndHasCasualties()
         {
             using var world = World();

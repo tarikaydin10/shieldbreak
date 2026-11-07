@@ -25,7 +25,7 @@ namespace Shieldbreak.Sim.Combat
     public static class CombatSystem
     {
         public static void Step(int tick, NativeArray<AgentData> agents, NativeArray<CombatData> combat, int count,
-            in SpatialHash spatial, CombatSetup setup, NativeList<CombatEvent> events, NativeArray<int> attackerScratch, NativeArray<CombatData> seenScratch,
+            in SpatialHash spatial, CombatSetup setup, NativeList<CombatEvent> events, NativeArray<int> attackerScratch, NativeArray<CombatData> seenScratch, NativeArray<ProjectileData> projectiles,
             NativeArray<FormationData> formations, NativeArray<FormationMember> members, in FormationSettings formationSettings)
         {
             if (count == 0 || !setup.Weapons.IsCreated || setup.Weapons.Length == 0) return;
@@ -46,6 +46,7 @@ namespace Shieldbreak.Sim.Combat
                 Events = events,
                 AttackersOn = attackerScratch,
                 Seen = seenScratch,
+                Projectiles = projectiles,
                 Formations = formations,
                 Members = members,
                 FormationSettings = formationSettings,
@@ -231,7 +232,10 @@ namespace Shieldbreak.Sim.Combat
             public NativeArray<int> AttackersOn;
             /// <summary>Everybody's combat state at the start of the tick: what the bots see of each other.</summary>
             public NativeArray<CombatData> Seen;
-            [ReadOnly] public NativeArray<FormationData> Formations;
+            /// <summary>Arrows in flight; empty in worlds without any.</summary>
+            public NativeArray<ProjectileData> Projectiles;
+            /// <summary>Read by the bots; arrows note in it that a formation is under fire.</summary>
+            public NativeArray<FormationData> Formations;
             [ReadOnly] public NativeArray<FormationMember> Members;
             public FormationSettings FormationSettings;
 
@@ -239,14 +243,15 @@ namespace Shieldbreak.Sim.Combat
 
             public void Execute()
             {
-                NativeArray<CombatData>.Copy(Combat, Seen, Count);
+                NativeArray<CombatData>.Copy(Combat, 0, Seen, 0, Count);
 
                 // Attack tokens: count bots already swinging at each target
                 for (int i = 0; i < Count; i++) AttackersOn[i] = 0;
                 for (int i = 0; i < Count; i++)
                 {
                     var c = Combat[i];
-                    if ((c.State == CombatState.Windup || c.State == CombatState.Release) && c.BotProfile > 0 && c.BotTarget >= 0 && c.BotTarget < Count)
+                    // Tokens are for melee swings: shooters need none
+                    if ((c.State == CombatState.Windup || c.State == CombatState.Release) && c.BotProfile > 0 && c.BotTarget >= 0 && c.BotTarget < Count && !Weapons[c.WeaponId].IsRanged)
                         AttackersOn[c.BotTarget]++;
                 }
 
@@ -319,7 +324,11 @@ namespace Shieldbreak.Sim.Combat
                     Combat[i] = c;
                     UpdateMovement(i, c);
                 }
+                FlyArrows();
             }
+
+            /// <summary>Arrows leave the bow at this height and go for this height on the target: the chest (m).</summary>
+            const float ShootHeight = 1.5f, AimHeight = 1.25f;
 
             /// <summary>Stagger step: the push moves the body directly (steering cannot cancel it) and fades out.</summary>
             void ApplyKnockback(int i, ref CombatData c)
@@ -355,7 +364,14 @@ namespace Shieldbreak.Sim.Combat
                 }
                 c.State = phase == AttackPhase.Windup ? CombatState.Windup : phase == AttackPhase.Release ? CombatState.Release : CombatState.Recovery;
                 float3 lunge = attack.LungeDistance > 0f ? Lunge(i, attack, c.StateTick) : float3.zero;
-                if (c.State == CombatState.Release) Trace(i, ref c, attack, lunge);
+                if (c.State != CombatState.Release) return;
+                if (attack.Resolver == AttackResolver.SwingTrace) Trace(i, ref c, attack, lunge);
+                else if (c.HitCount == 0)
+                {
+                    // Once per shot, at the start of the release
+                    c.HitCount = 1;
+                    Shoot(i, ref c);
+                }
             }
 
             /// <summary>
@@ -584,6 +600,133 @@ namespace Shieldbreak.Sim.Combat
                 c.HitCount++;
             }
 
+            /// <summary>
+            /// Looses an arrow at the bot's target, led by how far it walks in the flight time. The aim misses by the
+            /// bot's error: that is the skill of a shooter, never the arrow's damage. Without a target the arrow goes straight ahead.
+            /// </summary>
+            void Shoot(int i, ref CombatData c)
+            {
+                int slot = -1;
+                for (int p = 0; p < Projectiles.Length && slot < 0; p++)
+                    if (Projectiles[p].Active == 0) slot = p;
+                if (slot < 0) return;
+                var me = Agents[i];
+                var weapon = Weapons[c.WeaponId];
+                var from = new float3(me.Position.x, ShootHeight, me.Position.y) + new float3(me.Facing.x, 0f, me.Facing.y) * 0.4f;
+                int target = c.BotTarget >= 0 && c.BotTarget < Count && !Agents[c.BotTarget].IsDead ? c.BotTarget : -1;
+                float2 aim = me.Position + me.Facing * weapon.MaxRange * 0.5f;
+                if (target >= 0)
+                {
+                    var enemy = Agents[target];
+                    float distance = math.distance(enemy.Position, me.Position);
+                    aim = enemy.Position + enemy.Velocity * (distance / weapon.ProjectileSpeed);
+                    float error = c.BotProfile > 0 && c.BotProfile < Bots.Length ? Bots[c.BotProfile].AimErrorPerMeter * distance : 0f;
+                    var rng = new SimRandom { State = c.RngState };
+                    aim += new float2(rng.NextFloat(-error, error), rng.NextFloat(-error, error));
+                    c.RngState = rng.State;
+                }
+                Projectiles[slot] = new ProjectileData
+                {
+                    Position = from,
+                    Velocity = Projectile.Launch(from, new float3(aim.x, AimHeight, aim.y), weapon.ProjectileSpeed, weapon.ProjectileGravity),
+                    Owner = i,
+                    Team = me.Team,
+                    WeaponId = c.WeaponId,
+                    Active = 1,
+                };
+                Events.Add(new CombatEvent { Type = CombatEventType.Shot, Attacker = i, Target = target, Point = from });
+            }
+
+            /// <summary>One step for every arrow: it strikes the first enemy on its way, or sticks in the ground. No friendly fire.</summary>
+            void FlyArrows()
+            {
+                for (int p = 0; p < Projectiles.Length; p++)
+                {
+                    var arrow = Projectiles[p];
+                    if (arrow.Active == 0) continue;
+                    Projectile.Step(ref arrow, Weapons[arrow.WeaponId].ProjectileGravity, SimConstants.DT, out float3 from);
+                    int struck = -1, zone = -1;
+                    float bestT = 2f;
+                    int2 cell = Layout.WorldToCell(arrow.Position.xz);
+                    for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        int2 cc = cell + new int2(dx, dy);
+                        if (!Layout.InBounds(cc)) continue;
+                        int index = Layout.CellIndex(cc);
+                        for (int e = CellStart[index]; e < CellStart[index + 1]; e++)
+                        {
+                            int j = Entries[e];
+                            if (j >= Count) continue;
+                            var other = Agents[j];
+                            if (other.IsDead || other.Team == arrow.Team) continue;
+                            if (SwingTrace.SweepAgent(from, arrow.Position, other.Position, out float t, out int z) && !(IsAirborne(Combat[j], Tuning) && z == BodyZone.Legs) &&
+                                (t < bestT || (t == bestT && j < struck)))
+                            {
+                                bestT = t;
+                                struck = j;
+                                zone = z;
+                            }
+                        }
+                    }
+                    if (struck >= 0)
+                    {
+                        ResolveArrow(arrow, struck, zone, math.lerp(from, arrow.Position, bestT));
+                        arrow.Active = 0;
+                    }
+                    else if (arrow.Position.y <= 0f || !Layout.InBounds(cell)) arrow.Active = 0;
+                    Projectiles[p] = arrow;
+                }
+            }
+
+            /// <summary>
+            /// A shield blocks an arrow in its front arc for stamina, like a swing, but a perfect block does not exist:
+            /// nobody can read an arrow (docs/combat/papier-test-bogen-lanze.md). The energy comes from the flight.
+            /// </summary>
+            void ResolveArrow(in ProjectileData arrow, int j, int zone, float3 point)
+            {
+                var weapon = Weapons[arrow.WeaponId];
+                var target = Combat[j];
+                var targetAgent = Agents[j];
+                float effective = 0.5f * weapon.Mass * math.lengthsq(arrow.Velocity) * weapon.PointFactor;
+                var ev = new CombatEvent { Attacker = arrow.Owner, Target = j, Zone = zone, Energy = effective, Point = point };
+                float2 toArcher = math.normalizesafe(-arrow.Velocity.xz, targetAgent.Facing);
+                NoteFire(j, toArcher);
+                float arc = Weapons[target.WeaponId].BlockArcDeg;
+                if (target.BlockHeld == 1 && target.State == CombatState.Idle && math.dot(toArcher, targetAgent.Facing) >= math.cos(math.radians(arc * 0.5f)))
+                {
+                    target.Stamina -= effective * Tuning.BlockStaminaPerJoule * weapon.BlockPressure;
+                    target.LastStaminaUseTick = Tick;
+                    if (target.Stamina <= 0f)
+                    {
+                        target.Stamina = 0f;
+                        target.BlockHeld = 0;
+                        target.State = CombatState.Stunned;
+                        target.StateTick = 0;
+                        target.StunTicks = Tuning.GuardBreakStunTicks;
+                        ev.Type = CombatEventType.GuardBreak;
+                    }
+                    else ev.Type = CombatEventType.Blocked;
+                    Events.Add(ev);
+                    Combat[j] = target;
+                    return;
+                }
+                ApplyHit(arrow.Owner, j, ref target, ref targetAgent, zone, effective, point, ev);
+                Combat[j] = target;
+            }
+
+            /// <summary>The formation of <paramref name="j"/> is under fire from that direction (FormationSystem decides what it does about it).</summary>
+            void NoteFire(int j, float2 toArcher)
+            {
+                int id = Members[j].Formation;
+                if (id < 0 || id >= Formations.Length) return;
+                var f = Formations[id];
+                f.UnderFireTick = Tick;
+                f.ArrowHits++;
+                f.FireDirection += toArcher;
+                Formations[id] = f;
+            }
+
             /// <summary>Applies block, perfect block or damage. Returns true if the swing stops here.</summary>
             bool Resolve(int i, ref CombatData attacker, int j, int zone, float effective, in WeaponData weapon, float3 point)
             {
@@ -632,6 +775,15 @@ namespace Shieldbreak.Sim.Combat
                     }
                 }
 
+                ApplyHit(i, j, ref target, ref targetAgent, zone, effective, point, ev);
+                Combat[j] = target;
+                // Overhead and thrust stop in the first body; side cuts may carry on (MaxTargets)
+                return false;
+            }
+
+            /// <summary>Armour is a threshold per zone (CLAUDE.md 3.5); what gets through wounds, stuns or kills.</summary>
+            void ApplyHit(int i, int j, ref CombatData target, ref AgentData targetAgent, int zone, float effective, float3 point, CombatEvent ev)
+            {
                 float threshold = zone == BodyZone.Head ? Tuning.ZoneThreshold.z : zone == BodyZone.Torso ? Tuning.ZoneThreshold.y : Tuning.ZoneThreshold.x;
                 float multiplier = zone == BodyZone.Head ? Tuning.ZoneMultiplier.z : zone == BodyZone.Torso ? Tuning.ZoneMultiplier.y : Tuning.ZoneMultiplier.x;
                 float damage = math.max(0f, effective - threshold) * Tuning.DamagePerJoule * multiplier;
@@ -654,9 +806,6 @@ namespace Shieldbreak.Sim.Combat
                         target.StunTicks = Tuning.HitStunTicks;
                     }
                 }
-                Combat[j] = target;
-                // Overhead and thrust stop in the first body; side cuts may carry on (MaxTargets)
-                return false;
             }
 
             void UpdateMovement(int i, in CombatData c)
@@ -684,6 +833,30 @@ namespace Shieldbreak.Sim.Combat
             public AgentData Agent(int i) => Agents[i];
             /// <summary>How an agent stood at the start of the tick (for bots: all see the same moment).</summary>
             public CombatData CombatOf(int i) => Seen[i];
+
+            /// <summary>Loadout slot of the bow, -1 = none or already drawn.</summary>
+            public int BowSlot(in CombatData c)
+            {
+                if (Weapons[c.WeaponId].IsRanged) return -1;
+                for (int s = 0; s < 4; s++)
+                    if (c.Loadout[s] >= 0 && Weapons[c.Loadout[s]].IsRanged) return s;
+                return -1;
+            }
+
+            /// <summary>Loadout slot of a melee weapon, -1 = none.</summary>
+            public int MeleeSlot(in CombatData c)
+            {
+                for (int s = 0; s < 4; s++)
+                    if (c.Loadout[s] >= 0 && !Weapons[c.Loadout[s]].IsRanged) return s;
+                return -1;
+            }
+
+            /// <summary>From this distance a shooter with its side arm goes back to the bow: past the bow's MinRange, with a margin, so it does not flicker.</summary>
+            public float ShooterSwitchRange(in CombatData c)
+            {
+                int bow = BowSlot(c);
+                return bow >= 0 ? Weapons[c.Loadout[bow]].MinRange + 2f : float.MaxValue;
+            }
             public void SetAgent(int i, AgentData a) => Agents[i] = a;
             public AttackData Attack(in CombatData c) => AttackOf(c);
             public WeaponData Weapon(in CombatData c) => Weapons[c.WeaponId];

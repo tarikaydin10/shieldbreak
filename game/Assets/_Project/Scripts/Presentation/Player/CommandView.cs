@@ -59,13 +59,13 @@ namespace Shieldbreak.Presentation.Player
         public static IReadOnlyList<int> Selection => selection;
 
         static readonly string[] TypeNames = { "Linie", "Schildwall", "Keil", "Kreis", "Locker" };
-        static readonly string[] BehaviorNames = { "hält", "rückt vor", "greift an", "folgt", "zieht sich zurück" };
+        static readonly string[] BehaviorNames = { "hält", "rückt vor", "greift an", "folgt", "zieht sich zurück", "schirmt ab" };
         static readonly string[] ShapeActions = { "ShapeLine", "ShapeShieldWall", "ShapeWedge", "ShapeCircle", "ShapeLoose" };
         static readonly string[] StanceNames = { "Stellung halten", "Reagieren", "Aggressiv" };
         static readonly string[] ThreatNames = { "", "Feind links!", "Feind rechts!", "Feind im Rücken!" };
 
         InputActionMap map;
-        InputAction hold, point, select, command, additive, zoom, padPointer, cycleStance;
+        InputAction hold, point, select, command, additive, zoom, padPointer, cycleStance, screenOrder;
         /// <summary>Enemy formation under the pointer (a right-click advances on it), -1 = none.</summary>
         int hoveredEnemy = -1;
         readonly InputAction[] shapes = new InputAction[FormationLimits.TypeCount];
@@ -103,6 +103,7 @@ namespace Shieldbreak.Presentation.Player
             zoom = map.FindAction("Zoom", true);
             padPointer = map.FindAction("Cursor", true);
             cycleStance = map.FindAction("CycleStance", true);
+            screenOrder = map.FindAction("Screen", true);
             for (int t = 0; t < shapes.Length; t++) shapes[t] = map.FindAction(ShapeActions[t], true);
             map.Enable();
             RenderPipelineManager.endCameraRendering += Draw;
@@ -166,6 +167,7 @@ namespace Shieldbreak.Presentation.Player
             for (int t = 0; t < shapes.Length; t++)
                 if (shapes[t].WasPressedThisFrame()) IssueShape(world, (FormationType)t);
             if (cycleStance.WasPressedThisFrame()) IssueNextStance(world);
+            if (screenOrder.WasPressedThisFrame()) IssueScreen(world);
             hoveredEnemy = selecting || drawingLine ? -1 : PickFormation(world, pointer, own: false);
 
             if (command.WasPressedThisFrame() && !AdminMenu.BlocksPointer(pointer) && TryGroundPoint(pointer, out commandStart))
@@ -381,6 +383,20 @@ namespace Shieldbreak.Presentation.Player
             Toast($"{(selection.Count == 0 ? "Alle" : scratch.Count == 1 ? Name(world, scratch[0]) : $"{scratch.Count} Formationen")}: {TypeNames[(int)type]}");
         }
 
+        /// <summary>Shooters among the targets go back to screening: keep their distance, fall back behind the infantry.</summary>
+        void IssueScreen(SimWorld world)
+        {
+            Targets(world, scratch);
+            int given = 0;
+            foreach (int f in scratch)
+            {
+                if (world.Formations[f].Ranged == 0) continue;
+                world.SubmitFormationOrder(LocalPlayer, FormationOrder.SetBehavior(f, FormationBehavior.Screen));
+                given++;
+            }
+            Toast(given > 0 ? "Schützen: abschirmen" : "Keine Schützen in der Auswahl");
+        }
+
         /// <summary>Stance of the targets, one step on (Hold Ground → React → Aggressive), counted from the first of them.</summary>
         void IssueNextStance(SimWorld world)
         {
@@ -558,7 +574,7 @@ namespace Shieldbreak.Presentation.Player
                 string who = selection.Count == 0 ? "keine Auswahl: Befehle gehen an alle" : $"Auswahl: {selection.Count} Formation(en)";
                 string radial = GameInput.KeyboardBinding(GameInput.Action("Radial", "Open"));
                 string text = $"KOMMANDOANSICHT · {who}\nLinksklick: wählen (Shift: dazu) · Rechtsklick: hierher · rechts ziehen: Frontlinie · Rechtsklick auf Feind: vorrücken gegen ihn\n" +
-                              $"{radial} halten: Befehle an die Auswahl · 1–5: Form · {GameInput.KeyboardBinding(cycleStance)}: Haltung · Mausrad: Höhe · {GameInput.KeyboardBinding(hold)} loslassen: zurück · Der Held zieht sich hinter die Linie zurück";
+                              $"{radial} halten: Befehle an die Auswahl · 1–5: Form · {GameInput.KeyboardBinding(cycleStance)}: Haltung · {GameInput.KeyboardBinding(screenOrder)}: Schützen abschirmen · Mausrad: Höhe · {GameInput.KeyboardBinding(hold)} loslassen: zurück · Der Held zieht sich hinter die Linie zurück";
                 GUI.Label(new Rect(screen.x * 0.5f - 560f, screen.y - 104f, 1120f, 84f), text, hint);
             }
 
@@ -616,6 +632,7 @@ namespace Shieldbreak.Presentation.Player
                 // What it just turned to, for a moment
                 if (fd.ThreatSide != FormationThreatSide.None && (world.Tick - fd.ThreatTick) * SimConstants.DT < threatLabelSeconds)
                     state += $" · {ThreatNames[(int)fd.ThreatSide]}";
+                if (fd.ArrowHits > 0 && (world.Tick - fd.UnderFireTick) * SimConstants.DT < threatLabelSeconds) state += " · unter Beschuss!";
                 string text = $"{TypeNames[math.clamp((int)fd.Type, 0, TypeNames.Length - 1)]} · {living[f]} · {state}";
                 float w = 260f * scale, h = 20f * scale;
                 var rect = new Rect(s.x - w * 0.5f, Screen.height - s.y - h, w, h);

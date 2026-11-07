@@ -127,6 +127,8 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int Rout = 11;
         /// <summary>A fleeing soldier left the field at the map edge.</summary>
         public const int Fled = 12;
+        /// <summary>An arrow left the bow (Target is whom it was meant for, -1 = nobody).</summary>
+        public const int Shot = 13;
     }
 
     /// <summary>What happened in a tick, for presentation (hitstop, sounds, effects) and tests. Not part of the hash.</summary>
@@ -262,5 +264,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public float StepChance;
         /// <summary>Chance per decision to use the archetype special (shield bash on a raised block, two-hand leap).</summary>
         public float SpecialChance;
+        /// <summary>Shooting: the aim point misses by up to this share of the distance (fewer at higher levels).</summary>
+        public float AimErrorPerMeter;
     }
 }

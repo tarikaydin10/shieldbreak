@@ -45,6 +45,13 @@ namespace Shieldbreak.Sim.AI
                 return;
             }
 
+            if (job.Weapon(c).IsRanged)
+            {
+                ThinkShooter(i, ref c, ref me, ctx, ref rng, ref job);
+                c.RngState = rng.State;
+                return;
+            }
+
             // Target acquisition: periodic (staggered by id), when the current target is gone, or when the formation
             // no longer lets the bot fight it (out of the leash or the front arc, retreat)
             bool lost = c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead ||
@@ -65,8 +72,13 @@ namespace Shieldbreak.Sim.AI
                     me.FaceAgent = -1;
                 }
                 job.SetAgent(i, me);
-                // Without an enemy near, an unattended hero walks back with the shield down (blocking slows)
-                if (c.BlockHeld == 1 && (p.HoldBlock == 0 || unattended)) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
+                // Under arrows the shields stay up; otherwise, without an enemy near, an unattended hero walks back with the shield down (blocking slows)
+                if (ctx.TakingCover == 1)
+                {
+                    if (c.State == CombatState.Idle && c.BlockHeld == 0) CombatSystem.SetBlock(ref c, true, tick, job.Attack(c), rules, job.EventList, i);
+                }
+                else if (c.BlockHeld == 1 && (p.HoldBlock == 0 || unattended)) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
+                DrawBow(i, ref c, ref job);
                 c.RngState = rng.State;
                 return;
             }
@@ -76,6 +88,9 @@ namespace Shieldbreak.Sim.AI
             float2 toEnemy = enemy.Position - me.Position;
             float dist = math.length(toEnemy);
             float2 dir = dist > 1e-4f ? toEnemy / dist : me.Facing;
+
+            // A shooter fighting with the side arm goes back to the bow once the enemy is out of reach of it
+            if (dist > job.ShooterSwitchRange(c)) DrawBow(i, ref c, ref job);
 
             // Attack token (1vX): only a limited number of bots swing at the same target; the others hold back and threaten
             bool swinging = c.State == CombatState.Windup || c.State == CombatState.Release;
@@ -180,6 +195,74 @@ namespace Shieldbreak.Sim.AI
             }
 
             c.RngState = rng.State;
+        }
+
+        /// <summary>
+        /// A shooter on the same grammar: stays on its slot, faces its target, draws, looses, nocks. Levels differ in
+        /// how often it shoots and how well it aims. An enemy too close makes it draw its side arm if it has one.
+        /// </summary>
+        static void ThinkShooter(int i, ref CombatData c, ref AgentData me, in FormationCombatContext ctx, ref SimRandom rng, ref CombatSystem.CombatJob job)
+        {
+            var p = job.Profile(c.BotProfile);
+            var weapon = job.Weapon(c);
+            int tick = job.CurrentTick;
+            if (c.BlockHeld == 1) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), job.Rules, job.EventList, i);
+            bool lost = c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead;
+            if (ctx.Disengaged == 1) c.BotTarget = -1;
+            else if ((lost && (tick + i) % 6 == 0) || (tick + i) % ReacquireInterval == 0) c.BotTarget = FindShot(me, weapon.MaxRange, ctx, ref job);
+            me.Target = c.OrderTarget;
+            if (c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead)
+            {
+                c.BotTarget = -1;
+                if (math.lengthsq(c.OrderFacing) > 0f)
+                {
+                    me.FaceAgent = AgentData.FaceFixed;
+                    me.FaceDirection = c.OrderFacing;
+                }
+                else me.FaceAgent = -1;
+                job.SetAgent(i, me);
+                return;
+            }
+            me.FaceAgent = c.BotTarget;
+            job.SetAgent(i, me);
+            float dist = math.distance(job.Agent(c.BotTarget).Position, me.Position);
+            if (dist < weapon.MinRange)
+            {
+                int side = job.MeleeSlot(c);
+                if (side >= 0)
+                {
+                    CombatSystem.TrySwitch(ref c, side, tick, job.Rules, job.EventList, i);
+                    return;
+                }
+            }
+            if (tick < c.BotNextDecisionTick || c.State != CombatState.Idle) return;
+            c.BotNextDecisionTick = tick + p.DecisionIntervalTicks;
+            if (rng.NextFloat() < p.AttackChance) CombatSystem.TryAttack(ref c, AttackDirection.Thrust, tick, job.Attack(c), job.Rules, job.EventList, i);
+        }
+
+        /// <summary>A shooter fighting with its side arm takes up the bow again.</summary>
+        static void DrawBow(int i, ref CombatData c, ref CombatSystem.CombatJob job)
+        {
+            int bow = job.BowSlot(c);
+            if (bow >= 0 && c.State == CombatState.Idle) CombatSystem.TrySwitch(ref c, bow, job.CurrentTick, job.Rules, job.EventList, i);
+        }
+
+        /// <summary>Nearest living enemy in range and in the front arc. A plain loop: a bow reaches over too many cells for the grid.</summary>
+        static int FindShot(in AgentData me, float range, in FormationCombatContext ctx, ref CombatSystem.CombatJob job)
+        {
+            var formationRules = job.FormationRules;
+            int best = -1;
+            float bestSq = range * range;
+            for (int j = 0; j < job.AgentCount; j++)
+            {
+                var other = job.Agent(j);
+                if (other.IsDead || other.Team == me.Team) continue;
+                float dsq = math.distancesq(other.Position, me.Position);
+                if (dsq >= bestSq || !FormationCombatRules.Accepts(ctx, formationRules, me.Position, other.Position, range)) continue;
+                bestSq = dsq;
+                best = j;
+            }
+            return best;
         }
 
         /// <summary>Nearest living enemy within <paramref name="range"/> that the formation context lets the bot fight.</summary>

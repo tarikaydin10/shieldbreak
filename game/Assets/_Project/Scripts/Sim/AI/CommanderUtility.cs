@@ -263,7 +263,8 @@ namespace Shieldbreak.Sim.AI
             for (int a = 0; a < formationCount; a++)
             {
                 var own = formations[a];
-                if (own.MemberCount == 0) continue;
+                // Shooters are no front: they count as soldiers, not in the line
+                if (own.MemberCount == 0 || own.Ranged == 1) continue;
                 float width = FormationLinePlanner.FrontWidth(own.Type, own.Files, own.MemberCount, formationSettings);
                 float inFront = FrontSoldiers(own, width, formationSettings);
                 if (own.Team != team)
@@ -278,7 +279,7 @@ namespace Shieldbreak.Sim.AI
                 for (int b = 0; b < formationCount; b++)
                 {
                     var other = formations[b];
-                    if (other.Team != team && other.MemberCount > 0) nearestSq = math.min(nearestSq, math.distancesq(own.Position, other.Position));
+                    if (other.Team != team && other.MemberCount > 0 && other.Ranged == 0) nearestSq = math.min(nearestSq, math.distancesq(own.Position, other.Position));
                 }
             }
             f.Distance = math.sqrt(nearestSq);

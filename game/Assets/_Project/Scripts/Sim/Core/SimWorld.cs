@@ -6,6 +6,7 @@ using Shieldbreak.Sim.Agents;
 using Shieldbreak.Sim.Combat;
 using Shieldbreak.Sim.Combat.Archetypes;
 using Shieldbreak.Sim.Combat.Grammar;
+using Shieldbreak.Sim.Combat.Resolvers;
 using Shieldbreak.Sim.Formations;
 using Shieldbreak.Sim.Grid;
 using Shieldbreak.Sim.Morale;
@@ -32,6 +33,8 @@ namespace Shieldbreak.Sim.Core
         public MoraleSettings Morale;
         /// <summary>How commanders of this world think; scenarios add them with AddCommander.</summary>
         public CommanderSettings Commander;
+        /// <summary>Arrows that can be in the air at once (0 = no shooting).</summary>
+        public int MaxProjectiles;
     }
 
     /// <summary>
@@ -57,6 +60,7 @@ namespace Shieldbreak.Sim.Core
         NativeArray<int> playerUnattended;
         NativeArray<int> attackerScratch;
         NativeArray<CombatData> seenScratch;
+        NativeArray<ProjectileData> projectiles;
         // Running hash of every applied command; diverging input streams show up in the world hash
         // immediately, before they cause visible divergence.
         ulong appliedInputHash;
@@ -103,6 +107,7 @@ namespace Shieldbreak.Sim.Core
             events = new NativeList<CombatEvent>(64, Allocator.Persistent);
             attackerScratch = new NativeArray<int>(config.MaxAgents, Allocator.Persistent);
             seenScratch = new NativeArray<CombatData>(config.MaxAgents, Allocator.Persistent);
+            projectiles = new NativeArray<ProjectileData>(math.max(config.MaxProjectiles, 0), Allocator.Persistent);
 
             this.combatSetup = Copy(combatSetup);
             formations = new FormationSystem(config.MaxFormations, config.MaxAgents, config.Formations, config.Movement, Grid);
@@ -155,6 +160,9 @@ namespace Shieldbreak.Sim.Core
         /// <summary>Commanders with their tactic, scores and what they read (presentation, debug). Valid until the next Step.</summary>
         public NativeArray<CommanderState>.ReadOnly Commanders => commanders.Commanders;
         public CommanderSettings CommanderSettings => commanders.Settings;
+
+        /// <summary>Arrows (those with Active = 1 fly) for reading (presentation). Valid until the next Step.</summary>
+        public NativeArray<ProjectileData>.ReadOnly Projectiles => projectiles.AsReadOnly();
 
         /// <summary>Scenario setup: an AI commander takes over the formations of <paramref name="owner"/> (a player id nobody plays).</summary>
         public void AddCommander(int owner, int team) => commanders.Add(owner, team);
@@ -294,10 +302,15 @@ namespace Shieldbreak.Sim.Core
         /// formation. Returns the formation id; the agents get contiguous ids in slot order.
         /// </summary>
         public int SpawnFormation(int team, int owner, FormationType type, int files, int count, float2 position, float2 facing,
-            float radius, int weaponId = 0, int botProfile = 0)
+            float radius, int weaponId = 0, int botProfile = 0, int sideWeapon = -1)
         {
             if (count < 1 || count > FormationLimits.MaxMembers) throw new ArgumentOutOfRangeException(nameof(count));
             int id = CreateFormation(team, owner, type, files, position, facing);
+            if (HasCombat)
+            {
+                var arm = combatSetup.Weapons[weaponId];
+                formations.SetArms(id, arm.IsRanged, arm.Archetype == WeaponArchetype.OneHandShield);
+            }
             var f = formations.Formations[id];
             using var local = new NativeArray<float2>(count, Allocator.Temp);
             using var localFacing = new NativeArray<float2>(count, Allocator.Temp);
@@ -306,6 +319,7 @@ namespace Shieldbreak.Sim.Core
             {
                 int agent = SpawnAgent(team, f.ToWorld(local[s]), radius, FormationData.Rotate(localFacing[s], f.Facing), weaponId, botProfile);
                 formations.Add(id, agent, team);
+                if (sideWeapon >= 0) SetLoadout(agent, new int4(weaponId, sideWeapon, -1, -1));
             }
             return id;
         }
@@ -367,7 +381,7 @@ namespace Shieldbreak.Sim.Core
             ApplyMoveIntents();
             PostUnattendedHeroes();
             AgentSystem.Step(agents, AgentCount, ref spatial, positionScratch, velocityScratch, facingScratch, Config.Movement, Grid.NavCost);
-            CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch, seenScratch,
+            CombatSystem.Step(Tick, agents, combat, AgentCount, spatial, combatSetup, events, attackerScratch, seenScratch, projectiles,
                 formations.FormationBuffer, formations.MemberBuffer, formations.Settings);
             morale.Step(Tick, agents, combat, AgentCount, events, spatial, playerAgent, formations.FormationBuffer, formations.MemberBuffer);
 
@@ -609,6 +623,7 @@ namespace Shieldbreak.Sim.Core
             h.Add(Grid.Panic);
             morale.AddToHash(ref h, AgentCount);
             commanders.AddToHash(ref h);
+            h.Add(projectiles);
             return h.Value;
         }
 
@@ -629,6 +644,7 @@ namespace Shieldbreak.Sim.Core
             if (playerUnattended.IsCreated) playerUnattended.Dispose();
             if (attackerScratch.IsCreated) attackerScratch.Dispose();
             if (seenScratch.IsCreated) seenScratch.Dispose();
+            if (projectiles.IsCreated) projectiles.Dispose();
             if (agents.IsCreated) agents.Dispose();
             if (combat.IsCreated) combat.Dispose();
             if (positionScratch.IsCreated) positionScratch.Dispose();

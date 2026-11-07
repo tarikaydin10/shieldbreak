@@ -55,7 +55,7 @@ namespace Shieldbreak.DebugTools
         GUIStyle labelStyle;
 
         static readonly string[] TypeNames = { "Linie", "Schildwall", "Keil", "Kreis", "Locker" };
-        static readonly string[] BehaviorNames = { "hält", "rückt vor", "greift an", "folgt", "zieht sich zurück" };
+        static readonly string[] BehaviorNames = { "hält", "rückt vor", "greift an", "folgt", "zieht sich zurück", "schirmt ab" };
         static readonly string[] ThreatNames = { "", "Feind links!", "Feind rechts!", "Feind im Rücken!" };
         const float ThreatLabelSeconds = 4f;
 

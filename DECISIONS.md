@@ -367,6 +367,22 @@ Anlass (Tarik, nach dem Anspielen): „soldaten fliehen zu früh“.
 
 Moral nach all dem neu gemessen (Kompanie, 12 Seeds): Beim Verlierer flieht der erste Soldat nach 12,8 von 24 Toten, 17,7 sind am Ende tot, die Schlacht dauert im Schnitt 59 s. Ein Held, der nichts tut, gewinnt 9 von 12. Die Werte im Eintrag „Soldaten fliehen später“ stammen von vor dem Fairness-Fix.
 
+## 2026-11-07 — M3 Task 5: Fernkampf
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Archetyp Bogen auf derselben Grammatik: Ausholen = Spannen, Release = Lösen, Erholen = Nachlegen. `AttackData.Resolver` wählt zwischen SwingTrace und Projektil (Erweiterung 2 aus dem Papier-Test). Schaden: `E = ½·m·v²` aus der Flug-Geschwindigkeit, Masse des Pfeils, Spitze; dieselben Zonen-Schwellwerte | CLAUDE.md 3.5: keine Sonderregel für eine Waffe | Eigener Fernkampf-Pfad |
+| Pfeile sind `ProjectileData`-Structs mit festem Schritt, im Hash, im `CombatJob`. Ballistik ohne Trigonometrie: Zeit = Weg / Tempo, daraus der Abwurf nach oben. Kein Eigenbeschuss | Determinismus. Pfeile fliegen im Bogen über die eigene Linie; Eigenbeschuss wäre ein eigenes Design-Thema | Raycast ohne Flugzeit (nicht ausweichbar, nicht sichtbar) |
+| Zielfehler pro Bot-Stufe (`aimErrorPerMeter`, L1 0,1 bis L5 0,025), mit Vorhalt auf die Bewegung des Ziels | Säule 4: Schwierigkeit ist Fehlerrate, kein Schaden. L5 bringt 70 Pfeile ins Ziel, L1 15 | – |
+| Schild blockt Pfeile im Frontbogen für Ausdauer, ohne Perfect Block; der Bogen blockt nicht. Schützen tragen ein Schwert als Zweitwaffe (`sideWeapon`) und wechseln, wenn ein Feind näher als `minRange` (5 m) ist | Papier-Test: Perfect Block gegen Pfeile ist unlesbar und im Lockstep unfair | – |
+| Neues Verhalten **Abschirmen** (`FormationBehavior.Screen`): in Reichweite stehen und schießen, zu weit weg aufrücken, unter `screenFallbackDistance` (14 m) hinter die nächste eigene Infanterie zurückfallen. Der Kommandant lässt Schützen immer abschirmen, nie flankieren; im Rückzug gehen sie mit. Spieler: T/X in der Kommandoansicht | CLAUDE.md 3.6 (Fernkampf-Screening, Rückzug-hinter-Infanterie) als ein Verhalten | Zwei getrennte Verhalten |
+| **Deckung (Rest von Task 2):** Ab `coverMinHits` (3) Pfeilen bildet eine haltende, angekommene Formation mit Schilden den Schildwall zu den Schützen hin, solange kein Feind bis `threatDistance` nah ist; die Soldaten halten die Schilde oben. 5 s nach dem letzten Pfeil geht sie in ihre Form zurück. Märsche und befohlene Angriffe bleiben wie befohlen | Säule 2. „Befehle gehen vor“ wie bei den Bedrohungen. Der Preis: Die Formation steht und bindet sich | Deckung auch im Marsch |
+| Der Bogen für den **Helden** kommt nicht in diesem Task: Er braucht Zielen und gehaltene Spannung (Erweiterung 1 aus dem Papier-Test) und gehört zur Eingabe. Wurfwaffen (Tabelle 3.5) ebenso | Der Task ist die Schlacht: Schützen als Truppe. Steht in `IDEAS.md` | – |
+| Lanchester zählt Schützen als Soldaten, aber nicht zur Front; das Modell bleibt Nahkampf, der quadratische Fernkampf (3.7) fehlt noch | Der Kommandant schätzt Schützen damit eher zu niedrig. Reicht für jetzt | – |
+| Die Kompanie im Asset `Company_M2` hat je 8 Schützen; `ApplyDefaultLayout` (Tests, neue Assets) bleibt ohne | Bestehende Tests prüfen die vier Grund-Formationen. Tests mit Schützen bauen ihre Einheiten selbst | – |
+
+Gemessen (Kompanie mit je 8 Schützen, 12 Seeds, Held tut nichts): Der Spieler gewinnt 8 von 12, im Schnitt 275 Schüsse pro Schlacht. Drei Schlachten waren nach 20 bis 40 s verloren: Pfeile treffen einen Helden, der stillsteht.
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

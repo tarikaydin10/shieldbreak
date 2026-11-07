@@ -31,6 +31,8 @@ namespace Shieldbreak.Data
             [Range(1, 5)] public int botLevel = 3;
             [Tooltip("Weapon id: index in weapons (0 = sword and shield, 1 = two-hander).")]
             [Min(0)] public int weapon;
+            [Tooltip("Second weapon for when the enemy is too close (bows: a side arm), -1 = none.")]
+            public int sideWeapon = -1;
             [Tooltip("Centre of the front rank (map coordinates in m).")]
             public Vector2 front;
             [Tooltip("Point the formation faces at the start.")]
@@ -59,6 +61,8 @@ namespace Shieldbreak.Data
         public MoraleDefinition morale;
         [Tooltip("AI commander of the enemy; empty = the enemy keeps its start behaviors.")]
         public CommanderDefinition commander;
+        [Tooltip("Arrows that can be in the air at once.")]
+        [Min(0)] public int maxProjectiles = 128;
 
         [Header("Hero (player 0, team 0)")]
         public Vector2 heroPosition = new Vector2(48f, 30f);
@@ -114,6 +118,7 @@ namespace Shieldbreak.Data
             Formations = BuildFormationSettings(),
             Morale = morale != null ? morale.ToSettings() : default,
             Commander = commander != null ? commander.ToSettings() : default,
+            MaxProjectiles = maxProjectiles,
         };
 
         FormationSettings BuildFormationSettings()
@@ -170,7 +175,7 @@ namespace Shieldbreak.Data
                 int weapon = math.clamp(u.weapon, 0, world.CombatSetup.Weapons.Length - 1);
                 int level = math.clamp(u.botLevel, 1, world.CombatSetup.BotProfiles.Length - 1);
                 int count = math.clamp(u.count, 1, FormationLimits.MaxMembers);
-                int f = world.SpawnFormation(team, owner, u.formationType, u.files, count, u.front, facing, agentRadius, weapon, level);
+                int f = world.SpawnFormation(team, owner, u.formationType, u.files, count, u.front, facing, agentRadius, weapon, level, u.sideWeapon);
                 // Setup, not an input: every peer applies the same start behavior before tick 0
                 if (u.startBehavior != FormationBehavior.Hold) world.ApplyFormationOrder(FormationOrder.SetBehavior(f, u.startBehavior), owner);
             }

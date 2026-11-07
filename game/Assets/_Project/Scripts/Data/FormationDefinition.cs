@@ -81,6 +81,18 @@ namespace Shieldbreak.Data
         [Tooltip("After a turn or an order the formation looks for threats again only after this long (ms).")]
         [Min(0)] public int threatCooldownMs = 3000;
 
+        [Header("Shooters")]
+        [Tooltip("Screening shooters closer than this to the enemy fall back (m).")]
+        [Min(0f)] public float screenFallbackDistance = 14f;
+        [Tooltip("Further than this they move up into range (m).")]
+        [Min(0f)] public float screenAdvanceDistance = 34f;
+        [Tooltip("They fall back to this far behind the own infantry (m).")]
+        [Min(0f)] public float screenBehindDistance = 8f;
+        [Tooltip("So many arrows make a holding formation with shields form a shield wall. 0 = never.")]
+        [Min(0)] public int coverMinHits = 3;
+        [Tooltip("This long after the last arrow it goes back to its form (ms).")]
+        [Min(0)] public int coverWindowMs = 5000;
+
         [Header("Hero in the command view (HeroUnattended)")]
         [Tooltip("Bot level (L1–L5) the hero fights at while the player is in the command view; 0 = no command view.")]
         [Range(0, 5)] public int heroUnattendedLevel = 2;
@@ -124,6 +136,11 @@ namespace Shieldbreak.Data
             ThreatDistance = threatDistance,
             ThreatMinEnemies = threatMinEnemies,
             ThreatCooldownTicks = Mathf.RoundToInt(threatCooldownMs * SimConstants.TickRate / 1000f),
+            ScreenFallbackDistance = screenFallbackDistance,
+            ScreenAdvanceDistance = screenAdvanceDistance,
+            ScreenBehindDistance = screenBehindDistance,
+            CoverMinHits = coverMinHits,
+            CoverWindowTicks = Mathf.RoundToInt(coverWindowMs * SimConstants.TickRate / 1000f),
         };
     }
 }

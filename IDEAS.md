@@ -25,6 +25,14 @@ Regel: Neue Ideen landen hier, nicht im Sprint. Bewertung (Wert / Risiko / Aufwa
 - Umgebung als Waffe: Stoß in Abgrund, Fluss verlangsamt
 - Finisher-Kamera bei entscheidenden Kills (nur Singleplayer, im Lockstep problematisch)
 
+## Fernkampf
+
+- **Bogen für den Helden** (aus M3 Task 5): Zielen über die Kamera, gehaltene Spannung (Erweiterung 1 im [Papier-Test](docs/combat/papier-test-bogen-lanze.md)), Stamina pro Sekunde
+- Armbrust (lange Recovery, weniger Bogen), Wurfwaffen (Tabelle 3.5)
+- Quadratisches Lanchester-Modell für Fernkampf, damit der Kommandant Schützen richtig bewertet
+- Munition, Pfeile im Boden und in Schilden sichtbar stecken lassen
+- Eigenbeschuss als Option für höhere Schwierigkeit
+
 ## Taktik
 
 - Hinterhalt-Deployment (Wald versteckt Formation bis Sichtkontakt)

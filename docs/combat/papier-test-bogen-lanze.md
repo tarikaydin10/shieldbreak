@@ -2,6 +2,8 @@
 
 CLAUDE.md 3.5 verlangt, jede Grammatik-Regel gegen Bogen (Spannen/Lösen) und Lanze (Couch) zu prüfen. Stand nach M1 (Einhand + Schild, Zweihänder).
 
+**Umsetzung (M3 Task 5):** Erweiterung 2 ist gebaut (Resolver pro Angriff, Pfeile als Sim-Structs). Erweiterung 1 (Halten) noch nicht: Bots spannen fest ihre Windup-Zeit, gehaltene Spannung braucht erst der Held.
+
 **Ergebnis:** Die Grammatik trägt beide Archetypen. Es braucht zwei allgemeine Erweiterungen (Halten, Resolver-Art), keine Sonderregel für eine Waffe.
 
 ## Regel für Regel
