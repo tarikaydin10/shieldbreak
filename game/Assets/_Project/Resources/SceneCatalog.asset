@@ -120,6 +120,23 @@ MonoBehaviour:
     - "WASD verschiebt den Blick, L hält die Ansicht offen, V bringt dich zurück in den Kampf"
     - "Das Bild bleibt flüssig, auch wenn alle kämpfen (F1 zeigt FPS und Sim-Zeit)"
     - "Alle Soldaten sind als Figuren zu sehen, keine als Kapseln"
+  - id: battle-large
+    title: "Schlacht: 100 gegen 100"
+    section: "Spielen"
+    scene: M2_Company
+    launch: 0
+    scenario: {fileID: 11400000, guid: e9bed61bb826f60b81230c5a5330342d, type: 2}
+    briefingOnStart: 1
+    objective: "Sechs Formationen pro Seite auf einer Karte von 200 m: drei Linien, ein Keil in Reserve, zwei Gruppen Bogenschützen. Der Feind hat einen Kommandanten. Mit V und L führst du sie von oben, WASD verschiebt den Blick."
+    controlMaps:
+    - Radial
+    - CommandView
+    - Combat
+    - CommanderDebug
+    checks:
+    - "Das Bild bleibt flüssig, auch wenn alle 200 kämpfen (F1 zeigt FPS und Sim-Zeit)"
+    - "Die Karte ist groß genug für eine Flanke, und die Schlacht bleibt trotzdem nicht stehen"
+    - "Alle Soldaten sind als Figuren zu sehen, keine als Kapseln"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

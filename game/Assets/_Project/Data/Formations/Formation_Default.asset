@@ -37,7 +37,7 @@ MonoBehaviour:
   behaviorIntervalMs: 500
   retargetDistance: 2
   heroUnattendedLevel: 2
-  heroRetreatGap: 1.5
+  heroRetreatGap: 5
   defaultStance: 1
   reactDistance: 10
   aggressiveDistance: 30

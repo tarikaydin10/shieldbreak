@@ -19,7 +19,7 @@ namespace Shieldbreak.Presentation
     {
         public SimRunner runner;
         public SoldierVisualDefinition visual;
-        [Min(1)] public int maxFigures = 128;
+        [Min(1)] public int maxFigures = 256;
         [Tooltip("Length and thickness of an arrow in flight (m); larger than life, so it reads from afar.")]
         public Vector2 arrowSize = new Vector2(1f, 0.05f);
         [Tooltip("Colour of an arrow (wood_dark of the palette): a cube's UVs would span the whole palette texture.")]

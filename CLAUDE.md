@@ -246,8 +246,8 @@ Doktrinen-UI · Feldherr-Modus (nur Kommandoansicht, kein Held) · Sandtisch-Auf
 
 M0 bis M3 sind abgeschlossen (Fun-Gates bestanden, M3 am 2026-11-07; die älteren Tasks stehen in `docs/STATUS.md` und `DECISIONS.md`). Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebnis und einem Commit.
 
-1. **100 gegen 100** — Szenario `Battle_100v100` (6 Formationen pro Seite, Karte 200 m), Messung von Sim und Bild; der Engpass bestimmt Task 2.
-2. **Massen-Rendering** — Volle Figuren nur für die ~20 nächsten Soldaten (CLAUDE.md 3.2), der Rest per Instancing ohne GameObjects; gebackene Posen (VAT), soweit der Stand aus Task 1 sie braucht.
+1. **100 gegen 100** ✅ — `Data/Scenarios/Battle_100v100` (6 Formationen pro Seite, Karte 200 m) in der Szene `M2_Company`; `GroundField` hält den Boden unter jeder Karte. 0,37 ms pro Tick, im Build bei 1080p 257 bis 505 FPS. Tests: `BattleScenarioTests`.
+2. **Massen-Rendering** — Volle Figuren nur für die ~20 nächsten Soldaten (Abschnitt 3.2), der Rest per Instancing ohne GameObjects. Bei 200 Soldaten ist das Bild kein Engpass (Task 1); der Task zielt auf 150 gegen 150 und schwächere Rechner, Reihenfolge nach Task 6 möglich.
 3. **Höhe** — Höhenfeld im `WorldGrid`: Soldaten stehen darauf, Hang bremst, Energie und Pfeile spüren die Höhe, der Commander bekommt das Merkmal Höhendifferenz („Halten auf Höhe“).
 4. **Wald und Gelände** — Zellkosten für Wald und Sumpf, Wald bremst und bricht die Ordnung, deckt gegen Pfeile; alles über das eine Grid.
 5. **Speer** — Archetyp Stangenwaffe (Stich, Hieb, Brace), steht in Abschnitt 3.5 seit M2 aus und ist der Gegenpol zur Reiterei.

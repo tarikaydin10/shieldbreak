@@ -18,7 +18,7 @@ namespace Shieldbreak.Presentation.Menu
 
         [Tooltip("Duel scenario for the setup page (presets, weapons).")]
         public DuelScenarioDefinition duel;
-        public string version = "M3 Feldherr";
+        public string version = "M4 Schlacht";
 
         Page page;
         readonly ControlsPage controls = new ControlsPage();
@@ -41,7 +41,7 @@ namespace Shieldbreak.Presentation.Menu
         {
             var screen = MenuStyle.BeginScaled();
             var rect = page == Page.Test ? MenuStyle.CentredPanel(screen, 1180, 900) :
-                MenuStyle.CentredPanel(screen, page == Page.Controls ? 860 : 620, page == Page.Home ? 690 : 720);
+                MenuStyle.CentredPanel(screen, page == Page.Controls ? 860 : 620, page == Page.Home ? 750 : 780);
             GUILayout.BeginArea(rect, MenuStyle.Panel);
             GUILayout.Label("SHIELDBREAK", MenuStyle.Title);
             GUILayout.Label($"{version} · Low-Poly-Schlachtsimulator · alles in Arbeit", MenuStyle.Subtitle);
@@ -64,6 +64,7 @@ namespace Shieldbreak.Presentation.Menu
             if (MenuStyle.Big("Zuschauen · Bot gegen Bot")) Launch("spectate");
             if (MenuStyle.Big("Kompanie · Held mit eigener Truppe")) Launch("company");
             if (MenuStyle.Big("Schlacht · 50 gegen 50")) Launch("battle");
+            if (MenuStyle.Big("Schlacht · 100 gegen 100")) Launch("battle-large");
             GUILayout.Space(8);
             GUILayout.Label("WERKZEUGE", MenuStyle.Heading);
             if (MenuStyle.Big("Testmodus · alle Szenen mit Ziel, Steuerung und Prüfliste")) page = Page.Test;

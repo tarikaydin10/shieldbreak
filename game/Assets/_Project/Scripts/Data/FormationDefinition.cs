@@ -97,7 +97,7 @@ namespace Shieldbreak.Data
         [Tooltip("Bot level (L1–L5) the hero fights at while the player is in the command view; 0 = no command view.")]
         [Range(0, 5)] public int heroUnattendedLevel = 2;
         [Tooltip("The unattended hero falls back this far behind the rear rank of the nearest own formation (m).")]
-        [Min(0f)] public float heroRetreatGap = 1.5f;
+        [Min(0f)] public float heroRetreatGap = 5f;
 
         static FormationSpacing Spacing(Vector2 v) => new FormationSpacing { Lateral = v.x, Depth = v.y };
 

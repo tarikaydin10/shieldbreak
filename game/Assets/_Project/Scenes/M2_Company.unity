@@ -495,7 +495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Shieldbreak.Presentation::Shieldbreak.Presentation.CombatFigureRenderer
   runner: {fileID: 569493334}
   visual: {fileID: 11400000, guid: 5833f643bb5c2aa4ea5b6d259c919a56, type: 2}
-  maxFigures: 128
+  maxFigures: 256
   rightShoulder: {x: 0.22, y: 1.42, z: 0}
   leftShoulder: {x: -0.22, y: 1.42, z: 0}
   upperArmLength: 0.32
@@ -800,6 +800,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 246954939}
+  - component: {fileID: 246954940}
   m_Layer: 0
   m_Name: Ground
   m_TagString: Untagged
@@ -807,6 +808,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &246954940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 246954938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 749fa0638ccafdcd308dcce392243c4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shieldbreak.Presentation::Shieldbreak.Presentation.GroundField
+  runner: {fileID: 569493334}
+  tileModel: {fileID: 919132149155446097, guid: bffba550632ed9c429904f0d34578bb9, type: 3}
+  tileSize: 20
+  margin: 40
 --- !u!4 &246954939
 Transform:
   m_ObjectHideFlags: 0

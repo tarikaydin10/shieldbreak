@@ -406,6 +406,18 @@ Anlass (Tarik): Fun-Gate M3 mit Ja beantwortet.
 | **Modelle ab M4 nur aus der eigenen Pipeline** (assetforge), kein Synty | Einheitlicher Look wie bei Dead Hold, kein Kauf, keine Anpassung fremder Paletten und Proportionen. Pferd und Rüstung müssen dafür generiert werden | Synty POLYGON |
 | Speer (Stangenwaffe) wird M4 Task 5 | Steht in CLAUDE.md 3.5 mit Meilenstein M2, wurde dort aber nicht gebaut. Die Reiterei braucht ihn als Gegenpol (Brace) | Reiterei ohne Gegenwaffe |
 
+## 2026-11-07 — M4 Task 1: 100 gegen 100
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| `Battle_100v100`: wieder nur Daten in der Szene `M2_Company`: Karte 200 m, je sechs Formationen (zwei Linien, Schildwall, Keil in Reserve, zwei Gruppen Schützen), 100 Soldaten, 400 Pfeile | Szenarien sind Daten; die Schützen verteilen sich auf zwei Gruppen, damit die Mitte nicht alles abbekommt | Eine einzige große Schützengruppe |
+| `heroRetreatGap` von 1,5 auf 5 m | Gemessen: In der großen Schlacht fiel der Held aus der Kommandoansicht in 3 von 6 Läufen nach 50 s, während seine Seite mit 93 gegen 77 führte. Er stand direkt hinter einer zweireihigen Linie, der feindliche Keil brach durch, vier Gegner töteten ihn in 2 s. Eine solche Niederlage ist nicht verdient. Mit 5 m fällt er nur noch, wenn die Schlacht ohnehin verloren ist | Held zieht sich aktiv vor Feinden zurück (mehr Verhalten für denselben Zweck) |
+| `GroundField` ergänzt den Boden zur Laufzeit bis zur Kartengröße plus 40 m Rand. Neue Kacheln kommen aus dem Modell, nicht als Kopie einer Szenen-Kachel: Die sind statisch gebatcht, eine Kopie zeichnete nichts Sichtbares | Der Boden der Szene war 100 m groß. Karten über 100 m endeten im Nichts, das betraf schon `Battle_50v50` (140 m). Die Kacheln bleiben, bis Task 3 das Gelände bringt | Mehr Kacheln fest in die Szene (eine Szene dient mehreren Kartengrößen) |
+| Figuren-Grenze von 128 auf 256 | Sonst wären Soldaten Kapseln | VAT jetzt |
+| Massen-Rendering (Task 2) ist bei 200 Soldaten nicht nötig und darf hinter die Reiterei rutschen | Gemessen: 257 bis 505 FPS bei 1080p auf diesem Rechner, langsamstes Bild 14 bis 22 ms. Offen bleiben 150 gegen 150 und schwächere Rechner | Task 2 sofort bauen |
+
+Gemessen: 0,37 ms pro Sim-Tick (Median, 200 Soldaten im Kampf, Budget 2 ms), p95 0,85 ms, Spitze 1,65 ms.
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt
