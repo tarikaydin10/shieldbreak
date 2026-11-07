@@ -44,7 +44,6 @@ namespace Shieldbreak.Tests
             Assert.That(formations, Is.EqualTo(new[] { 5, 5 }));
             Assert.That(world.Commanders.Length, Is.EqualTo(1));
             Assert.That(world.Config.MaxProjectiles, Is.GreaterThan(0));
-            Assert.That(world.Config.CommandRange, Is.Zero, "the plain battle has no command range");
         }
 
         [Test]
@@ -123,6 +122,7 @@ namespace Shieldbreak.Tests
                 Object.DestroyImmediate(scenario);
             }
         }
+
         [Test, Category("Performance")]
         public void Battle_MedianStepUnderBudget_WhileEverybodyFights()
         {
@@ -141,52 +141,6 @@ namespace Shieldbreak.Tests
             double median = samples[ticks / 2], p95 = samples[ticks * 95 / 100], max = samples[ticks - 1];
             TestContext.WriteLine($"100 soldiers in battle: median {median:0.000} ms, p95 {p95:0.000} ms, max {max:0.000} ms per SimWorld.Step (budget 2 ms)");
             Assert.That(median, Is.LessThan(2.0));
-        }
-
-        // ---- Command range ----
-
-        [Test]
-        public void CommandRange_OrdersReachOnlyFormationsNearTheHero()
-        {
-            using var world = World(Load("Battle_50v50_Range"));
-            Assert.That(world.Config.CommandRange, Is.GreaterThan(0f));
-            int near = 3, far = 0;
-            float heroToFar = math.distance(world.Agents[0].Position, world.Formations[far].Position);
-            // The hero starts in the middle: a formation well out of reach needs the range cut for this test
-            var scenario = Object.Instantiate(Load("Battle_50v50_Range"));
-            try
-            {
-                scenario.commandRange = heroToFar * 0.5f;
-                using var short_ = World(scenario);
-                Assert.That(short_.InCommandRange(Player, near));
-                Assert.That(short_.InCommandRange(Player, far), Is.False);
-                short_.SubmitFormationOrder(Player, FormationOrder.SetStance(near, FormationStance.Aggressive));
-                short_.SubmitFormationOrder(Player, FormationOrder.SetStance(far, FormationStance.Aggressive));
-                for (int t = 0; t < 10; t++) short_.Step();
-                Assert.That(short_.Formations[near].Stance, Is.EqualTo(FormationStance.Aggressive), "near the hero the order arrives");
-                Assert.That(short_.Formations[far].Stance, Is.Not.EqualTo(FormationStance.Aggressive), "out of range it does not");
-            }
-            finally
-            {
-                Object.DestroyImmediate(scenario);
-            }
-        }
-
-        [Test]
-        public void CommandRange_DoesNotBindTheCommander()
-        {
-            var scenario = Object.Instantiate(Load("Battle_50v50_Range"));
-            try
-            {
-                scenario.commandRange = 1f;
-                using var world = World(scenario);
-                for (int t = 0; t < 600; t++) world.Step();
-                Assert.That(world.Formations[5].Position.y, Is.LessThan(90f), "the enemy's orders arrive all the same");
-            }
-            finally
-            {
-                Object.DestroyImmediate(scenario);
-            }
         }
     }
 }

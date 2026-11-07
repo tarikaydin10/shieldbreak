@@ -26,7 +26,6 @@ MonoBehaviour:
   morale: {fileID: 11400000, guid: 5b1b1f6f611648b899c8fd3d3241bf82, type: 2}
   commander: {fileID: 11400000, guid: bd3de31d08fa4c728b81128ab473dc1f, type: 2}
   maxProjectiles: 200
-  commandRange: 0
   heroPosition: {x: 70, y: 42}
   heroFacesTowards: {x: 70, y: 100}
   heroLoadout: 0000000001000000

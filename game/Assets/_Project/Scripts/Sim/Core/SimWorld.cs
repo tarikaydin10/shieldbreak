@@ -35,8 +35,6 @@ namespace Shieldbreak.Sim.Core
         public CommanderSettings Commander;
         /// <summary>Arrows that can be in the air at once (0 = no shooting).</summary>
         public int MaxProjectiles;
-        /// <summary>Experiment (CLAUDE.md, M3): a player's orders reach formations this close (m) to his hero; 0 = everywhere.</summary>
-        public float CommandRange;
     }
 
     /// <summary>
@@ -326,18 +324,6 @@ namespace Shieldbreak.Sim.Core
             return id;
         }
 
-        /// <summary>
-        /// Does a player's order reach this formation? Always, unless the scenario sets a command range. Commander AIs
-        /// have no hero and no range. Part of the sim: every peer has to reject the same orders.
-        /// </summary>
-        public bool InCommandRange(int playerId, int formation)
-        {
-            if (Config.CommandRange <= 0f || (uint)playerId >= SimConstants.MaxPlayers || formation < 0 || formation >= formations.Count) return true;
-            int hero = playerAgent[playerId];
-            if (hero < 0) return true;
-            return math.distancesq(agents[hero].Position, formations.Formations[formation].Position) <= Config.CommandRange * Config.CommandRange;
-        }
-
         /// <summary>Order path of sim-internal clients (commander AI): same FormationOrder, applied at once.</summary>
         public bool ApplyFormationOrder(in FormationOrder order, int issuer) => formations.Apply(order, issuer);
 
@@ -443,11 +429,8 @@ namespace Shieldbreak.Sim.Core
                     ApplyPlayerMove(command);
                     break;
                 case InputCommandType.FormationOrder:
-                {
-                    var order = FormationOrder.FromCommand(command);
-                    if (InCommandRange(command.PlayerId, order.Formation)) formations.Apply(order, command.PlayerId);
+                    formations.Apply(FormationOrder.FromCommand(command), command.PlayerId);
                     break;
-                }
                 case InputCommandType.HeroUnattended:
                     ApplyHeroUnattended(command);
                     break;

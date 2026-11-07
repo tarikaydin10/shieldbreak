@@ -120,24 +120,6 @@ MonoBehaviour:
     - "WASD verschiebt den Blick, L hält die Ansicht offen, V bringt dich zurück in den Kampf"
     - "Das Bild bleibt flüssig, auch wenn alle kämpfen (F1 zeigt FPS und Sim-Zeit)"
     - "Alle Soldaten sind als Figuren zu sehen, keine als Kapseln"
-  - id: battle-range
-    title: "Schlacht mit Befehlsreichweite"
-    section: "Spielen"
-    scene: M2_Company
-    launch: 0
-    scenario: {fileID: 11400000, guid: e4b8b69989fe484495a0a8147b26cc29, type: 2}
-    briefingOnStart: 1
-    objective: "Experiment: Dieselbe Schlacht, aber deine Befehle erreichen nur Formationen bis 45 m um deinen Helden. Der Ring zeigt die Reichweite, Formationen außerhalb sind blass. Frage: Macht das die Schlacht besser oder nur mühsamer?"
-    controlMaps:
-    - Radial
-    - CommandView
-    - Combat
-    - CommanderDebug
-    checks:
-    - "In der Kommandoansicht zeigt ein Ring die Reichweite, Formationen außerhalb sind blass"
-    - "Ein Befehl an eine Formation außerhalb kommt nicht an; oben steht außer Reichweite"
-    - "Gehst du mit dem Helden näher heran, hört sie wieder auf dich"
-    - "Bleibt das Experiment drin? Fühlt sich die Position des Helden wichtiger an, oder stört es nur?"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

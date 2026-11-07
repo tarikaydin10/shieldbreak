@@ -71,7 +71,6 @@ namespace Shieldbreak.Presentation.Player
         /// <summary>The world the view was opened in: a restart builds a new one with the hero attended again.</summary>
         SimWorld openedIn;
         /// <summary>Targets of the last order that the command range kept out.</summary>
-        int outOfRange;
         /// <summary>Enemy formation under the pointer (a right-click advances on it), -1 = none.</summary>
         int hoveredEnemy = -1;
         readonly InputAction[] shapes = new InputAction[FormationLimits.TypeCount];
@@ -367,7 +366,7 @@ namespace Shieldbreak.Presentation.Player
 
         void Issue(SimWorld world, float2 start, float2 end, bool drawn)
         {
-            if (!Reachable(world)) return;
+            if (!HasTargets(world)) return;
             string who = selection.Count == 0 ? "Alle" : scratch.Count == 1 ? Name(world, scratch[0]) : $"{scratch.Count} Formationen";
 
             // A click on an enemy formation: advance on exactly that one
@@ -397,7 +396,7 @@ namespace Shieldbreak.Presentation.Player
 
         void IssueShape(SimWorld world, FormationType type)
         {
-            if (!Reachable(world)) return;
+            if (!HasTargets(world)) return;
             foreach (int f in scratch) world.SubmitFormationOrder(LocalPlayer, FormationOrder.Reshape(f, type));
             Toast($"{(selection.Count == 0 ? "Alle" : scratch.Count == 1 ? Name(world, scratch[0]) : $"{scratch.Count} Formationen")}: {TypeNames[(int)type]}");
         }
@@ -405,7 +404,7 @@ namespace Shieldbreak.Presentation.Player
         /// <summary>Shooters among the targets go back to screening: keep their distance, fall back behind the infantry.</summary>
         void IssueScreen(SimWorld world)
         {
-            if (!Reachable(world)) return;
+            if (!HasTargets(world)) return;
             int given = 0;
             foreach (int f in scratch)
             {
@@ -419,25 +418,21 @@ namespace Shieldbreak.Presentation.Player
         /// <summary>Stance of the targets, one step on (Hold Ground → React → Aggressive), counted from the first of them.</summary>
         void IssueNextStance(SimWorld world)
         {
-            if (!Reachable(world)) return;
+            if (!HasTargets(world)) return;
             var next = (FormationStance)(((int)world.Formations[scratch[0]].Stance + 1) % FormationLimits.StanceCount);
             foreach (int f in scratch) world.SubmitFormationOrder(LocalPlayer, FormationOrder.SetStance(f, next));
             Toast($"{(selection.Count == 0 ? "Alle" : scratch.Count == 1 ? Name(world, scratch[0]) : $"{scratch.Count} Formationen")}: {StanceNames[(int)next]}");
         }
 
-        /// <summary>The order's targets, without those out of command range (the sim would ignore those orders anyway). False = nobody to order.</summary>
-        bool Reachable(SimWorld world)
+        /// <summary>Fills scratch with the order's targets. False = nobody to order.</summary>
+        bool HasTargets(SimWorld world)
         {
             Targets(world, scratch);
-            outOfRange = scratch.RemoveAll(f => !world.InCommandRange(LocalPlayer, f));
-            if (scratch.Count > 0) return true;
-            if (outOfRange > 0) Toast("Außer Befehlsreichweite");
-            return false;
+            return scratch.Count > 0;
         }
 
         void Toast(string text)
         {
-            if (outOfRange > 0 && scratch.Count > 0) text += $" · {outOfRange} außer Reichweite";
             toast = text;
             toastUntil = Time.unscaledTime + toastSeconds;
         }
@@ -466,29 +461,11 @@ namespace Shieldbreak.Presentation.Player
             var c = !IsOwn(world, f) ? enemyColor : selection.Contains(f) ? selectedColor : ownColor;
             // The enemy under the pointer lights up: a right-click attacks exactly this one
             if (f == hoveredEnemy && IsOpen) c = Color.Lerp(c, Color.white, 0.45f);
-            // Out of command range the formation fades: it does not hear you
-            if (IsOwn(world, f) && !world.InCommandRange(LocalPlayer, f)) c.a *= 0.35f;
             c.a *= alpha;
             return c;
         }
 
         float Alpha => commandCamera != null ? commandCamera.Blend : (IsOpen ? 1f : 0f);
-
-        /// <summary>The command range as a ring around the hero.</summary>
-        void RangeRing(SimWorld world, float alpha, float lift)
-        {
-            const int segments = 64;
-            var c = ownColor;
-            c.a *= alpha * 0.6f;
-            GL.Color(c);
-            Vector2 hero = world.Agents[runner.PlayerAgent].Position;
-            float r = world.Config.CommandRange;
-            for (int s = 0; s < segments; s++)
-            {
-                float a0 = s * Mathf.PI * 2f / segments, a1 = (s + 1) * Mathf.PI * 2f / segments;
-                GroundLines.Line(new Vector3(hero.x + Mathf.Cos(a0) * r, lift, hero.y + Mathf.Sin(a0) * r), new Vector3(hero.x + Mathf.Cos(a1) * r, lift, hero.y + Mathf.Sin(a1) * r));
-            }
-        }
 
         /// <summary>Outlines, facings, marches and targets of all formations, the hero and its post, the line being drawn.</summary>
         void Draw(ScriptableRenderContext context, Camera cam)
@@ -500,7 +477,6 @@ namespace Shieldbreak.Presentation.Player
             var formations = world.Formations;
             var settings = world.FormationSettings;
             GroundLines.Begin();
-            if (world.Config.CommandRange > 0f && runner.PlayerAgent >= 0) RangeRing(world, alpha, lift);
             for (int f = 0; f < formations.Length; f++)
             {
                 if (living[f] == 0) continue;

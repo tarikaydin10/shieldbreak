@@ -31,7 +31,6 @@ Shieldwall beweist, dass die Fantasie verkauft (80 % positiv), aber nach ~5 h st
 ### Explizit verschoben, aber architektonisch vorbereitet
 - **Doktrinen / vorprogrammierte Verhaltensregeln** (Phase 2): Formation-Behaviors sind bereits das, was AI und Standing Orders nutzen. Später nur UI zum Konfigurieren.
 - **Gebäude-Destruction** (Phase 2): Navigation läuft auf eigenem Grid mit dynamischen Kosten, nicht auf gebackenem NavMesh. Destruction wird dann eine Kostenänderung in Zellen.
-- **Befehlsreichweite / Sichtlinie / Banner** (Experiment in M3, Parameter, kein Fundament).
 - **Ranked / Anti-Cheat Relay** (nach Launch).
 
 ## 3. Architektur
@@ -168,7 +167,7 @@ Kameras sind reine Presentation; die Sim ist perspektivenunabhängig. Kamerazust
 | Input | Unity Input System, Controller-Support von Anfang an |
 | Kamera | Cinemachine (Third-Person, Schulter-Offset, Zielpunkt per Kamera-Raycast) |
 | Daten | ScriptableObjects für Einheiten, Waffen, Formationen, Taktiken, Maps. Kein Balancing im Code. |
-| Assets | Kapseln + Debug-Gizmos bis M2. Ab M4 Synty POLYGON oder eigener Pipeline-Style (offen, siehe `DECISIONS.md`). Alle eigenen Assets über [assetforge](https://github.com/tarikaydin10/assetforge) (Submodul `tools/assetgen`: headless Blender, Palette, Validator; Specs und Generatoren in `art/`). |
+| Assets | Kapseln + Debug-Gizmos bis M2. Ab M4 ausschließlich der eigene Pipeline-Style (`DECISIONS.md` 2026-11-07), kein Synty. Alle Assets über [assetforge](https://github.com/tarikaydin10/assetforge) (Submodul `tools/assetgen`: headless Blender, Palette, Validator; Specs und Generatoren in `art/`). |
 | Animation | **Pose-basiert prozedural** (Overgrowth-Methode): Angriffe = 3–4 Key-Posen + Easing-Kurven + Laufzeit-IK (Unity Animation Rigging) + prozedurale Secondary Motion. Angriffs-Definition ist ein ScriptableObject, aus dem Grammatik (Phasendauern) und SwingTrace (Waffenbahn) dieselben Daten lesen. Posen werden in Blender gesetzt (Blender MCP für Batch/Varianten), optional Cascadeur für physikalisch plausible Referenzposen. Mixamo nur für Locomotion/Idles. Gekaufte Clips nur als Fallback, falls der M0-Prototyp scheitert. |
 | Tooling | Blender MCP (ahujasid/blender-mcp) und Unity MCP (Open Source, Stand prüfen) als Claude-Anbindung für Posen, Prefabs, ScriptableObjects. |
 | Netz | Facepunch.Steamworks (M6) |
@@ -234,8 +233,8 @@ Budget: ~10 h/Woche, ~730 h gesamt (650 + 80 für den Kriegszug). Ein Meilenstei
 | **M0 Skeleton** | 50 | Fixed-Step-SimWorld, InputQueue, SimRandom, Hash-Test, WorldGrid, 500 Kapsel-Agenten laufen zu Zielen, Debug-Draufsicht + Overlay, Interpolation. **Animations-Prototyp:** Synty-Rig in Blender, 4 Key-Posen für Oben-Hieb, in Unity per Posen-Interpolation + IK abspielen, neben einem Mixamo/Kubold-Clip vergleichen. | Determinismus-Test grün, 500 Agenten bei 60 Hz unter 2 ms Sim-Zeit, prozeduraler Hieb lesbar und nicht steril (sonst Fallback auf Clips entscheiden) |
 | **M1 Duell** | 110 | Kampfgrammatik (Schicht A), Archetypen Einhand+Schild und Zweihand, SwingTrace, Energiemodell, Stamina, Hitstop/Impulse, Third-Person-Controller, Waffen-Slots, Bot mit Reaktionszeit (3 Levels), drei Feel-Presets. Papier-Test der Grammatik gegen Bogen und Lanze. | 10 Duelle gegen Bot pro Preset: welches willst du zum elften Mal spielen? |
 | **M2 Kompanie** | 130 | Formationen + Slots, FormationOrder-API, Radialmenü (einhändig), **Kommandoansicht mit Drag-Orders, `HeroUnattended`-Verhalten, SP-Zeitlupe**, 20v20, Moral-Diffusion, Rout | Formation reagiert sichtbar und sofort auf Befehl; Rout fühlt sich verdient an; Wechsel Kampf ↔ Kommandoansicht fühlt sich riskant, aber nicht lähmend an |
-| **M3 Feldherr** | 120 | Formation-Behaviors, Standing Orders (3 Presets), Commander-Utility-AI, Lanchester, 50v50, Experiment Befehlsreichweite | (a) Nach Niederlage: „ich hätte woanders stehen müssen". AI-Entscheidungen im Overlay nachvollziehbar. (b) **Feldherr-Test:** Eine 50v50-Schlacht, nur aus der Kommandoansicht geführt (Held passiv), ist spannend. Wenn nein, trägt die taktische Ebene nicht; vor M4 nachbessern. |
-| **M4 Schlacht** | 90 | 100v100+, Reiterei (Pferd als Agent, Couching), 3 Maps mit Höhe/Wald/Deploy-Zonen, Synty-Assets, VAT-Rendering | Drei fremde Spieler spielen 30 min freiwillig weiter |
+| **M3 Feldherr** | 120 | Formation-Behaviors, Standing Orders (3 Presets), Commander-Utility-AI, Lanchester, 50v50 | (a) Nach Niederlage: „ich hätte woanders stehen müssen". AI-Entscheidungen im Overlay nachvollziehbar. (b) **Feldherr-Test:** Eine 50v50-Schlacht, nur aus der Kommandoansicht geführt (Held passiv), ist spannend. Wenn nein, trägt die taktische Ebene nicht; vor M4 nachbessern. |
+| **M4 Schlacht** | 90 | 100v100+, Reiterei (Pferd als Agent, Couching), 3 Maps mit Höhe/Wald/Deploy-Zonen, Modelle aus der eigenen Pipeline, VAT-Rendering | Drei fremde Spieler spielen 30 min freiwillig weiter |
 | **M4b Kriegszug** | 80 | Story-Einführung (Text und Bilder), Stadt-Bildschirm (Beute verkaufen; Rüstung, Waffen, Pferde, Rekruten kaufen), Auftragswahl (Banditen, Rivalen), Trupp bleibt zwischen Schlachten erhalten, Rüstung pro Soldat, Spielstand. Lebt in `Scripts/Meta/`, außerhalb der Sim | Ein neuer Kriegszug wird freiwillig bis zur dritten Stadt gespielt, und man will danach weiter |
 | **M5 Polish** | 50 | Nachschlachtbericht (wer hat wann warum gefeuert), Sound, Kamera-Feel, Steam-Page | Trailer-Material existiert |
 | **M6 Multiplayer** | 120 | Lockstep-Scheduler, Steam-Transport, Lobby mit Teams (1v1, 2v2), Desync-Erkennung, Pre-Battle-Phase | Match gegen Freund läuft 20 min ohne Desync; beide wollen Revanche |
@@ -243,17 +242,20 @@ Budget: ~10 h/Woche, ~730 h gesamt (650 + 80 für den Kriegszug). Ein Meilenstei
 ### Phase 2 (nach M6, Reihenfolge offen)
 Doktrinen-UI · Feldherr-Modus (nur Kommandoansicht, kein Held) · Sandtisch-Aufstellung · First-Person-Kamera · Gebäude-Destruction · SDF-Formationen · PBD-Kohäsion/Druck · GPU-Hit-Detection · MCTS-Commander · Ranked/Relay
 
-### M3 Taskliste (aktueller Meilenstein)
+### M4 Taskliste (aktueller Meilenstein)
 
-M0, M1 und M2 sind abgeschlossen (Fun-Gates bestanden, M2 am 2026-11-01; die M2-Tasks stehen in `docs/STATUS.md` und `DECISIONS.md`). Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebnis und einem Commit.
+M0 bis M3 sind abgeschlossen (Fun-Gates bestanden, M3 am 2026-11-07; die älteren Tasks stehen in `docs/STATUS.md` und `DECISIONS.md`). Reihenfolge einhalten; jeder Task endet mit grünem Test oder sichtbarem Ergebnis und einem Commit.
 
-1. **Haltung (Standing Orders, 3 Presets)** ✅ — `FormationStance` pro Formation: Stellung halten, Reagieren (haltende Formation rückt gegen Feinde vor, die bis `reactDistance` herankommen, und hält danach wieder), Aggressiv (ab `aggressiveDistance`, danach weiter zum nächsten). Gilt nur, wenn die Formation hält und angekommen ist; jeder Befehl geht vor, „Halten“ aus dem Radialmenü heißt auch Stellung halten. Über `FormationOrder` (Flag `Stance`), in der Kommandoansicht R/Y. Werte in `FormationDefinition`. Anlass: Fun-Gate M2 (Formationen hinter dem Feind greifen nicht an). Tests: `FormationBehaviorTests`.
-2. **Formation-AI: Bedrohungen** ✅ — `FormationSystem.FaceThreat`: Eine haltende Formation dreht die Front zu Feinden in Flanke oder Rücken (ab `threatMinEnemies` innerhalb `threatDistance`, mehr als vorn), ein von der Haltung ausgelöster Angriff wechselt auf sie; Marsch und befohlene Angriffe bleiben, nach Drehung und Befehl gilt `threatCooldownMs`. Debug-Overlay und Kommandoansicht zeigen den Auslöser. Reaktion auf Fernkampf-Beschuss (Schildwall) kommt mit Task 5. Tests: `FormationBehaviorTests`.
-3. **Commander-Utility-AI** ✅ — `Sim/AI/CommanderUtility` + `CommanderSystem`: alle 2,5 s Utility-Scoring über Halten, Frontalangriff, Flanke links/rechts, Rückzug mit Hysterese, Mindestdauer und Ungeduld beim Halten; Merkmale: Stärkeverhältnis, Moral, Breite der Fronten, offene Seite; Befehle nur über `FormationOrder`. Werte in `CommanderDefinition` (`Data/Commanders/Commander_Default`). Scores auf F3 (`CommanderPanel`). Der Feind in der Kompanie hat einen Kommandanten. Tests: `CommanderTests`.
-4. **Lanchester-Evaluator** ✅ — `Sim/AI/Lanchester`: Prognose Nahkampf (lineares Gesetz: Stärke × Soldaten im Kontakt). Der Commander nutzt sie statt des Kopfverhältnisses; F3 zeigt sie für beide Seiten und für Formationspaare. Tests: `CommanderTests`.
-5. **Fernkampf** ✅ (Bots; Held und Wurfwaffen offen, siehe `IDEAS.md`) — Bogen als Archetyp mit `Projectile`-Resolver (`Sim/Combat/Resolvers/Projectile`), Schützen in lockerer Ordnung, Schild blockt Pfeile, Schwert als Zweitwaffe; Verhalten Abschirmen (`FormationBehavior.Screen`); haltende Formationen unter Beschuss bilden den Schildwall (`FormationSystem.TakeCover`). Tests: `RangedTests`.
-6. **50 gegen 50** ✅ — `Data/Scenarios/Battle_50v50` (5 Formationen pro Seite, Karte 140 m) in der Szene `M2_Company`; Kommandoansicht verschieben (WASD) und offen lassen (L) für den Feldherr-Test; Experiment `commandRange` (`Battle_50v50_Range`, 45 m). 0,15 ms pro Tick. Tests: `BattleScenarioTests`.
-7. **Fun-Gate M3** (Tarik) — (a) nach Niederlage „ich hätte woanders stehen müssen“, AI-Entscheidungen im Overlay nachvollziehbar; (b) Feldherr-Test: 50 gegen 50 nur aus der Kommandoansicht ist spannend.
+1. **100 gegen 100** — Szenario `Battle_100v100` (6 Formationen pro Seite, Karte 200 m), Messung von Sim und Bild; der Engpass bestimmt Task 2.
+2. **Massen-Rendering** — Volle Figuren nur für die ~20 nächsten Soldaten (CLAUDE.md 3.2), der Rest per Instancing ohne GameObjects; gebackene Posen (VAT), soweit der Stand aus Task 1 sie braucht.
+3. **Höhe** — Höhenfeld im `WorldGrid`: Soldaten stehen darauf, Hang bremst, Energie und Pfeile spüren die Höhe, der Commander bekommt das Merkmal Höhendifferenz („Halten auf Höhe“).
+4. **Wald und Gelände** — Zellkosten für Wald und Sumpf, Wald bremst und bricht die Ordnung, deckt gegen Pfeile; alles über das eine Grid.
+5. **Speer** — Archetyp Stangenwaffe (Stich, Hieb, Brace), steht in Abschnitt 3.5 seit M2 aus und ist der Gegenpol zur Reiterei.
+6. **Reiterei: Sim** — Pferd als Agent mit Trägheit, Reiter als Einheit, Lanze mit Couch (`ContactTrace`, Energie aus Relativgeschwindigkeit), Wucht in die Linie, Brace und Schildwall als Antwort.
+7. **Reiterei: Führung** — Formation, Commander, Reaktion „Schildwall bei Kavallerie“, der Held reitet (Pferd als GameObject, Schicht D „Beritten“).
+8. **Drei Karten mit Aufstellung** — Karten als Daten mit Höhe, Wald und Deploy-Zonen, Aufstellphase vor der Schlacht.
+9. **Modelle aus der Pipeline** — Soldat, Pferd, Bäume, Felsen, Terrain ausschließlich über assetforge (`art/specs`, `.\sb.ps1 assets`), siehe `DECISIONS.md` 2026-11-07.
+10. **Fun-Gate M4** (Tarik) — Drei fremde Spieler spielen 30 min freiwillig weiter.
 
 ## 7. Arbeitsregeln
 
@@ -290,7 +292,8 @@ M0, M1 und M2 sind abgeschlossen (Fun-Gates bestanden, M2 am 2026-11-01; die M2-
 - Spielname. Arbeitstitel SHIELDBREAK.
 - Setting spätestens vor M4b entscheiden: Die Story des Kriegszugs hängt daran.
 - ~~Progression zwischen Schlachten~~: entschieden am 2026-11-01, leichte Meta „Kriegszug“ (M4b).
-- Befehlsreichweite: bleibt oder fliegt, entscheidet M3-Playtest.
+- ~~Befehlsreichweite~~: entschieden am 2026-11-07, sie fliegt raus.
+- ~~Synty oder eigene Pipeline~~: entschieden am 2026-11-07, eigene Pipeline.
 
 ## 10. Setup (einmalig)
 

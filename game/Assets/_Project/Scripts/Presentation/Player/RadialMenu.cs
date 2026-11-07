@@ -175,13 +175,11 @@ namespace Shieldbreak.Presentation.Player
         void Issue(SimWorld world, QuickCommand command)
         {
             if (!Available(command)) return;
-            int outOfRange = 0;
             if (CommandViewSelection)
             {
                 foreach (int f in CommandView.Selection)
                 {
-                    if (!world.InCommandRange(LocalPlayer, f)) outOfRange++;
-                    else if (QuickOrders.TryBuild(command, f, runner.PlayerAgent, out var selected)) world.SubmitFormationOrder(LocalPlayer, selected);
+                    if (QuickOrders.TryBuild(command, f, runner.PlayerAgent, out var selected)) world.SubmitFormationOrder(LocalPlayer, selected);
                 }
             }
             else
@@ -190,12 +188,11 @@ namespace Shieldbreak.Presentation.Player
                 int last = target < 0 ? commandedCount - 1 : target;
                 for (int k = first; k <= last; k++)
                 {
-                    if (!world.InCommandRange(LocalPlayer, commanded[k])) outOfRange++;
-                    else if (QuickOrders.TryBuild(command, commanded[k], runner.PlayerAgent, out var order)) world.SubmitFormationOrder(LocalPlayer, order);
+                    if (QuickOrders.TryBuild(command, commanded[k], runner.PlayerAgent, out var order)) world.SubmitFormationOrder(LocalPlayer, order);
                 }
             }
             lastOrder = CommandNames[(int)command];
-            toast = $"{TargetName(world)}: {lastOrder}" + (outOfRange > 0 ? $" · {outOfRange} außer Reichweite" : "");
+            toast = $"{TargetName(world)}: {lastOrder}";
             toastUntil = Time.unscaledTime + toastSeconds;
         }
 

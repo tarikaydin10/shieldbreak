@@ -6,7 +6,7 @@ Regel: Neue Ideen landen hier, nicht im Sprint. Bewertung (Wert / Risiko / Aufwa
 
 - **Doktrinen-UI**: Spieler konfiguriert Formation-Behaviors vor der Schlacht („wenn Kavallerie < 50 m: Schildwall"). Behaviors existieren ab M3, hier kommt nur UI dazu. Mindgame im MP: verdeckte Doktrinen.
 - **Gebäude-Destruction**: WorldGrid-Kosten dynamisch ändern, Mesh-Swap in Presentation. Nav ist vorbereitet.
-- **Befehlsreichweite / Sichtlinie / Banner**: Experiment in M3; wenn es zündet, hier ausbauen (Banner als Moral-Senke und Befehls-Relais).
+- **Banner als Moral-Senke**: Die Befehlsreichweite wurde in M3 gespielt und ist raus (`DECISIONS.md` 2026-11-07); offen bleibt ein Banner, das nur die Moral stützt.
 - **SDF-Formationen**: Formation als Distanzfeld statt Slotliste; stufenlose Übergänge, Verformung um Hindernisse.
 - **PBD-Kohäsion / Druck**: Schildwall mit physischem Gedränge, Charge drückt Linie ein. Hohes Risiko (Determinismus bei Multithreading, Spieler im Constraint-System).
 - **GPU-Hit-Detection**: Alle Klingenbahnen gegen alle Capsules im Compute-Shader. Erst wenn CPU-Variante bei 150v150 limitiert.

@@ -395,9 +395,18 @@ Gemessen (Kompanie mit je 8 Schützen, 12 Seeds, Held tut nichts): Der Spieler g
 
 Gemessen: 0,15 ms pro Sim-Tick (Median, 100 Soldaten im Kampf, Budget 2 ms), p95 0,37 ms. Im Build 151 FPS, langsamstes Bild 22 ms (1280×720 auf diesem Rechner, 50 s Schlacht). Mit Held in der Kommandoansicht und ohne einen einzigen Befehl dauert die Schlacht 72 bis 166 s, die Seite gewinnt 3 von 6; der Held fällt nur spät in verlorenen Schlachten. Ein Held, der als Spieler untätig stehen bleibt, verliert dagegen 6 von 6 nach rund 50 s.
 
+## 2026-11-07 — Fun-Gate M3 bestanden, Entscheidungen für M4
+
+Anlass (Tarik): Fun-Gate M3 mit Ja beantwortet.
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| **M3 ist abgeschlossen**, M4 beginnt | Fun-Gate (a) und (b) bestanden | Nachbessern vor M4 |
+| **Befehlsreichweite fliegt raus:** `commandRange`, `InCommandRange`, Ring und `Battle_50v50_Range` sind entfernt | Entscheidung Tarik (CLAUDE.md 9); ohne Parameter gibt es keinen Pfad, der ungespielt mitläuft | Als Experiment im Testmodus lassen; zum Standard machen |
+| **Modelle ab M4 nur aus der eigenen Pipeline** (assetforge), kein Synty | Einheitlicher Look wie bei Dead Hold, kein Kauf, keine Anpassung fremder Paletten und Proportionen. Pferd und Rüstung müssen dafür generiert werden | Synty POLYGON |
+| Speer (Stangenwaffe) wird M4 Task 5 | Steht in CLAUDE.md 3.5 mit Meilenstein M2, wurde dort aber nicht gebaut. Die Reiterei braucht ihn als Gegenpol (Brace) | Reiterei ohne Gegenwaffe |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt
 - Spielname (Arbeitstitel SHIELDBREAK)
-- Befehlsreichweite / Sichtlinie: Experiment in M3, Parameter
-- Synty POLYGON ab M4 vs. eigener Pipeline-Style (Synty passt nur, wenn Palette und Proportionen übernommen werden)
