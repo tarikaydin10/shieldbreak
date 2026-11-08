@@ -167,6 +167,25 @@ namespace Shieldbreak.Sim.Core
         /// <summary>Scenario setup: an AI commander takes over the formations of <paramref name="owner"/> (a player id nobody plays).</summary>
         public void AddCommander(int owner, int team) => commanders.Add(owner, team);
 
+        readonly float4[] deployZones = new float4[SimConstants.MaxTeams];
+        readonly int[] deployReady = new int[SimConstants.MaxPlayers];
+        bool deploying;
+
+        /// <summary>The deployment before the battle: nobody moves or fights, orders place formations at once (M4 task 8).</summary>
+        public bool IsDeploying => deploying;
+
+        /// <summary>Where a team may stand during the deployment: (min x, min y, max x, max y).</summary>
+        public float4 DeployZone(int team) => deployZones[team];
+
+        /// <summary>Scenario setup: the world starts in the deployment; each side stays inside its zone.</summary>
+        public void BeginDeployment(float4 zoneTeam0, float4 zoneTeam1)
+        {
+            if (math.any(zoneTeam0.xy >= zoneTeam0.zw) || math.any(zoneTeam1.xy >= zoneTeam1.zw)) throw new ArgumentException("A deployment zone needs min < max.");
+            deployZones[0] = zoneTeam0;
+            deployZones[1] = zoneTeam1;
+            deploying = true;
+        }
+
         /// <summary>Remaining waypoints of a formation's path (debug overlay, command view). Valid until the next Step.</summary>
         public NativeArray<float2>.ReadOnly FormationPath(int formationId) => formations.RemainingPath(formationId);
 
@@ -402,6 +421,13 @@ namespace Shieldbreak.Sim.Core
             for (int i = 0; i < tickInputs.Length; i++)
                 ApplyInput(tickInputs[i]);
 
+            if (deploying)
+            {
+                formations.StepDeployment(agents, combat, AgentCount, HasCombat, deployZones);
+                Tick++;
+                return;
+            }
+
             commanders.Step(Tick, agents, morale.Buffer, combat, AgentCount);
             formations.Step(Tick, agents, combat, AgentCount, HasCombat);
             ApplyMoveIntents();
@@ -420,8 +446,14 @@ namespace Shieldbreak.Sim.Core
             h.Add(command);
             appliedInputHash = h.Value;
 
+            // In the deployment the hero waits with everybody else
+            if (deploying && command.Type != InputCommandType.FormationOrder && command.Type != InputCommandType.EndDeployment && command.Type != InputCommandType.HeroUnattended) return;
+
             switch (command.Type)
             {
+                case InputCommandType.EndDeployment:
+                    ApplyReady(command.PlayerId);
+                    break;
                 case InputCommandType.None:
                     break;
                 case InputCommandType.SetTargetRange:
@@ -524,6 +556,7 @@ namespace Shieldbreak.Sim.Core
                 var members = formations.Members(AgentCount);
                 int best = -1;
                 float bestSq = float.MaxValue;
+                bool bestIsLine = false;
                 for (int f = 0; f < all.Length; f++)
                 {
                     var fd = all[f];
@@ -531,7 +564,9 @@ namespace Shieldbreak.Sim.Core
                     if (fd.Owner != p || fd.Team != a.Team || fd.MemberCount == 0) continue;
                     if (fd.Behavior == FormationBehavior.Follow && fd.FollowAgent == id) continue;
                     float dsq = math.distancesq(fd.Position, a.Position);
-                    if (dsq < bestSq) { bestSq = dsq; best = f; }
+                    // Riders charge off, so they are no post; a hero in the saddle also keeps away from shooters moving up. Those only count if nobody else is left
+                    bool isLine = fd.Mounted == 0 && (fd.Ranged == 0 || !a.IsMounted);
+                    if ((isLine && !bestIsLine) || (isLine == bestIsLine && dsq < bestSq)) { bestSq = dsq; best = f; bestIsLine = isLine; }
                 }
                 if (best < 0) continue;
                 var line = all[best];
@@ -548,6 +583,60 @@ namespace Shieldbreak.Sim.Core
                 c.OrderFacing = line.Facing;
                 combat[id] = c;
             }
+        }
+
+        /// <summary>A player is ready; the last one starts the battle. Players without a hero are not asked (the commander AI needs no time).</summary>
+        void ApplyReady(ushort player)
+        {
+            if (!deploying || player >= SimConstants.MaxPlayers || playerAgent[player] < 0) return;
+            deployReady[player] = 1;
+            for (int p = 0; p < SimConstants.MaxPlayers; p++)
+                if (playerAgent[p] >= 0 && deployReady[p] == 0) return;
+            formations.StepDeployment(agents, combat, AgentCount, HasCombat, deployZones);
+            deploying = false;
+            for (int p = 0; p < SimConstants.MaxPlayers; p++)
+                if (playerAgent[p] >= 0) PlaceHeroBehindArmy(p);
+        }
+
+        /// <summary>A hero starts behind the middle of his army, facing the way it faces, where he can lead it.</summary>
+        void PlaceHeroBehindArmy(int player)
+        {
+            var all = formations.Formations;
+            float2 sum = float2.zero, facing = float2.zero;
+            int soldiers = 0;
+            for (int f = 0; f < all.Length; f++)
+            {
+                if (all[f].Owner != player || all[f].MemberCount == 0) continue;
+                sum += all[f].Position * all[f].MemberCount;
+                facing += all[f].Facing * all[f].MemberCount;
+                soldiers += all[f].MemberCount;
+            }
+            if (soldiers == 0) return;
+            int id = playerAgent[player];
+            var a = agents[id];
+            float2 centre = sum / soldiers;
+            float2 front = math.normalizesafe(facing, a.Facing);
+            // Behind the rearmost rank along the way the army faces
+            float rear = float.MaxValue;
+            for (int f = 0; f < all.Length; f++)
+            {
+                var g = all[f];
+                if (g.Owner != player || g.MemberCount == 0) continue;
+                int ranks = (g.MemberCount + g.Files - 1) / math.max(g.Files, 1);
+                rear = math.min(rear, math.dot(g.Position, front) - (ranks - 1) * formations.Settings.Of(g).Spacing(g.Type).Depth);
+            }
+            float2 spot = centre + front * (rear - math.dot(centre, front) - formations.Settings.HeroRetreatGap);
+            var zone = deployZones[a.Team];
+            a.Position = math.clamp(spot, zone.xy, zone.zw);
+            a.Velocity = float2.zero;
+            a.Facing = front;
+            a.FaceDirection = front;
+            a.Target = a.Position;
+            agents[id] = a;
+            var c = combat[id];
+            c.OrderTarget = a.Position;
+            c.RidePoint = a.Position;
+            combat[id] = c;
         }
 
         /// <summary>Walk and look direction of the player's own agent; they hold until the next PlayerMove.</summary>
@@ -645,6 +734,7 @@ namespace Shieldbreak.Sim.Core
             h.Add(Grid.Heights);
             h.Add(Grid.Ground);
             h.Add(AgentCount);
+            h.Add(deploying ? 1 : 0);
             h.Add(agents.GetSubArray(0, AgentCount));
             h.Add(combat.GetSubArray(0, AgentCount));
             h.Add(playerAgent);

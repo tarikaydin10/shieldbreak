@@ -348,6 +348,50 @@ namespace Shieldbreak.Sim.Formations
         }
 
         /// <summary>
+        /// The deployment before a battle: a formation stands where it was last ordered at once, inside the zone of its
+        /// side (zones: min x, min y, max x, max y per team), and its soldiers stand on their slots. Nothing else happens.
+        /// </summary>
+        public void StepDeployment(NativeArray<AgentData> agents, NativeArray<CombatData> combat, int agentCount, bool hasCombat, float4[] zones)
+        {
+            for (int id = 0; id < formationCount; id++)
+            {
+                var f = formations[id];
+                if (f.MemberCount == 0) continue;
+                bool same = f.NeedsPath == 0 && f.Reform == FormationData.ReformNone && math.all(f.Destination == f.Position) && math.all(f.TargetFacing == f.Facing);
+                if (same) continue;
+                var zone = zones[f.Team];
+                f.Position = f.Destination = math.clamp(f.Destination, zone.xy, zone.zw);
+                f.Facing = f.TargetFacing = math.normalizesafe(f.TargetFacing, f.Facing);
+                f.PathCount = f.PathIndex = 0;
+                f.NeedsPath = 0;
+                f.Velocity = float2.zero;
+                f.Reform = FormationData.ReformKeepAnchor;
+                Reform(ref f, agents, agentCount);
+                formations[id] = f;
+                for (int i = 0; i < agentCount; i++)
+                {
+                    var m = members[i];
+                    if (m.Formation != id || m.Slot < 0) continue;
+                    var a = agents[i];
+                    float2 slot = SlotOf(f, m, i);
+                    float2 facing = FormationData.Rotate(m.LocalFacing, f.Facing);
+                    a.Position = slot;
+                    a.Velocity = float2.zero;
+                    a.Facing = facing;
+                    a.FaceDirection = facing;
+                    a.Target = slot;
+                    agents[i] = a;
+                    if (!hasCombat) continue;
+                    var c = combat[i];
+                    c.OrderTarget = slot;
+                    c.OrderFacing = facing;
+                    c.RidePoint = slot;
+                    combat[i] = c;
+                }
+            }
+        }
+
+        /// <summary>
         /// Behaviors choose where the formation marches; the march, path and turn are the same as for a move order.
         /// Advance and Charge head for their target or the nearest enemy formation (Advance stops a contact gap short, Charge goes in),
         /// Follow trails its agent, Retreat falls back once and then holds. Targets are looked at every

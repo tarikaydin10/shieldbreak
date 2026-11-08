@@ -5,8 +5,9 @@ Tunebare Werte als ScriptableObject-Assets. Im Inspector ändern, Play drücken;
 | Ordner | Assets |
 |---|---|
 | `Agents/` | `AgentMovement_Default` |
+| `Maps/` | `Map_Huegelland`, `Map_Waldrand`, `Map_Sumpfpass`: Größe, Hügel, Wald, Sumpf, Aufstellungszonen |
 | `Weapons/`, `Attacks/` | Auch `Weapon_Polearm` und `Polearm_*` (Stich, Hieb, Rundumschlag), `Weapon_Lance` und `Lance_Couch` (eingelegte Lanze, `couched`) |
-| `Scenarios/` | `Duel_M1`, `Company_M2`, `Battle_50v50`, `Battle_100v100`, `Battle_Hill` (mit Hügeln), `Battle_Forest` (Wald und Sumpf), `Battle_Cavalry` (je 12 Reiter auf der Flanke), `Sandbox_20v20`, `Stress_250v250` |
+| `Scenarios/` | `Duel_M1`, `Company_M2`, `Battle_50v50`, `Battle_100v100`, `Battle_Hill` (mit Hügeln), `Battle_Forest` (Wald und Sumpf), `Battle_Cavalry` (je 12 Reiter auf der Flanke), `Battle_Map_Hills`, `Battle_Map_Forest`, `Battle_Map_Pass` (Karten mit Aufstellung), `Sandbox_20v20`, `Stress_250v250` |
 | `Attacks/` | `OneHand_Overhead/Left/Right/Thrust`, `TwoHand_Overhead/Left/Right/Thrust/Leap`, `Bow_Shot`, `Attack_OneHand_Overhead` (Hieb-Prototyp) |
 | `Weapons/` | `Weapon_OneHandShield`, `Weapon_TwoHand`, `Weapon_Bow` |
 | `Combat/` | Presets `CombatTuning_Schwer/Mittel/Toedlich`, `BotRoster_Default` (L1–L5) |

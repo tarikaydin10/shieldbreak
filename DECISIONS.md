@@ -515,6 +515,20 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 | Zu Pferd gibt es keinen Schritt, Sprung und Sprint; die Lanze blockt und stößt nicht. Sieht der Reiter sich um, dreht sich das Pferd nicht | Schicht D „Beritten“; ungültige Eingaben werden ignoriert, nie geworfen | – |
 | Der unbeaufsichtigte Held zieht die Zweitwaffe | CLAUDE.md 3.9: Er soll den Block halten, mit der Lanze kann er das nicht | Lanze behalten |
 
+## 2026-11-08 — M4 Task 8: Karten und Aufstellung
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Karten sind ein eigenes ScriptableObject (`MapDefinition`), Szenarien verweisen darauf | Der Kriegszug (M4b) soll beliebige Heere auf beliebige Karten schicken können | Hügel und Flächen weiter im Szenario |
+| Die Aufstellung ist ein Sim-Zustand: Nur Eingaben laufen, kein Kommandant, keine Bewegung, kein Kampf; `Tick` läuft weiter | Eingaben brauchen Ticks, und in M6 muss die Phase im Lockstep laufen | Aufstellung nur in der Presentation vor dem Weltstart |
+| Dieselbe `FormationOrder` wirkt in der Aufstellung sofort und wird auf die Zone begrenzt; Verhalten und Haltung gelten ab Schlachtbeginn | CLAUDE.md 3.1: eine Befehls-API, kein Sonderpfad | Eigener Befehl „Aufstellen“ |
+| Zonen begrenzen den Ankerpunkt der Formation, nicht ihre ganze Breite | Einfach und lesbar; am Rand ragt eine Formation etwas hinaus | Volle Breite prüfen |
+| `EndDeployment` kommt von jedem Spieler mit Held, die Schlacht beginnt, wenn alle bereit sind | Multiplayer-fähig ab Tag 1 (Säule 5) | Nur ein Spieler |
+| Der Feind stellt sich nach Szenario-Daten auf, er reagiert nicht auf deine Aufstellung | Eine Aufstellungs-KI ist eigene Arbeit (`IDEAS.md`). Er sieht dich also nicht, du siehst ihn: Das ist dein Vorteil | Aufstellung durch den Kommandanten |
+| Der Held steht zu Schlachtbeginn hinter der Mitte seines Heeres | Sonst stünde er nach dem Umstellen allein auf dem Feld | Eigener Platz in der Aufstellung |
+| Deine Reiter greifen auf den Karten mit Schlachtbeginn an | „Die Armee darf ohne Spieler nie dumm werden“: Gemessen standen sie sonst tatenlos, während der Feind seine nutzte. In der Aufstellung sichtbar und mit „Halten“ änderbar | Warten auf Befehl |
+| Der unbeaufsichtigte Held folgt nie Reitern; zu Pferd auch nicht Schützen, und zu Pferd hält er den Block auch ohne Feind in der Nähe | Gemessen: Er ritt hinter angreifenden Reitern in den Feind (53 s). Die Schützen-Regel gilt bewusst nur zu Pferd, zu Fuß verschlechterte sie 50 gegen 50 (von 2 auf 1 von 6) | Für alle gleich |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

@@ -88,6 +88,11 @@ namespace Shieldbreak.Presentation.Menu
             if (MenuStyle.Big("Am Hügel · 100 gegen 100")) Launch("battle-hill");
             if (MenuStyle.Big("Am Wald · 100 gegen 100")) Launch("battle-forest");
             if (MenuStyle.Big("Mit Reiterei · 100 gegen 100")) Launch("battle-cavalry");
+            GUILayout.Space(6);
+            GUILayout.Label("Karten mit Aufstellung", MenuStyle.Muted);
+            if (MenuStyle.Big("Hügelland")) Launch("battle-map-hills");
+            if (MenuStyle.Big("Waldrand")) Launch("battle-map-forest");
+            if (MenuStyle.Big("Sumpfpass")) Launch("battle-map-pass");
             GUILayout.Space(8);
             if (MenuStyle.Small("Zurück", 120)) page = Page.Home;
         }

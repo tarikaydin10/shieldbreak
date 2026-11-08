@@ -15,6 +15,7 @@ ScriptableObject-Klassen. Jede wandelt ihre Werte in einen Sim-Struct um, damit 
 | `BotRosterDefinition` | `BotProfile[]` | Bot-Stufen L1–L5, auch der Zielfehler |
 | `CombatDatabase` | `CombatSetup` | baut alle Kampf-Tabellen aus den obigen |
 | `CompanyScenarioDefinition` | `SimWorld` | Kompanie: Held (Spieler 0) mit Loadout und Tempo, eigene und feindliche Formationen (Typ, Größe, Stufe, Waffe, Startverhalten), Waffen, Preset, Formations- und Moral-Tuning, Kommandant des Feindes, Pfeile in der Luft, Hügel, Wald- und Sumpfflächen; pro Einheit auch eine Zweitwaffe |
+| `MapDefinition` | `SimWorld` | Karte: Größe, Hügel, Wald und Sumpf, Aufstellungszonen beider Seiten; ein Szenario verweist darauf und schaltet mit `deployment` die Aufstellung ein |
 | `DuelScenarioDefinition` | `SimWorld` | Duell: Held mit Loadout gegen 1–3 Bots, Presets, Bot-Stufe und -Waffe, Zuschauermodus |
 | `ISimScenario` | – | Schnittstelle: ein Szenario baut eine `SimWorld` (Sandbox, Duell) |
 | `SceneCatalogDefinition` | – (nur Menü) | Szenen-Katalog: pro Eintrag Szene, Startart (Szene, Duell, Tutorial, Zuschauen), optional ein Ersatz-Szenario, Ziel, Eingabe-Maps, Prüfliste; Asset in `Resources/SceneCatalog` |

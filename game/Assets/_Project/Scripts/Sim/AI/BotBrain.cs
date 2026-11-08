@@ -103,7 +103,8 @@ namespace Shieldbreak.Sim.AI
                 }
                 job.SetAgent(i, me);
                 // Under arrows the shields stay up; otherwise, without an enemy near, an unattended hero walks back with the shield down (blocking slows)
-                if (ctx.TakingCover == 1)
+                // In the saddle the block costs the hero no speed: the horse carries him, so he keeps it up
+                if (ctx.TakingCover == 1 || (unattended && me.IsMounted))
                 {
                     if (c.State == CombatState.Idle && c.BlockHeld == 0) CombatSystem.SetBlock(ref c, true, tick, job.Attack(c), rules, job.EventList, i);
                 }

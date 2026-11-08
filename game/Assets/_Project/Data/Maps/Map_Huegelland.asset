@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 499ff9d2765440ba9914d8f889296c62, type: 3}
+  m_Name: Map_Huegelland
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.MapDefinition
+  displayName: Hügelland
+  size: 200
+  hills:
+  - centre: {x: 58, y: 100}
+    radius: 32
+    height: 7
+  - centre: {x: 146, y: 88}
+    radius: 22
+    height: 4
+  - centre: {x: 112, y: 150}
+    radius: 18
+    height: 3
+  areas:
+  - kind: 1
+    centre: {x: 168, y: 124}
+    radius: 15
+  ownZone:
+    min: {x: 20, y: 20}
+    max: {x: 180, y: 72}
+  enemyZone:
+    min: {x: 20, y: 128}
+    max: {x: 180, y: 180}

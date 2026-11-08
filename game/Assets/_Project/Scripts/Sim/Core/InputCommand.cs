@@ -32,6 +32,8 @@ namespace Shieldbreak.Sim.Core
         /// While unattended the hero's bot brain fights (Hold block, back into the own line, FormationSettings level).
         /// </summary>
         HeroUnattended = 11,
+        /// <summary>The sending player is ready: when every player with a hero is, the deployment ends and the battle begins.</summary>
+        EndDeployment = 12,
     }
 
     /// <summary>

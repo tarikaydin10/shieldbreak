@@ -22,6 +22,8 @@ namespace Shieldbreak.Presentation.Player
     /// order, which the radial menu leaves out). Everything goes out as FormationOrders
     /// through the InputQueue, the same API the radial menu and the commander AI use; the radial menu orders the
     /// selection while the view is open. Every formation shows its outline, facing, type, size, order and morale.
+    /// In the deployment before a battle (M4 task 8) the view stays open: the same orders place the formations at once
+    /// inside the zone drawn on the ground, and a key or the button starts the battle.
     /// </summary>
     public class CommandView : MonoBehaviour, IAdminStatus
     {
@@ -44,6 +46,10 @@ namespace Shieldbreak.Presentation.Player
         [Min(0f)] public float outlineMargin = 0.7f;
         [Tooltip("How long the confirmation of an order stays on screen (s).")]
         [Min(0f)] public float toastSeconds = 1.6f;
+        [Tooltip("Camera height during the deployment (m): the whole zone in view.")]
+        [Min(1f)] public float deployHeight = 58f;
+        [Tooltip("Length of the pieces of a deployment zone's outline on the ground (m).")]
+        [Min(0.5f)] public float zoneStep = 4f;
         public Color ownColor = new Color(0.35f, 0.72f, 1f, 0.9f);
         public Color selectedColor = new Color(1f, 0.85f, 0.35f, 1f);
         public Color enemyColor = new Color(1f, 0.38f, 0.3f, 0.9f);
@@ -65,7 +71,9 @@ namespace Shieldbreak.Presentation.Player
         static readonly string[] ThreatNames = { "", "Feind links!", "Feind rechts!", "Feind im Rücken!" };
 
         InputActionMap map;
-        InputAction hold, point, select, command, additive, zoom, padPointer, cycleStance, screenOrder, panView, lockView;
+        InputAction hold, point, select, command, additive, zoom, padPointer, cycleStance, screenOrder, panView, lockView, startBattle;
+        /// <summary>The view was opened for the deployment of the current world, and closes when the battle begins.</summary>
+        bool openForDeployment;
         /// <summary>The view stays open without the key held (a whole battle from above).</summary>
         bool locked;
         /// <summary>The world the view was opened in: a restart builds a new one with the hero attended again.</summary>
@@ -111,6 +119,7 @@ namespace Shieldbreak.Presentation.Player
             screenOrder = map.FindAction("Screen", true);
             panView = map.FindAction("Pan", true);
             lockView = map.FindAction("Lock", true);
+            startBattle = map.FindAction("StartBattle", true);
             for (int t = 0; t < shapes.Length; t++) shapes[t] = map.FindAction(ShapeActions[t], true);
             map.Enable();
             RenderPipelineManager.endCameraRendering += Draw;
@@ -138,14 +147,33 @@ namespace Shieldbreak.Presentation.Player
                 return;
             }
             bool menus = AdminMenu.IsOpen || PauseMenu.IsOpen || ResultScreen.IsOpen || GamePause.IsPaused;
-            if (IsOpen && world != openedIn) Close(null);
+            if (IsOpen && world != openedIn)
+            {
+                Close(null);
+                openForDeployment = false;
+            }
+            bool deploying = world.IsDeploying;
+            if (deploying && !IsOpen && !menus)
+            {
+                Open(world);
+                locked = true;
+                openForDeployment = true;
+                if (commandCamera != null) commandCamera.SetHeight(deployHeight);
+            }
+            else if (!deploying && openForDeployment)
+            {
+                openForDeployment = false;
+                if (IsOpen) Close(world);
+                Toast("Die Schlacht beginnt");
+            }
             if (!IsOpen && hold.WasPressedThisFrame() && !menus && !RadialMenu.IsOpen) Open(world);
             else if (IsOpen && locked)
             {
-                if (hold.WasPressedThisFrame() && !menus) Close(world);
+                if (hold.WasPressedThisFrame() && !menus && !deploying) Close(world);
             }
             else if (IsOpen && !hold.IsPressed()) Close(world);
-            if (IsOpen && lockView.WasPressedThisFrame() && !menus)
+            if (deploying && IsOpen && startBattle.WasPressedThisFrame() && !menus) StartBattle(world);
+            if (IsOpen && lockView.WasPressedThisFrame() && !menus && !deploying)
             {
                 locked = !locked;
                 Toast(locked ? "Ansicht bleibt offen" : "Ansicht schließt beim Loslassen");
@@ -155,7 +183,7 @@ namespace Shieldbreak.Presentation.Player
             if (!IsOpen) return;
 
             // Singleplayer slow motion through fewer ticks; multiplayer (M6) will keep real time
-            runner.CommandTimeScale = GameSettings.CommandSlowMotionScale;
+            runner.CommandTimeScale = deploying ? 1f : GameSettings.CommandSlowMotionScale;
             if (menus || RadialMenu.IsOpen)
             {
                 selecting = commanding = drawingLine = false;
@@ -212,6 +240,22 @@ namespace Shieldbreak.Presentation.Player
             pointer = lastMouse = point.ReadValue<Vector2>();
             usingPad = false;
             selecting = commanding = drawingLine = false;
+        }
+
+        void StartBattle(SimWorld world) => world.Submit(LocalPlayer, InputCommandType.EndDeployment);
+
+        /// <summary>The outline of a deployment zone, in pieces that follow the ground.</summary>
+        void DrawZone(float4 zone, Color color, float lift)
+        {
+            GL.Color(color);
+            var corners = new[] { zone.xy, new float2(zone.z, zone.y), zone.zw, new float2(zone.x, zone.w) };
+            for (int side = 0; side < 4; side++)
+            {
+                float2 a = corners[side], b = corners[(side + 1) % 4];
+                int pieces = Mathf.Max(1, Mathf.CeilToInt(math.distance(a, b) / zoneStep));
+                for (int k = 0; k < pieces; k++)
+                    GroundLines.Line(SimRunner.ToWorld(math.lerp(a, b, k / (float)pieces), lift), SimRunner.ToWorld(math.lerp(a, b, (k + 1) / (float)pieces), lift));
+            }
         }
 
         void Close(SimWorld world)
@@ -532,6 +576,11 @@ namespace Shieldbreak.Presentation.Player
                 }
             }
 
+            if (world.IsDeploying)
+            {
+                DrawZone(world.DeployZone(0), new Color(ownColor.r, ownColor.g, ownColor.b, alpha), lift + 0.1f);
+                DrawZone(world.DeployZone(1), new Color(enemyColor.r, enemyColor.g, enemyColor.b, alpha * 0.8f), lift + 0.1f);
+            }
             if (drawingLine && TryGroundPoint(pointer, out float2 lineEnd)) DrawLinePreview(world, lineEnd, lift);
             GroundLines.End();
         }
@@ -589,7 +638,16 @@ namespace Shieldbreak.Presentation.Player
             Vector2 screen = MenuStyle.BeginScaled();
             EnsureStyles();
             if (showToast) GUI.Label(new Rect(screen.x * 0.5f - 260f, 90f, 520f, 40f), toast, toastStyle);
-            if (IsOpen)
+            if (IsOpen && world.IsDeploying)
+            {
+                string who = selection.Count == 0 ? "keine Auswahl: Befehle gehen an alle" : $"Auswahl: {selection.Count} Formation(en)";
+                string radial = GameInput.KeyboardBinding(GameInput.Action("Radial", "Open"));
+                GUI.Label(new Rect(screen.x * 0.5f - 560f, screen.y - 104f, 1120f, 84f),
+                    $"AUFSTELLUNG · {who} · Der Feind wartet\nLinksklick: wählen (Shift: dazu) · Rechtsklick: hierher stellen · rechts ziehen: Frontlinie · nur innerhalb des blauen Felds\n" +
+                    $"1–5: Form · {GameInput.KeyboardBinding(cycleStance)}: Haltung · {radial} halten: Befehl für den Start · WASD: Blick verschieben · Mausrad: Höhe · {GameInput.KeyboardBinding(startBattle)}: Schlacht beginnen", hint);
+                if (GUI.Button(new Rect(screen.x * 0.5f - 130f, 28f, 260f, 44f), $"Schlacht beginnen ({GameInput.KeyboardBinding(startBattle)})")) StartBattle(world);
+            }
+            else if (IsOpen)
             {
                 string who = selection.Count == 0 ? "keine Auswahl: Befehle gehen an alle" : $"Auswahl: {selection.Count} Formation(en)";
                 string radial = GameInput.KeyboardBinding(GameInput.Action("Radial", "Open"));

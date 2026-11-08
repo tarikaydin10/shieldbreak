@@ -406,6 +406,10 @@
     {
       "action": "CommandView/Lock",
       "text": "Kommandoansicht offen lassen, ohne die Taste zu halten (eine ganze Schlacht von oben führen); nochmal die Kommando-Taste: zurück in den Kampf"
+    },
+    {
+      "action": "CommandView/StartBattle",
+      "text": "In der Aufstellung: die Schlacht beginnen"
     }
   ]
 }

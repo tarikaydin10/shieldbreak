@@ -294,6 +294,20 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void TheUnattendedHero_StaysWithTheInfantry_WhenHisRidersCharge()
+        {
+            using var world = World();
+            int hero = Hero(world, 40f);
+            Riders(world, 0, Own, new float2(40f, 60f), East, 8, L3);
+            world.SpawnFormation(0, Own, FormationType.Line, 8, 8, new float2(20f, 60f), East, TestScenarios.AgentRadius, TestCombat.OneHand, L3);
+            world.SpawnFormation(1, Enemy, FormationType.Line, 8, 8, new float2(110f, 60f), West, TestScenarios.AgentRadius, TestCombat.OneHand, L3);
+            world.Submit(Own, InputCommandType.HeroUnattended, new int4(hero, 1, 0, 0));
+            world.ApplyFormationOrder(FormationOrder.Charge(0), Own);
+            Run(world, 6 * 60);
+            Assert.That(world.Agents[hero].Position.x, Is.LessThan(30f), "behind the line, not after the charge");
+        }
+
+        [Test]
         public void LedCavalry_IsDeterministic()
         {
             ulong Play()

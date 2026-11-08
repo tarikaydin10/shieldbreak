@@ -25,7 +25,7 @@ Ohne Unity prüfen: `tools/simcheck/run.sh` (siehe [README](../../../../../tools
 
 | Ordner | Inhalt |
 |---|---|
-| `Core/` | `SimWorld` (auch `HeroUnattended`: Kommandoansicht betreten und verlassen), `SimConstants`, `SimRandom`, `InputQueue`, `InputCommand`, `SimHash` |
+| `Core/` | `SimWorld` (auch `HeroUnattended`: Kommandoansicht betreten und verlassen; `BeginDeployment`/`EndDeployment`: Aufstellung vor der Schlacht), `SimConstants`, `SimRandom`, `InputQueue`, `InputCommand`, `SimHash` |
 | `Grid/` | `WorldGrid` (Kosten pro 1-m-Zelle, 255 = gesperrt, `Version` bei jeder Änderung; Panik pro Team und Zelle; Bodenart `GroundKind` pro Zelle), `SpatialHash` (Nachbarsuche per Counting-Sort), `Terrain` (Höhe auf den Zellecken, bilinear; Hügel, Steigung, Tempo am Hang) |
 | `Agents/` | `AgentData`, `AgentSystem` (Bewegung als Burst-Jobs) |
 | [Combat/](Combat/README.md) | Kampf-Grammatik, Waffen, Treffererkennung (Klinge und Pfeil), Kampf in Formation (`Context/`) |

@@ -84,7 +84,7 @@ namespace Shieldbreak.Presentation.Player
 
         void Update()
         {
-            if (outcome == BattleResult.Undecided && CommandView.IsOpen) commandSeconds += Time.unscaledDeltaTime;
+            if (outcome == BattleResult.Undecided && CommandView.IsOpen && runner != null && runner.World != null && !runner.World.IsDeploying) commandSeconds += Time.unscaledDeltaTime;
             if (toggleCommander.WasPressedThisFrame()) showCommander = !showCommander;
         }
 

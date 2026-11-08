@@ -29,7 +29,10 @@ namespace Shieldbreak.Tests
         static SimWorld World(CompanyScenarioDefinition scenario)
         {
             var movement = AssetDatabase.LoadAssetAtPath<AgentMovementDefinition>("Assets/_Project/Data/Agents/AgentMovement_Default.asset");
-            return scenario.CreateWorld(movement.ToSettings(), out _);
+            var world = scenario.CreateWorld(movement.ToSettings(), out _);
+            // Battles from the data as they are laid out: the deployment is DeploymentTests' business
+            if (world.IsDeploying) world.Submit(Player, InputCommandType.EndDeployment);
+            return world;
         }
 
         [Test]
@@ -98,11 +101,33 @@ namespace Shieldbreak.Tests
             Assert.That(tramples, Is.GreaterThan(3), "and their horses reached the line");
         }
 
+        [TestCase("Battle_Map_Hills")]
+        [TestCase("Battle_Map_Forest")]
+        [TestCase("Battle_Map_Pass")]
+        public void Maps_HaveGround_AndEveryUnitStartsInsideItsZone(string name)
+        {
+            var scenario = Load(name);
+            Assert.That(scenario.map, Is.Not.Null);
+            Assert.That(scenario.deployment);
+            Assert.That(scenario.map.hills.Length, Is.GreaterThan(0), "height");
+            Assert.That(scenario.map.areas.Length, Is.GreaterThan(0), "forest or swamp");
+            foreach (var u in scenario.units)
+            {
+                var zone = u.team == 0 ? scenario.map.ownZone : scenario.map.enemyZone;
+                Assert.That(u.front.x >= zone.min.x && u.front.x <= zone.max.x && u.front.y >= zone.min.y && u.front.y <= zone.max.y, $"{u.name}");
+            }
+            using var world = World(scenario);
+            Assert.That(world.IsDeploying, "until the first tick");
+        }
+
         [TestCase("Battle_50v50")]
         [TestCase("Battle_100v100")]
         [TestCase("Battle_Hill")]
         [TestCase("Battle_Forest")]
         [TestCase("Battle_Cavalry")]
+        [TestCase("Battle_Map_Hills")]
+        [TestCase("Battle_Map_Forest")]
+        [TestCase("Battle_Map_Pass")]
         public void Battle_IsDecided_WithoutAnyOrder(string name)
         {
             var scenario = Object.Instantiate(Load(name));
@@ -138,6 +163,9 @@ namespace Shieldbreak.Tests
         [TestCase("Battle_Hill")]
         [TestCase("Battle_Forest")]
         [TestCase("Battle_Cavalry")]
+        [TestCase("Battle_Map_Hills")]
+        [TestCase("Battle_Map_Forest")]
+        [TestCase("Battle_Map_Pass")]
         public void Battle_FromTheCommandView_TheHeroLastsLongEnoughToCommand(string name)
         {
             var scenario = Object.Instantiate(Load(name));
@@ -231,7 +259,7 @@ namespace Shieldbreak.Tests
             }
         }
 
-        [TestCase("Battle_50v50", 40), TestCase("Battle_100v100", 45), TestCase("Battle_Hill", 50), TestCase("Battle_Forest", 50), TestCase("Battle_Cavalry", 45), Category("Performance")]
+        [TestCase("Battle_50v50", 40), TestCase("Battle_100v100", 45), TestCase("Battle_Hill", 50), TestCase("Battle_Forest", 50), TestCase("Battle_Cavalry", 45), TestCase("Battle_Map_Hills", 50), TestCase("Battle_Map_Forest", 50), TestCase("Battle_Map_Pass", 50), Category("Performance")]
         public void Battle_MedianStepUnderBudget_WhileEverybodyFights(string name, int contactSeconds)
         {
             using var world = World(Load(name));

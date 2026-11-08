@@ -63,6 +63,8 @@ namespace Shieldbreak.Presentation.Cameras
             pan += Quaternion.Euler(0f, yaw, 0f) * new Vector3(direction.x, 0f, direction.y) * (panSpeedPerMetre * height * seconds);
         }
 
+        public void SetHeight(float metres) => height = Mathf.Clamp(metres, heightLimits.x, heightLimits.y);
+
         /// <summary>Mouse wheel: up = higher.</summary>
         public void Zoom(float steps) => height = Mathf.Clamp(height - steps * zoomStep, heightLimits.x, heightLimits.y);
 

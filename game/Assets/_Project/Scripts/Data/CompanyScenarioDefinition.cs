@@ -94,6 +94,12 @@ namespace Shieldbreak.Data
             [Min(1f)] public float radius = 20f;
         }
 
+        [Header("Map")]
+        [Tooltip("The battlefield as data. Its size, hills and ground replace the fields below; empty = use them.")]
+        public MapDefinition map;
+        [Tooltip("Before the battle the player places his formations inside the map's zone (needs a map).")]
+        public bool deployment;
+
         [Header("Ground")]
         [Tooltip("Round hills on the map; several add up. Empty = flat.")]
         public Hill[] hills = Array.Empty<Hill>();
@@ -137,8 +143,8 @@ namespace Shieldbreak.Data
         {
             Seed = (ulong)(uint)seed,
             InputDelayTicks = inputDelayTicks,
-            GridWidth = mapSize,
-            GridHeight = mapSize,
+            GridWidth = map != null ? map.size : mapSize,
+            GridHeight = map != null ? map.size : mapSize,
             MaxAgents = TotalAgents,
             Movement = movement,
             MaxFormations = units.Length,
@@ -188,8 +194,8 @@ namespace Shieldbreak.Data
         /// <summary>Spawns the hero (agent 0), then every unit in list order; returns the hero's agent id.</summary>
         public int Spawn(SimWorld world)
         {
-            foreach (var hill in hills) world.AddHill(hill.centre, hill.radius, hill.height);
-            foreach (var area in areas) world.PaintArea(area.centre, area.radius, area.kind);
+            foreach (var hill in map != null ? map.hills : hills) world.AddHill(hill.centre, hill.radius, hill.height);
+            foreach (var area in map != null ? map.areas : areas) world.PaintArea(area.centre, area.radius, area.kind);
             float2 heroFacing = math.normalizesafe((float2)(heroFacesTowards - heroPosition), new float2(0f, 1f));
             int hero = world.SpawnAgent(0, heroPosition, agentRadius, heroFacing, HeroLoadout().x);
             world.SetAgentMotion(hero, heroSpeedScale, heroAccelScale);
@@ -210,6 +216,9 @@ namespace Shieldbreak.Data
                 if (u.startBehavior != FormationBehavior.Hold) world.ApplyFormationOrder(FormationOrder.SetBehavior(f, u.startBehavior), owner);
             }
             if (commander != null) world.AddCommander(EnemyId, 1);
+            if (deployment && map != null)
+                world.BeginDeployment(new float4(map.ownZone.min.x, map.ownZone.min.y, map.ownZone.max.x, map.ownZone.max.y),
+                    new float4(map.enemyZone.min.x, map.enemyZone.min.y, map.enemyZone.max.x, map.enemyZone.max.y));
             return hero;
         }
     }

@@ -200,6 +200,66 @@ MonoBehaviour:
     - "Eine Formation mit Schilden schließt zum Schildwall, wenn Reiter auf sie zukommen, und öffnet sich danach wieder"
     - "Der Feind schickt seine Reiter erst, wenn die Linien nah sind, und lieber nicht in Speere"
     - "Reiter halten als Formation Abstand und traben; Vorrücken wird nahe am Feind zum Angriff"
+  - id: battle-map-hills
+    title: "Karte: Hügelland"
+    section: "Spielen"
+    scene: M2_Company
+    launch: 0
+    scenario: {fileID: 11400000, guid: d2ea1791eefb1d78b32d5e375939845b, type: 2}
+    briefingOnStart: 1
+    objective: "100 gegen 100 mit Reiterei. Ein großer Hügel links in der Mitte, ein kleinerer rechts, einer nah am Feind, rechts ein Wäldchen. Vor der Schlacht stellst du dein Heer im blauen Feld auf, der Feind wartet: Formationen wählen, per Rechtsklick oder Ziehen stellen, Enter beginnt die Schlacht. Du reitest selbst. Deine Reiter greifen mit Schlachtbeginn an; mit dem Radialmenü (Halten) bleiben sie stehen."
+    controlMaps:
+    - Radial
+    - CommandView
+    - Combat
+    - CommanderDebug
+    checks:
+    - "Die Aufstellung beginnt von oben, nichts bewegt sich, das blaue Feld ist gut zu sehen"
+    - "Rechtsklick und Ziehen stellen Formationen sofort um, nie außerhalb des blauen Felds; 1 bis 5 ändern die Form"
+    - "Enter oder der Knopf beginnt die Schlacht, die Kamera kommt herunter, der Held steht hinter seinem Heer"
+    - "Der große Hügel lohnt sich: Wer ihn zuerst hält, gewinnt leichter"
+    - "Die Karte lohnt sich: Eine andere Aufstellung führt zu einer anderen Schlacht"
+    - "Das Bild bleibt flüssig"
+  - id: battle-map-forest
+    title: "Karte: Waldrand"
+    section: "Spielen"
+    scene: M2_Company
+    launch: 0
+    scenario: {fileID: 11400000, guid: e3b31c0b37ec26fa08ce1cade1157c77, type: 2}
+    briefingOnStart: 1
+    objective: "100 gegen 100 mit Reiterei. Links ein großer Wald, rechts ein Hügel, davor ein kleiner Sumpf. Im Wald verlieren Reiter ihre Stärke, auf dem freien Feld rechts zählt sie. Vor der Schlacht stellst du dein Heer im blauen Feld auf, der Feind wartet: Formationen wählen, per Rechtsklick oder Ziehen stellen, Enter beginnt die Schlacht. Du reitest selbst. Deine Reiter greifen mit Schlachtbeginn an; mit dem Radialmenü (Halten) bleiben sie stehen."
+    controlMaps:
+    - Radial
+    - CommandView
+    - Combat
+    - CommanderDebug
+    checks:
+    - "Die Aufstellung beginnt von oben, nichts bewegt sich, das blaue Feld ist gut zu sehen"
+    - "Rechtsklick und Ziehen stellen Formationen sofort um, nie außerhalb des blauen Felds; 1 bis 5 ändern die Form"
+    - "Enter oder der Knopf beginnt die Schlacht, die Kamera kommt herunter, der Held steht hinter seinem Heer"
+    - "Reiter im Wald sind sichtbar langsam, auf dem freien Feld gefährlich"
+    - "Die Karte lohnt sich: Eine andere Aufstellung führt zu einer anderen Schlacht"
+    - "Das Bild bleibt flüssig"
+  - id: battle-map-pass
+    title: "Karte: Sumpfpass"
+    section: "Spielen"
+    scene: M2_Company
+    launch: 0
+    scenario: {fileID: 11400000, guid: c7e823ac3eac00b274ec7a619386e6a7, type: 2}
+    briefingOnStart: 1
+    objective: "100 gegen 100 mit Reiterei. Sümpfe links und rechts lassen nur einen Durchgang in der Mitte, davor ein flacher Hügel. Wer die Mitte verstopft, zwingt den Feind in den Sumpf. Vor der Schlacht stellst du dein Heer im blauen Feld auf, der Feind wartet: Formationen wählen, per Rechtsklick oder Ziehen stellen, Enter beginnt die Schlacht. Du reitest selbst. Deine Reiter greifen mit Schlachtbeginn an; mit dem Radialmenü (Halten) bleiben sie stehen."
+    controlMaps:
+    - Radial
+    - CommandView
+    - Combat
+    - CommanderDebug
+    checks:
+    - "Die Aufstellung beginnt von oben, nichts bewegt sich, das blaue Feld ist gut zu sehen"
+    - "Rechtsklick und Ziehen stellen Formationen sofort um, nie außerhalb des blauen Felds; 1 bis 5 ändern die Form"
+    - "Enter oder der Knopf beginnt die Schlacht, die Kamera kommt herunter, der Held steht hinter seinem Heer"
+    - "Formationen und Reiter meiden den Sumpf und drängen durch die Mitte"
+    - "Die Karte lohnt sich: Eine andere Aufstellung führt zu einer anderen Schlacht"
+    - "Das Bild bleibt flüssig"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

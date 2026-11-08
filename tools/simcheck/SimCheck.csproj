@@ -36,6 +36,7 @@
     <Compile Include="$(Game)_Project/Scripts/Data/MoraleDefinition.cs" />
     <Compile Include="$(Game)_Project/Scripts/Data/CommanderDefinition.cs" />
     <Compile Include="$(Game)_Project/Scripts/Data/CompanyScenarioDefinition.cs" />
+    <Compile Include="$(Game)_Project/Scripts/Data/MapDefinition.cs" />
     <!-- Tests (ScriptableObjects are plain objects here) -->
     <Compile Include="$(Game)Tests/EditMode/TestScenarios.cs" />
     <Compile Include="$(Game)Tests/EditMode/SimCoreTests.cs" />
@@ -46,6 +47,7 @@
     <Compile Include="$(Game)Tests/EditMode/RoutRulesTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/CavalryTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/CavalryCommandTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/DeploymentTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/AgentTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/FormationTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/NavTests.cs" />
