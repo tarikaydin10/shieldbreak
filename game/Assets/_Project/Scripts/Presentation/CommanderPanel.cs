@@ -102,7 +102,7 @@ namespace Shieldbreak.Presentation
             for (int i = 0; i < world.AgentCount; i++)
                 if (members[i].Formation == formation) side.AddSoldier(CommanderUtility.Worth(world.Agents[i], world.Combat[i].BotProfile, world.Morale[i].Morale, own, settings));
             var f = world.Formations[formation];
-            float width = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, world.FormationSettings);
+            float width = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, world.FormationSettings.Of(f));
             side.AddFront(width, CommanderUtility.FrontSoldiers(f, width, world.FormationSettings));
             return side;
         }

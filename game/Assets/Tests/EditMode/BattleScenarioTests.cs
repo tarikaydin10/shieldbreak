@@ -80,8 +80,9 @@ namespace Shieldbreak.Tests
         {
             using var world = World(Load("Battle_Cavalry"));
             int[] riders = new int[2];
-            for (int i = 0; i < world.AgentCount; i++) if (world.Agents[i].IsMounted) riders[world.Agents[i].Team]++;
+            for (int i = 1; i < world.AgentCount; i++) if (world.Agents[i].IsMounted) riders[world.Agents[i].Team]++;
             Assert.That(riders, Is.EqualTo(new[] { 12, 12 }));
+            Assert.That(world.Agents[0].IsMounted, "the hero rides with them");
             int couches = 0, tramples = 0;
             for (int t = 0; t < 60 * 60; t++)
             {

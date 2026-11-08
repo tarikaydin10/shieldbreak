@@ -277,7 +277,7 @@ namespace Shieldbreak.DebugTools
                         from = to;
                     }
                     GL.Color(FormationColor(f, true));
-                    float half = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f;
+                    float half = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings.Of(f)) * 0.5f;
                     Vector3 final = new Vector3(f.TargetFacing.x, 0f, f.TargetFacing.y);
                     Vector3 along = new Vector3(f.TargetFacing.y, 0f, -f.TargetFacing.x) * half;
                     Vector3 front = f.Type == FormationType.Circle ? dest + final * half : dest;

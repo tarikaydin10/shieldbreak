@@ -120,12 +120,7 @@ namespace Shieldbreak.Sim.AI
                 }
                 if (f.Mounted == 1)
                 {
-                    // Riders charge, pass after pass, and only a retreat calls them back (their own tactics come with M4 task 7)
-                    if (c.Tactic == CommanderTactic.Retreat)
-                    {
-                        if (changed) Give(c, FormationOrder.Retreat(id));
-                    }
-                    else if (f.Behavior != FormationBehavior.Charge) Give(c, FormationOrder.Charge(id));
+                    LeadRiders(c, f, changed);
                     continue;
                 }
                 if (id == c.Flanker) SendRound(c, f, changed);
@@ -136,6 +131,59 @@ namespace Shieldbreak.Sim.AI
                 }
                 else if (f.Behavior != FormationBehavior.Advance && f.Behavior != FormationBehavior.Charge) Give(c, FormationOrder.Advance(id));
             }
+        }
+
+        /// <summary>
+        /// Riders are the reserve: they stand until the lines are close, then charge the best target anyone can read off
+        /// the field, shooters and men already fighting before spears and shield walls. They stay on it unless a clearly
+        /// better one turns up. Only a retreat calls them back.
+        /// </summary>
+        void LeadRiders(in CommanderState c, in FormationData f, bool changed)
+        {
+            if (c.Tactic == CommanderTactic.Retreat)
+            {
+                if (changed) Give(c, FormationOrder.Retreat(f.Id));
+                return;
+            }
+            if (f.Behavior != FormationBehavior.Charge && settings.RiderWaitDistance > 0f && c.Features.Distance > settings.RiderWaitDistance)
+            {
+                StandFast(c, f, changed);
+                return;
+            }
+            int target = BestRiderTarget(f);
+            if (target < 0)
+            {
+                if (f.Behavior != FormationBehavior.Charge) Give(c, FormationOrder.Charge(f.Id));
+                return;
+            }
+            if (f.Behavior != FormationBehavior.Charge || f.TargetFormation != target) Give(c, FormationOrder.Against(f.Id, FormationBehavior.Charge, target));
+        }
+
+        int BestRiderTarget(in FormationData riders)
+        {
+            var all = formations.Formations;
+            int best = -1;
+            float bestScore = float.MinValue;
+            for (int g = 0; g < all.Length; g++)
+            {
+                var enemy = all[g];
+                if (enemy.Team == riders.Team || enemy.MemberCount == 0) continue;
+                bool engaged = false;
+                for (int o = 0; o < all.Length && !engaged; o++)
+                {
+                    var own = all[o];
+                    engaged = own.Team == riders.Team && own.MemberCount > 0 && own.Ranged == 0 && own.Mounted == 0 &&
+                              math.distancesq(own.Position, enemy.Position) < settings.ContactDistance * settings.ContactDistance;
+                }
+                float score = CommanderUtility.RiderTargetScore(enemy, math.distance(enemy.Position, riders.Position), engaged, settings);
+                if (g == riders.TargetFormation) score += settings.RiderRetargetMargin;
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    best = g;
+                }
+            }
+            return best;
         }
 
         bool Stands(int formation) => formation >= 0 && formation < formations.Count && formations.Formations[formation].MemberCount > 0;

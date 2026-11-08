@@ -30,9 +30,10 @@ MonoBehaviour:
   maxProjectiles: 400
   heroPosition: {x: 100, y: 66}
   heroFacesTowards: {x: 100, y: 130}
-  heroLoadout: 000000000100000003000000
+  heroLoadout: 040000000000000003000000
   heroSpeedScale: 1.6
   heroAccelScale: 4
+  heroMounted: 1
   units:
   - name: Linie links
     team: 0

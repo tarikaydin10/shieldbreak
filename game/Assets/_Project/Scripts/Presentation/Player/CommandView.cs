@@ -507,7 +507,7 @@ namespace Shieldbreak.Presentation.Player
                         from = to;
                     }
                     GL.Color(Tint(world, f, alpha));
-                    float half = FormationLinePlanner.FrontWidth(fd.Type, fd.Files, fd.MemberCount, settings) * 0.5f;
+                    float half = FormationLinePlanner.FrontWidth(fd.Type, fd.Files, fd.MemberCount, settings.Of(fd)) * 0.5f;
                     Vector3 facing = new Vector3(fd.TargetFacing.x, 0f, fd.TargetFacing.y);
                     Vector3 along = new Vector3(fd.TargetFacing.y, 0f, -fd.TargetFacing.x) * half;
                     Vector3 dest = SimRunner.ToWorld(fd.Destination, lift);
@@ -549,7 +549,7 @@ namespace Shieldbreak.Presentation.Player
             {
                 var o = orders[k];
                 var f = world.Formations[o.Formation];
-                float half = FormationLinePlanner.FrontWidth(f.Type, o.Files, f.MemberCount, world.FormationSettings) * 0.5f;
+                float half = FormationLinePlanner.FrontWidth(f.Type, o.Files, f.MemberCount, world.FormationSettings.Of(f)) * 0.5f;
                 float2 along = new float2(o.Facing.y, -o.Facing.x);
                 float2 front = f.Type == FormationType.Circle ? o.Destination + o.Facing * half : o.Destination;
                 GroundLines.Line(SimRunner.ToWorld(front - along * half, lift), SimRunner.ToWorld(front + along * half, lift));

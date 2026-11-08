@@ -1082,6 +1082,21 @@ namespace Shieldbreak.Sim.Combat
                 return Ground[Layout.ClampedCellIndex(Agents[i].Position)] == (byte)GroundKind.Forest ? FormationCombatRules.InForest(ctx) : ctx;
             }
             public bool InFormation(int i) => i < Members.Length && Members[i].Formation >= 0;
+            public int FormationOf(int i) => i < Members.Length ? Members[i].Formation : -1;
+            /// <summary>Enemy formation this soldier's formation was sent against, -1 = none.</summary>
+            public int TargetFormationOf(int i)
+            {
+                int own = FormationOf(i);
+                return own >= 0 && own < Formations.Length ? Formations[own].TargetFormation : -1;
+            }
+
+            /// <summary>Loadout slot of a weapon to fight with from the saddle other than the lance, -1 = none.</summary>
+            public int SideArmSlot(in CombatData c)
+            {
+                for (int s = 0; s < 4; s++)
+                    if (c.Loadout[s] >= 0 && !Weapons[c.Loadout[s]].IsRanged && Weapons[c.Loadout[s]].Archetype != WeaponArchetype.Lance) return s;
+                return -1;
+            }
             public void ClaimAttackToken(int target) { if (target >= 0 && target < Count) AttackersOn[target]++; }
         }
     }

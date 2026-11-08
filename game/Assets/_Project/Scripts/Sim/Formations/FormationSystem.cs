@@ -107,17 +107,19 @@ namespace Shieldbreak.Sim.Formations
                 FollowAgent = -1,
                 TargetFormation = -1,
                 Stance = settings.DefaultStance,
+                CavalryTick = -100000,
             };
             return id;
         }
 
         /// <summary>Scenario setup: what the soldiers of a formation carry decides what it can do.</summary>
-        public void SetArms(int formation, bool ranged, bool shields, bool mounted = false)
+        public void SetArms(int formation, bool ranged, bool shields, bool mounted = false, bool spears = false)
         {
             var f = formations[formation];
             f.Ranged = ranged ? 1 : 0;
             f.Shields = shields ? 1 : 0;
             f.Mounted = mounted ? 1 : 0;
+            f.Spears = spears ? 1 : 0;
             formations[formation] = f;
         }
 
@@ -279,8 +281,9 @@ namespace Shieldbreak.Sim.Formations
                     float factor = math.clamp(1f - (averageError - settings.CohesionSlack) / settings.CohesionRange, settings.MinMarchFactor, 1f);
                     float2 heading = math.normalizesafe(paths[id * FormationLimits.MaxPathPoints + f.PathIndex] - f.Position);
                     factor *= movement.SlopeFactor(Terrain.SlopeAt(grid.Heights, grid.Layout, f.Position), heading);
-                    factor *= movement.GroundSpeed(grid.Ground[grid.Layout.ClampedCellIndex(f.Position)]);
-                    float step = settings.MarchSpeed * factor * SimConstants.DT;
+                    byte marchGround = grid.Ground[grid.Layout.ClampedCellIndex(f.Position)];
+                    factor *= f.Mounted == 1 ? movement.MountedGroundSpeed(marchGround) : movement.GroundSpeed(marchGround);
+                    float step = (f.Mounted == 1 ? settings.MountedMarchSpeed : settings.MarchSpeed) * factor * SimConstants.DT;
                     float2 start = f.Position;
                     // Walk the waypoints; a step that reaches one carries on towards the next
                     while (step > 0f && f.PathIndex < f.PathCount)
@@ -321,7 +324,9 @@ namespace Shieldbreak.Sim.Formations
                 float2 slotFacingWorld = FormationData.Rotate(m.LocalFacing, f.Facing);
                 // Arrive-steering trails a moving target by v * SlowRadius / speed; leading the target by the same
                 // amount keeps the soldier on the slot while marching
-                float2 target = slot + f.Velocity * (movement.SlowRadius / (movement.MaxSpeed * math.max(a.BaseSpeedScale, 1e-3f)));
+                // (a horse brakes from v over v² / 2b, so it trails by that)
+                float2 target = slot + f.Velocity * (a.IsMounted ? math.length(f.Velocity) / (2f * movement.MountedBraking)
+                                                                 : movement.SlowRadius / (movement.MaxSpeed * math.max(a.BaseSpeedScale, 1e-3f)));
                 bool atSlot = math.distancesq(a.Position, slot) < settings.FaceSlotDistance * settings.FaceSlotDistance;
 
                 bool bot = hasCombat && combat[i].BotProfile > 0;
@@ -350,6 +355,7 @@ namespace Shieldbreak.Sim.Formations
         /// </summary>
         void UpdateBehavior(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
         {
+            WatchCavalry(ref f, tick, agents, agentCount);
             TakeCover(ref f, tick, agents, agentCount);
             FaceThreat(ref f, tick, agents, agentCount);
             if (f.Behavior == FormationBehavior.Hold)
@@ -427,6 +433,8 @@ namespace Shieldbreak.Sim.Formations
                 }
                 float2 to = aim - f.Position;
                 facing = math.lengthsq(to) > 1e-8f ? math.normalize(to) : f.Facing;
+                // Riders do not walk up to the enemy: near him the advance becomes a charge
+                if (f.Mounted == 1 && f.Behavior == FormationBehavior.Advance && contact <= settings.MountedChargeDistance) f.Behavior = FormationBehavior.Charge;
                 float gap = f.Behavior == FormationBehavior.Charge ? 0f : settings.AdvanceContactGap;
                 goal = f.Position + facing * math.max(0f, contact - gap);
                 // In contact the formation keeps turning to the enemy even when it does not march
@@ -557,7 +565,7 @@ namespace Shieldbreak.Sim.Formations
             {
                 f.ArrowHits = 0;
                 f.FireDirection = float2.zero;
-                if (f.CoverType == 0) return;
+                if (f.CoverType == 0 || tick - f.CavalryTick <= settings.CoverWindowTicks) return;
                 f.Type = (FormationType)(f.CoverType - 1);
                 f.CoverType = 0;
                 f.Reform = FormationData.ReformAroundMembers;
@@ -580,6 +588,68 @@ namespace Shieldbreak.Sim.Formations
             f.NextThreatTick = tick + settings.ThreatCooldownTicks;
         }
 
+        /// <summary>
+        /// Shield wall against cavalry (CLAUDE.md 3.6): riders riding at a formation that holds or advances, with no enemy
+        /// on foot at hand. Shields close up into a wall facing them; spears and the rest only turn to meet them if they
+        /// come from outside the front arc (the soldiers brace on their own). When no rider has come at it for the cover
+        /// window it goes back to its form. Reads only what is visible on the field; orders always go first.
+        /// </summary>
+        void WatchCavalry(ref FormationData f, int tick, NativeArray<AgentData> agents, int agentCount)
+        {
+            if (settings.CavalryReactDistance <= 0f || f.Ranged == 1 || f.Mounted == 1) return;
+            if ((tick + f.Id) % settings.BehaviorIntervalTicks == 0 && (f.Behavior == FormationBehavior.Hold || f.Behavior == FormationBehavior.Advance))
+            {
+                float reachSq = settings.CavalryReactDistance * settings.CavalryReactDistance;
+                float nearSq = settings.ThreatDistance * settings.ThreatDistance;
+                int riders = 0;
+                bool footNear = false;
+                float2 from = float2.zero;
+                for (int j = 0; j < agentCount; j++)
+                {
+                    var enemy = agents[j];
+                    if (enemy.Team == f.Team || enemy.IsDead || enemy.IsRouting) continue;
+                    float2 to = f.Position - enemy.Position;
+                    float dsq = math.lengthsq(to);
+                    if (!enemy.IsMounted)
+                    {
+                        footNear |= dsq < nearSq;
+                        continue;
+                    }
+                    float speed = math.length(enemy.Velocity);
+                    if (dsq >= reachSq || dsq < 1e-6f || speed < settings.CavalryMinSpeed) continue;
+                    float2 way = to / math.sqrt(dsq);
+                    if (math.dot(enemy.Velocity / speed, way) < 0.5f) continue;
+                    riders++;
+                    from -= way;
+                }
+                if (riders >= math.max(settings.CavalryMinRiders, 1))
+                {
+                    f.CavalryTick = tick;
+                    float2 towards = math.normalizesafe(from, f.Facing);
+                    if (!footNear && f.Shields == 1 && f.CoverType == 0 && f.Type != FormationType.ShieldWall)
+                    {
+                        f.CoverType = (int)f.Type + 1;
+                        f.Type = FormationType.ShieldWall;
+                        f.Reform = FormationData.ReformAroundMembers;
+                        f.NextReformTick = tick;
+                        f.TargetFacing = towards;
+                        f.NextThreatTick = tick + settings.ThreatCooldownTicks;
+                    }
+                    else if (!footNear && f.Behavior == FormationBehavior.Hold && math.dot(f.Facing, towards) < settings.FrontArcCos)
+                    {
+                        f.TargetFacing = towards;
+                        f.NextThreatTick = tick + settings.ThreatCooldownTicks;
+                    }
+                }
+            }
+            // A wall that arrows closed stays with TakeCover; this one opens when the riders are gone
+            if (f.CoverType == 0 || f.ArrowHits != 0 || tick - f.CavalryTick <= settings.CoverWindowTicks || f.CavalryTick < 0) return;
+            f.Type = (FormationType)(f.CoverType - 1);
+            f.CoverType = 0;
+            f.Reform = FormationData.ReformAroundMembers;
+            f.NextReformTick = tick;
+        }
+
         static bool Arrived(in FormationData f) => f.NeedsPath == 0 && f.PathIndex >= f.PathCount && math.distancesq(f.Destination, f.Position) < 0.25f;
 
         /// <summary>
@@ -598,9 +668,9 @@ namespace Shieldbreak.Sim.Formations
             if (!holding && !reacting) return;
             f.NextThreatTick = tick + settings.BehaviorIntervalTicks;
 
-            float halfFront = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f;
+            float halfFront = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings.Of(f)) * 0.5f;
             int ranks = (f.MemberCount + f.Files - 1) / math.max(f.Files, 1);
-            float depth = (ranks - 1) * settings.Spacing(f.Type).Depth;
+            float depth = (ranks - 1) * settings.Of(f).Spacing(f.Type).Depth;
             float limitSq = settings.ThreatDistance * settings.ThreatDistance, nearestSq = float.MaxValue;
             int front = 0, threats = 0, nearest = -1;
             float2 threatSum = float2.zero;
@@ -745,7 +815,7 @@ namespace Shieldbreak.Sim.Formations
                 Anchor = f.Position,
                 Centroid = centroid,
                 AroundMembers = f.Reform == FormationData.ReformAroundMembers ? 1 : 0,
-                Settings = settings,
+                Settings = settings.Of(f),
                 Rows = rows,
                 Agents = agents,
                 Relative = relative,
@@ -799,7 +869,7 @@ namespace Shieldbreak.Sim.Formations
                 f.NextReformTick = tick + 1;
                 return;
             }
-            float halfFront = math.max(FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f, 1f);
+            float halfFront = math.max(FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings.Of(f)) * 0.5f, 1f);
             float maxStep = settings.WheelFlankSpeed / halfFront * SimConstants.DT;
             f.Facing = RotateTowards(f.Facing, wanted, maxStep);
         }
@@ -832,7 +902,7 @@ namespace Shieldbreak.Sim.Formations
             f.PathTruncated = 0;
             if (math.distancesq(f.Destination, f.Position) < 1e-8f) return;
 
-            float halfFront = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings) * 0.5f;
+            float halfFront = FormationLinePlanner.FrontWidth(f.Type, f.Files, f.MemberCount, settings.Of(f)) * 0.5f;
             var job = new PathJob
             {
                 AStar = astar,

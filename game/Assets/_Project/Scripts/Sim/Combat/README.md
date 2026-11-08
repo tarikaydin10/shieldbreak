@@ -62,7 +62,10 @@ Reiter und Pferd sind **ein Agent** (`AgentFlags.Mounted`). Das Pferd hat Trägh
 | **Reiter-Bot** | Nimmt den nächsten Feind zu Fuß auf dem ganzen Feld, zielt 12 m hinter ihn und reitet durch, senkt die Lanze ab 14 m im Galopp. Nach dem Durchgang (Ziel liegt zwischen Start und Reiter, Lanze traf, oder das Pferd steht am Feind) reitet er 25 m weiter und wendet. In einer haltenden Formation bleibt er am Slot; der Angriffsbefehl schickt ihn los |
 | **Soldat gegen Reiter** | Ein Reiter, der im Galopp auf ihn zukommt (vorn, Bahn höchstens 2,5 m neben ihm, bis 20 m), löst seine Reaktionszeit aus. Dann antwortet er einmal mit seiner Stufe: Speer stemmt, Schildwall steht (der Schritt-Anteil geht an den Block wie gegen ein Schwert), sonst Block oder ein Schritt zur Seite im letzten Moment. Wer den Reiter im Rücken hat, sieht ihn nicht |
 
-Ereignisse: `Trample`, `Brace`, `Refuse`; danach folgt das übliche `Hit`, `Blocked` oder `GuardBreak`. Alle Werte stehen in `CombatTuningDefinition` (Kopf „Cavalry“) und `AgentMovementDefinition` (Kopf „Horse“). Tests: `CavalryTests`.
+| **Reiter in Formation** | Abstände 2,2 × 3,6 m, Trab 4,5 m/s, Vorrücken wird 30 m vor dem Feind zum Angriff. Angriff auf eine bestimmte Formation: Reiter nehmen deren Soldaten zuerst |
+| **Held zu Pferd** | `heroMounted` im Szenario; W reitet in Blickrichtung, S bremst (in `PlayerCombatInput`). Kein Schritt, Sprung, Sprint; die Lanze blockt nicht. Unbeaufsichtigt zieht er die Zweitwaffe |
+
+Ereignisse: `Trample`, `Brace`, `Refuse`; danach folgt das übliche `Hit`, `Blocked` oder `GuardBreak`. Alle Werte stehen in `CombatTuningDefinition` (Kopf „Cavalry“) und `AgentMovementDefinition` (Kopf „Horse“). Tests: `CavalryTests`, `CavalryCommandTests`.
 
 ## Kampf in Formation (`Context/FormationCombatRules`, Schicht D)
 

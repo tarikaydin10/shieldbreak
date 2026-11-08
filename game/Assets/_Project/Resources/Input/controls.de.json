@@ -233,7 +233,7 @@
     },
     {
       "action": "Combat/Move",
-      "text": "Laufen (relativ zur Kamera)"
+      "text": "Laufen (relativ zur Kamera); zu Pferd: lenken, zurück bremst"
     },
     {
       "action": "Combat/Look",

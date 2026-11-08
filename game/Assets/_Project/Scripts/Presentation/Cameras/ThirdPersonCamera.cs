@@ -24,6 +24,8 @@ namespace Shieldbreak.Presentation.Cameras
         [Tooltip("Spectator orbit speed (deg/s) and distance.")]
         public float spectatorOrbit = 12f;
         public float spectatorDistance = 7f;
+        [Tooltip("On horseback the camera moves by this: x = further to the shoulder side (clear of the upright lance), y = higher, z = further back (m).")]
+        public Vector3 mountedOffset = new Vector3(0.7f, 0.9f, -1.8f);
 
         public float Yaw { get; set; }
         public float Pitch { get; set; } = 12f;
@@ -82,6 +84,7 @@ namespace Shieldbreak.Presentation.Cameras
             float k = kickTime / Mathf.Max(kickSeconds, 1e-4f);
             var rotation = Quaternion.Euler(Pitch + kick.y * k, Yaw + kick.x * k, 0f);
             Vector3 offset = runner.PlayerAgent >= 0 ? shoulderOffset : new Vector3(0f, 2.2f, -spectatorDistance);
+            if (runner.PlayerAgent >= 0 && world.Agents[runner.PlayerAgent].IsMounted) offset += mountedOffset;
             Vector3 eye = focus + rotation * offset;
             // On a slope the camera behind the hero would sink into the hill
             eye.y = Mathf.Max(eye.y, SimRunner.GroundAt(new Unity.Mathematics.float2(eye.x, eye.z)) + groundClearance);

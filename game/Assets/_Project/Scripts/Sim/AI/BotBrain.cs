@@ -39,6 +39,12 @@ namespace Shieldbreak.Sim.AI
                 ThinkRider(i, ref c, ref job);
                 return;
             }
+            // The unattended hero in the saddle puts the lance away: he has to hold his block (CLAUDE.md 3.9)
+            if (self.IsMounted && self.IsUnattended && c.State == CombatState.Idle && job.Weapon(c).Archetype == WeaponArchetype.Lance)
+            {
+                int side = job.SideArmSlot(c);
+                if (side >= 0) CombatSystem.TrySwitch(ref c, side, job.CurrentTick, job.Rules, job.EventList, i);
+            }
             bool rider = !self.IsRouting && !self.IsMounted && WatchRiders(i, ref c, ref job);
             ThinkOnFoot(i, ref c, ref job, rider);
             if (rider) AnswerRider(i, ref c, ref job);
@@ -51,6 +57,7 @@ namespace Shieldbreak.Sim.AI
             int tick = job.CurrentTick;
             var rules = job.Rules;
             var me = job.Agent(i);
+            if (me.IsMounted) p.StepChance = 0f;
             bool unattended = me.IsUnattended;
             var ctx = unattended ? FormationCombatRules.ForUnattendedHero(c.OrderTarget, c.OrderFacing, me.Facing) : job.FormationContext(i);
             bool holdBlock = p.HoldBlock == 1 || unattended;
@@ -318,7 +325,7 @@ namespace Shieldbreak.Sim.AI
             }
 
             bool lost = c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead;
-            if (lost || (tick + i) % ReacquireInterval == 0) c.BotTarget = FindRiderTarget(me, ref job);
+            if (lost || (tick + i) % ReacquireInterval == 0) c.BotTarget = FindRiderTarget(i, me, ref job);
             if (c.BotTarget < 0)
             {
                 me.Target = c.OrderTarget;
@@ -355,17 +362,20 @@ namespace Shieldbreak.Sim.AI
             c.RngState = rng.State;
         }
 
-        /// <summary>Nearest living enemy on foot in a formation (riders charge the ranks, they do not hunt stragglers), else the nearest
-        /// on foot, else the nearest rider; a plain loop, riders look across the whole field.</summary>
-        static int FindRiderTarget(in AgentData me, ref CombatSystem.CombatJob job)
+        /// <summary>Nearest soldier of the formation it was sent against, else the nearest living enemy on foot in a formation (riders
+        /// charge the ranks, they do not hunt stragglers), else the nearest on foot, else the nearest rider; a plain loop, riders look
+        /// across the whole field.</summary>
+        static int FindRiderTarget(int i, in AgentData me, ref CombatSystem.CombatJob job)
         {
-            int best = -1, bestLoose = -1, bestRider = -1;
-            float bestSq = float.MaxValue, bestLooseSq = float.MaxValue, bestRiderSq = float.MaxValue;
+            int best = -1, bestLoose = -1, bestRider = -1, bestOrdered = -1;
+            float bestSq = float.MaxValue, bestLooseSq = float.MaxValue, bestRiderSq = float.MaxValue, bestOrderedSq = float.MaxValue;
+            int ordered = job.TargetFormationOf(i);
             for (int j = 0; j < job.AgentCount; j++)
             {
                 var other = job.Agent(j);
                 if (other.IsDead || other.Team == me.Team) continue;
                 float dsq = math.distancesq(other.Position, me.Position);
+                if (ordered >= 0 && job.FormationOf(j) == ordered && dsq < bestOrderedSq) { bestOrderedSq = dsq; bestOrdered = j; }
                 if (other.IsMounted)
                 {
                     if (dsq < bestRiderSq) { bestRiderSq = dsq; bestRider = j; }
@@ -376,7 +386,7 @@ namespace Shieldbreak.Sim.AI
                 }
                 else if (dsq < bestSq) { bestSq = dsq; best = j; }
             }
-            return best >= 0 ? best : bestLoose >= 0 ? bestLoose : bestRider;
+            return bestOrdered >= 0 ? bestOrdered : best >= 0 ? best : bestLoose >= 0 ? bestLoose : bestRider;
         }
 
         static float2 InsideMap(float2 p, in Shieldbreak.Sim.Grid.GridLayout layout, float margin)

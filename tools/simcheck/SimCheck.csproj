@@ -45,6 +45,7 @@
     <Compile Include="$(Game)Tests/EditMode/PolearmTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/RoutRulesTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/CavalryTests.cs" />
+    <Compile Include="$(Game)Tests/EditMode/CavalryCommandTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/AgentTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/FormationTests.cs" />
     <Compile Include="$(Game)Tests/EditMode/NavTests.cs" />

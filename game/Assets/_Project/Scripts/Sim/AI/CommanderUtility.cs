@@ -83,6 +83,14 @@ namespace Shieldbreak.Sim.AI
         public float FlankShare;
         /// <summary>Soldiers one soldier in contact kills per second.</summary>
         public float KillRate;
+        /// <summary>Riders stay in reserve until the lines are this close (m); 0 = they go at once.</summary>
+        public float RiderWaitDistance;
+        /// <summary>What makes an enemy formation a good target for riders: shooters, a fight with own infantry...</summary>
+        public float RiderPerShooters, RiderPerEngaged;
+        /// <summary>...and a bad one: spears, a shield wall, riders of its own, every metre further away.</summary>
+        public float RiderPerSpears, RiderPerWall, RiderPerMounted, RiderPerMeter;
+        /// <summary>Riders change their target only for one this much better.</summary>
+        public float RiderRetargetMargin;
 
         public void Validate()
         {
@@ -277,8 +285,8 @@ namespace Shieldbreak.Sim.AI
             for (int a = 0; a < formationCount; a++)
             {
                 var own = formations[a];
-                // Shooters are no front: they count as soldiers, not in the line
-                if (own.MemberCount == 0 || own.Ranged == 1) continue;
+                // Shooters and riders are no front: they count as soldiers, not in the line
+                if (own.MemberCount == 0 || own.Ranged == 1 || own.Mounted == 1) continue;
                 float width = FormationLinePlanner.FrontWidth(own.Type, own.Files, own.MemberCount, formationSettings);
                 float inFront = FrontSoldiers(own, width, formationSettings);
                 if (own.Team != team)
@@ -293,7 +301,7 @@ namespace Shieldbreak.Sim.AI
                 for (int b = 0; b < formationCount; b++)
                 {
                     var other = formations[b];
-                    if (other.Team != team && other.MemberCount > 0 && other.Ranged == 0) nearestSq = math.min(nearestSq, math.distancesq(own.Position, other.Position));
+                    if (other.Team != team && other.MemberCount > 0 && other.Ranged == 0 && other.Mounted == 0) nearestSq = math.min(nearestSq, math.distancesq(own.Position, other.Position));
                 }
             }
             f.Distance = math.sqrt(nearestSq);
@@ -331,6 +339,14 @@ namespace Shieldbreak.Sim.AI
         /// <paramref name="ticksPassive"/>: how long the side has not fought. Marching out to attack does not end that, so
         /// a side that finally sets off does not turn round on the way.
         /// </summary>
+        /// <summary>
+        /// How good a target an enemy formation is for riders (CLAUDE.md 3.7, Kav-vs-Speer), from what anyone can read off the
+        /// field: shooters and men already fighting are good, spears, a shield wall and other riders are bad.
+        /// </summary>
+        public static float RiderTargetScore(in FormationData enemy, float distance, bool engaged, in CommanderSettings s) =>
+            (enemy.Ranged == 1 ? s.RiderPerShooters : 0f) + (engaged ? s.RiderPerEngaged : 0f) - (enemy.Spears == 1 ? s.RiderPerSpears : 0f) -
+            (enemy.Type == FormationType.ShieldWall ? s.RiderPerWall : 0f) - (enemy.Mounted == 1 ? s.RiderPerMounted : 0f) - s.RiderPerMeter * distance;
+
         public static CommanderScores Score(in CommanderFeatures f, in CommanderSettings s, int ticksPassive = 0, CommanderTactic current = CommanderTactic.Hold)
         {
             float advantage = math.clamp(f.Balance - 1f, -1f, 1f);

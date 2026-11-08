@@ -75,6 +75,8 @@ namespace Shieldbreak.Data
         [Tooltip("The hero runs and turns like the duel fighters (an elite soldier); line soldiers march at 1.")]
         [Min(0.1f)] public float heroSpeedScale = 1.6f;
         [Min(0.1f)] public float heroAccelScale = 4f;
+        [Tooltip("The hero rides (give him the lance and a side arm in the loadout).")]
+        public bool heroMounted;
 
         [Serializable]
         public class Hill
@@ -192,6 +194,7 @@ namespace Shieldbreak.Data
             int hero = world.SpawnAgent(0, heroPosition, agentRadius, heroFacing, HeroLoadout().x);
             world.SetAgentMotion(hero, heroSpeedScale, heroAccelScale);
             world.SetLoadout(hero, HeroLoadout());
+            if (heroMounted) world.SetMounted(hero);
             world.AssignPlayerAgent(PlayerId, hero);
 
             foreach (var u in units)

@@ -134,8 +134,12 @@ namespace Shieldbreak.Sim.Formations
         public int Ranged;
         /// <summary>1 = its soldiers carry shields and can take cover from arrows.</summary>
         public int Shields;
-        /// <summary>1 = riders. Until the cavalry gets its own formation rules (M4 task 7) the commander only sends them in or back.</summary>
+        /// <summary>1 = riders: wider slots, a faster march, an advance that turns into a charge near the enemy.</summary>
         public int Mounted;
+        /// <summary>1 = its soldiers carry spears: a charge into their front is a bad idea, and anyone can see that.</summary>
+        public int Spears;
+        /// <summary>Tick riders were last seen charging at this formation (with CoverType: the shield wall against cavalry).</summary>
+        public int CavalryTick;
         /// <summary>Tick the last arrow struck a soldier of the formation.</summary>
         public int UnderFireTick;
         /// <summary>Arrows that struck since it last was out of fire; sum of the directions they came from.</summary>
@@ -266,6 +270,27 @@ namespace Shieldbreak.Sim.Formations
         public int CoverMinHits;
         /// <summary>This long after the last arrow it counts as out of fire and goes back to its form.</summary>
         public int CoverWindowTicks;
+        /// <summary>Distance between riders in every formation type: a horse is wider and much longer than a man.</summary>
+        public FormationSpacing MountedSpacing;
+        /// <summary>Anchor speed of a rider formation (m/s).</summary>
+        public float MountedMarchSpeed;
+        /// <summary>Riders advancing on an enemy break into a charge this far (m) from him.</summary>
+        public float MountedChargeDistance;
+        /// <summary>Riders this close (m) and riding at a formation make it react; 0 = never.</summary>
+        public float CavalryReactDistance;
+        /// <summary>So many riders before a whole formation reacts to them.</summary>
+        public int CavalryMinRiders;
+        /// <summary>Slower than this (m/s) a rider is no charge.</summary>
+        public float CavalryMinSpeed;
+
+        /// <summary>The rules that apply to this formation: riders stand further apart.</summary>
+        public FormationSettings Of(in FormationData f)
+        {
+            if (f.Mounted == 0) return this;
+            var riders = this;
+            riders.Line = riders.ShieldWall = riders.Wedge = riders.Circle = riders.Loose = MountedSpacing;
+            return riders;
+        }
 
         public FormationSpacing Spacing(FormationType type) => type switch
         {
@@ -283,6 +308,7 @@ namespace Shieldbreak.Sim.Formations
                 var s = Spacing((FormationType)t);
                 if (s.Lateral <= 0f || s.Depth <= 0f) throw new ArgumentException($"Spacing of {(FormationType)t} must be positive.");
             }
+            if (MountedMarchSpeed < 0f || MountedChargeDistance < 0f || CavalryReactDistance < 0f || CavalryMinRiders < 0 || CavalryMinSpeed < 0f) throw new ArgumentException("Cavalry values must be >= 0.");
             if (MarchSpeed <= 0f || MarchSpeed >= soldierMaxSpeed) throw new ArgumentException("MarchSpeed must be in (0, soldier MaxSpeed).");
             if (CohesionSlack < 0f || CohesionRange <= 0f) throw new ArgumentException("Require CohesionSlack >= 0 and CohesionRange > 0.");
             if (MinMarchFactor <= 0f || MinMarchFactor > 1f) throw new ArgumentException("MinMarchFactor must be in (0, 1].");

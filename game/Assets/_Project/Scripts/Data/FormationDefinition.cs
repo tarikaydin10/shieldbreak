@@ -97,6 +97,20 @@ namespace Shieldbreak.Data
         [Tooltip("This long after the last arrow it goes back to its form (ms).")]
         [Min(0)] public int coverWindowMs = 5000;
 
+        [Header("Cavalry")]
+        [Tooltip("Distance between riders: across, along (m).")]
+        public Vector2 mountedSpacing = new Vector2(2.2f, 3.6f);
+        [Tooltip("March speed of a rider formation (m/s): a trot.")]
+        [Min(0.1f)] public float mountedMarchSpeed = 4.5f;
+        [Tooltip("Riders advancing on an enemy break into a charge this far from him (m).")]
+        [Min(0f)] public float mountedChargeDistance = 30f;
+        [Tooltip("Riders this close and riding at a formation make it react (shields: a shield wall; others turn to them). 0 = never.")]
+        [Min(0f)] public float cavalryReactDistance = 35f;
+        [Tooltip("So many riders before a whole formation reacts.")]
+        [Min(1)] public int cavalryMinRiders = 3;
+        [Tooltip("Slower than this a rider is no charge (m/s).")]
+        [Min(0f)] public float cavalryMinSpeed = 3f;
+
         [Header("Hero in the command view (HeroUnattended)")]
         [Tooltip("Bot level (L1–L5) the hero fights at while the player is in the command view; 0 = no command view.")]
         [Range(0, 5)] public int heroUnattendedLevel = 2;
@@ -147,6 +161,12 @@ namespace Shieldbreak.Data
             ForestScatter = forestScatter,
             CoverMinHits = coverMinHits,
             CoverWindowTicks = Mathf.RoundToInt(coverWindowMs * SimConstants.TickRate / 1000f),
+            MountedSpacing = Spacing(mountedSpacing),
+            MountedMarchSpeed = mountedMarchSpeed,
+            MountedChargeDistance = mountedChargeDistance,
+            CavalryReactDistance = cavalryReactDistance,
+            CavalryMinRiders = cavalryMinRiders,
+            CavalryMinSpeed = cavalryMinSpeed,
         };
     }
 }

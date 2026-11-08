@@ -70,6 +70,12 @@ namespace Shieldbreak.Tests
             ScreenBehindDistance = 8f,
             CoverMinHits = 3,
             CoverWindowTicks = 300,
+            MountedSpacing = new FormationSpacing { Lateral = 2.2f, Depth = 3.6f },
+            MountedMarchSpeed = 4.5f,
+            MountedChargeDistance = 30f,
+            CavalryReactDistance = 35f,
+            CavalryMinRiders = 3,
+            CavalryMinSpeed = 3f,
         };
 
         /// <summary>Mirrors the MoraleDefinition defaults (Morale_Default).</summary>

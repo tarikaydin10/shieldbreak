@@ -332,12 +332,14 @@ namespace Shieldbreak.Sim.Core
             if (HasCombat)
             {
                 var arm = combatSetup.Weapons[weaponId];
-                formations.SetArms(id, arm.IsRanged, arm.Archetype == WeaponArchetype.OneHandShield, mounted);
+                formations.SetArms(id, arm.IsRanged, arm.Archetype == WeaponArchetype.OneHandShield, mounted, arm.Archetype == WeaponArchetype.Polearm);
             }
             var f = formations.Formations[id];
             using var local = new NativeArray<float2>(count, Allocator.Temp);
             using var localFacing = new NativeArray<float2>(count, Allocator.Temp);
-            SlotGenerator.Generate(f.Type, count, f.Files, formations.Settings, local, localFacing);
+            if (mounted && (formations.Settings.MountedSpacing.Lateral <= 0f || formations.Settings.MountedSpacing.Depth <= 0f || formations.Settings.MountedMarchSpeed <= 0f))
+                throw new InvalidOperationException("The formation settings have no values for riders.");
+            SlotGenerator.Generate(f.Type, count, f.Files, formations.Settings.Of(f), local, localFacing);
             for (int s = 0; s < count; s++)
             {
                 int agent = SpawnAgent(team, f.ToWorld(local[s]), radius, FormationData.Rotate(localFacing[s], f.Facing), weaponId, botProfile);
@@ -563,7 +565,8 @@ namespace Shieldbreak.Sim.Core
             if (a.IsDead) return;
             playerMoveIntent[command.PlayerId] = moveLen > 0.05f ? move : float2.zero;
             playerSprint[command.PlayerId] = command.IntArgs.y != 0 ? 1 : 0;
-            if (math.lengthsq(look) > 1e-6f)
+            // A horse does not turn because its rider looks around: it goes where it is ridden
+            if (math.lengthsq(look) > 1e-6f && !a.IsMounted)
             {
                 a.FaceAgent = AgentData.FaceFixed;
                 a.FaceDirection = math.normalize(look);
@@ -587,7 +590,7 @@ namespace Shieldbreak.Sim.Core
                 agents[id] = a;
                 var c = combat[id];
                 c.OrderTarget = a.Target;
-                c.Sprinting = playerSprint[p] == 1 && math.lengthsq(move) > 0f ? 1 : 0;
+                c.Sprinting = playerSprint[p] == 1 && math.lengthsq(move) > 0f && !a.IsMounted ? 1 : 0;
                 combat[id] = c;
             }
         }
@@ -602,6 +605,9 @@ namespace Shieldbreak.Sim.Core
             var weapon = combatSetup.Weapons[c.WeaponId];
             var attack = combatSetup.Attacks[weapon.AttackIndex(c.Direction)];
             var tuning = combatSetup.Tuning;
+            // A horse does not step or jump, and a couched lance neither blocks nor bashes (ignored, never thrown)
+            if (agents[id].IsMounted && (command.Type == InputCommandType.CombatStep || command.Type == InputCommandType.CombatJump)) return;
+            if (weapon.Archetype == WeaponArchetype.Lance && (command.Type == InputCommandType.CombatBlock || command.Type == InputCommandType.CombatSpecial)) return;
             switch (command.Type)
             {
                 case InputCommandType.CombatAttack:

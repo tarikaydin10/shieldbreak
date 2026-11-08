@@ -78,6 +78,24 @@ namespace Shieldbreak.Data
         [Tooltip("Soldiers one soldier in contact kills per second: only for the forecast duration.")]
         [Min(0.001f)] public float killRate = 0.06f;
 
+        [Header("Riders")]
+        [Tooltip("Riders stay in reserve until the lines are this close (m). 0 = they go at once.")]
+        [Min(0f)] public float riderWaitDistance = 30f;
+        [Tooltip("Score of an enemy formation for riders: shooters.")]
+        public float riderPerShooters = 1f;
+        [Tooltip("...already fighting own infantry.")]
+        public float riderPerEngaged = 0.5f;
+        [Tooltip("...spears (subtracted).")]
+        public float riderPerSpears = 1f;
+        [Tooltip("...a shield wall (subtracted).")]
+        public float riderPerWall = 0.8f;
+        [Tooltip("...riders of its own (subtracted).")]
+        public float riderPerMounted = 1f;
+        [Tooltip("...per metre of distance (subtracted).")]
+        [Min(0f)] public float riderPerMeter = 0.01f;
+        [Tooltip("Riders change their target only for one this much better.")]
+        [Min(0f)] public float riderRetargetMargin = 0.4f;
+
         static int Ticks(float ms) => Mathf.Max(1, Mathf.RoundToInt(ms * SimConstants.TickRate / 1000f));
 
         public CommanderSettings ToSettings() => new CommanderSettings
@@ -113,6 +131,14 @@ namespace Shieldbreak.Data
             MoraleWeight = moraleWeight,
             FlankShare = flankShare,
             KillRate = killRate,
+            RiderWaitDistance = riderWaitDistance,
+            RiderPerShooters = riderPerShooters,
+            RiderPerEngaged = riderPerEngaged,
+            RiderPerSpears = riderPerSpears,
+            RiderPerWall = riderPerWall,
+            RiderPerMounted = riderPerMounted,
+            RiderPerMeter = riderPerMeter,
+            RiderRetargetMargin = riderRetargetMargin,
         };
     }
 }

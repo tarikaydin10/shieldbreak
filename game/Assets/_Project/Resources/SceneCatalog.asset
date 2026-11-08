@@ -182,7 +182,7 @@ MonoBehaviour:
     launch: 0
     scenario: {fileID: 11400000, guid: edfcaac98ce6a77136b428315a17cd7e, type: 2}
     briefingOnStart: 1
-    objective: "100 gegen 100, jede Seite mit 12 Reitern auf der Flanke. Beide Reitereien greifen sofort an, die feindliche von links, deine von rechts; mit dem Radialmenü (Halten) hältst du deine zurück. Reiter kommen nur langsam in Fahrt, senken die Lanze und reiten durch die Reihen. Ein gestemmter Speer oder ein Schildwall hält sie auf, eine Linie nicht."
+    objective: "100 gegen 100, jede Seite mit 12 Reitern auf der Flanke. Du reitest selbst: W treibt das Pferd in Blickrichtung, S bremst, Linksklick senkt die Lanze, 2 zieht das Schwert. Deine Reiter greifen sofort an, die feindlichen warten als Reserve, bis die Linien nah sind, und suchen sich dann lohnende Ziele. Mit dem Radialmenü (Halten) hältst du deine zurück. Reiter kommen nur langsam in Fahrt, senken die Lanze und reiten durch die Reihen. Ein gestemmter Speer oder ein Schildwall hält sie auf, eine Linie nicht."
     controlMaps:
     - Radial
     - CommandView
@@ -195,6 +195,11 @@ MonoBehaviour:
     - "Gegen Speere oder einen Schildwall bleiben die Reiter stecken, die Speere werfen sie aus dem Sattel"
     - "Nach einem Durchgang reiten die Reiter weiter, wenden und greifen wieder an"
     - "Die Pferde sind klar als Pferde zu erkennen, auch aus der Kommandoansicht (Platzhalter bis zu den Modellen)"
+    - "Zu Pferd: Lenken mit Maus und WASD fühlt sich gut an, S bremst, die Kamera sitzt hoch genug"
+    - "Mit gesenkter Lanze im Galopp in einen Gegner reiten wirft ihn um"
+    - "Eine Formation mit Schilden schließt zum Schildwall, wenn Reiter auf sie zukommen, und öffnet sich danach wieder"
+    - "Der Feind schickt seine Reiter erst, wenn die Linien nah sind, und lieber nicht in Speere"
+    - "Reiter halten als Formation Abstand und traben; Vorrücken wird nahe am Feind zum Angriff"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

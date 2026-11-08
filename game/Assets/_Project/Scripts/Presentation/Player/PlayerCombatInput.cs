@@ -161,6 +161,8 @@ namespace Shieldbreak.Presentation.Player
             float yaw = combatCamera != null ? combatCamera.Yaw : 0f;
             var yawRot = Quaternion.Euler(0f, yaw, 0f);
             Vector2 m = move.ReadValue<Vector2>();
+            // In the saddle "back" pulls the reins: no way to go, so the horse brakes (it turns by being ridden the other way)
+            if (world.Agents[agent].IsMounted && m.y < -0.5f) m = Vector2.zero;
             Vector3 walk = yawRot * new Vector3(m.x, 0f, m.y);
             Vector3 forward = yawRot * Vector3.forward;
             float2 walk2 = new float2(walk.x, walk.z);

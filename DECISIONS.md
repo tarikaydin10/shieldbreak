@@ -501,6 +501,20 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 | Ein Soldat achtet auf jeden Reiter, der auf ihn zureitet (ab 1 m/s), nicht erst im Galopp; der unbeaufsichtigte Held blockt immer | Gemessen: Ein Reiter kam im Schritt heran und galoppierte erst die letzten 8 m, der Held (L2) reagierte zu spät und fiel nach 19 s | Erst ab 3 m/s |
 | Pferde sind bis Task 9 **Quader in Palettenfarben** | Wie die Kegelbäume: sichtbar und lesbar, das Modell kommt aus der Pipeline | Schnell ein Modell in Blender |
 
+## 2026-11-08 — M4 Task 7: Reiterei führen
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Reiter-Formationen haben für alle Typen dieselben Abstände (2,2 m breit, 3,6 m tief) und traben mit 4,5 m/s | Ein Pferd ist länger als breit; eine eigene Spacing-Tabelle pro Typ brächte heute nichts | Abstände pro Typ |
+| Reiter-Vorrücken wird ab 30 m zum Angriff | Reiter, die im Trab bis an den Feind kommen und dort stehen, wären nutzlos; dasselbe gilt für die Haltung Reagieren | Eigenes Verhalten |
+| **Schildwall bei Kavallerie** läuft über denselben Mechanismus wie die Deckung unter Pfeilen (`CoverType`): ab 3 Reitern, die in 35 m auf die Formation zureiten, solange kein Feind zu Fuß an ihr steht. Speere und andere ohne Schild drehen sich nur zu den Reitern, wenn sie von außerhalb der Front kommen | Eine Regel statt zwei; Speere stemmen einzeln (Task 6), ein Speerwall wäre eine neue Form | Eigener Formationstyp |
+| Der Kommandant hält seine Reiter zurück, bis die Linien sich auf 30 m nähern, und wertet Ziele: Schützen +1, Kämpfende +0,5, Speere −1, Schildwall −0,8, Reiter −1, je Meter −0,01. Er wechselt nur für 0,4 mehr | CLAUDE.md 3.7: Kav-vs-Speer. Nur, was jeder auf dem Feld sieht | Reiter sofort losschicken (Task 6) |
+| Reiter zählen für den Kommandanten nicht als Front und nicht für den Abstand der Linien | Sonst misst er seine Schlachtreihe an Reitern, die 100 m daneben stehen | – |
+| Der Held reitet über `heroMounted` im Szenario, ohne Auf- und Absitzen | Die Verben der Grammatik bleiben; Absitzen braucht ein eigenes Konzept (`IDEAS.md`) | Absitzen jetzt |
+| Steuerung zu Pferd: W reitet in Blickrichtung, die Maus lenkt also, S bremst. Das Bremsen entsteht in `PlayerCombatInput` (kein Weg = bremsen), nicht in der Sim | Erst steckte es in der Sim als „Weg gegen die Blickrichtung“; dann hätte man nie wenden können, wenn die Kamera nach hinten schaut | Bremsen aus dem Winkel in der Sim |
+| Zu Pferd gibt es keinen Schritt, Sprung und Sprint; die Lanze blockt und stößt nicht. Sieht der Reiter sich um, dreht sich das Pferd nicht | Schicht D „Beritten“; ungültige Eingaben werden ignoriert, nie geworfen | – |
+| Der unbeaufsichtigte Held zieht die Zweitwaffe | CLAUDE.md 3.9: Er soll den Block halten, mit der Lanze kann er das nicht | Lanze behalten |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt
