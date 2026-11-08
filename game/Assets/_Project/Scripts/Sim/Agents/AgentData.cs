@@ -15,6 +15,8 @@ namespace Shieldbreak.Sim.Agents
         public const int Fled = 1 << 2;
         /// <summary>A player's hero while the player is in the command view: its bot brain fights (HeroUnattended).</summary>
         public const int Unattended = 1 << 3;
+        /// <summary>Rides a horse: rider and horse are one agent with the horse's speed and inertia (AgentSystem) and its weight in a charge (CombatSystem).</summary>
+        public const int Mounted = 1 << 4;
     }
 
     /// <summary>
@@ -50,6 +52,7 @@ namespace Shieldbreak.Sim.Agents
         public bool IsRouting => (Flags & AgentFlags.Routing) != 0;
         public bool HasFled => (Flags & AgentFlags.Fled) != 0;
         public bool IsUnattended => (Flags & AgentFlags.Unattended) != 0;
+        public bool IsMounted => (Flags & AgentFlags.Mounted) != 0;
     }
 
     /// <summary>
@@ -86,8 +89,20 @@ namespace Shieldbreak.Sim.Agents
         /// <summary>Cost of these cells on the way (open ground = 1).</summary>
         public int ForestNavCost, SwampNavCost;
 
+        /// <summary>Horse: top speed (m/s, gallop), speeding up and slowing down (m/s²).</summary>
+        public float MountedMaxSpeed, MountedAcceleration, MountedBraking;
+        /// <summary>Horse: the most sideways acceleration (m/s²), which sets the turning circle at speed (radius = v²/a).</summary>
+        public float MountedLateralAcceleration;
+        /// <summary>Horse: turning speed at a walk (degrees per second).</summary>
+        public float MountedTurnRateDeg;
+        /// <summary>Horse: factor on the speed in the forest and in the swamp (worse than on foot).</summary>
+        public float MountedForestSpeed, MountedSwampSpeed;
+
         /// <summary>Factor a kind of ground puts on the speed.</summary>
         public float GroundSpeed(byte kind) => kind == (byte)Shieldbreak.Sim.Grid.GroundKind.Forest ? ForestSpeed : kind == (byte)Shieldbreak.Sim.Grid.GroundKind.Swamp ? SwampSpeed : 1f;
+
+        /// <summary>Factor a kind of ground puts on the speed of a horse.</summary>
+        public float MountedGroundSpeed(byte kind) => kind == (byte)Shieldbreak.Sim.Grid.GroundKind.Forest ? MountedForestSpeed : kind == (byte)Shieldbreak.Sim.Grid.GroundKind.Swamp ? MountedSwampSpeed : 1f;
 
         /// <summary>Factor on the speed along <paramref name="direction"/> over this slope.</summary>
         public float SlopeFactor(float2 slope, float2 direction) => Shieldbreak.Sim.Grid.Terrain.SpeedFactor(slope, direction, UphillSlowdown, DownhillBoost, SlopeSpeedMin, SlopeSpeedMax);
@@ -103,6 +118,8 @@ namespace Shieldbreak.Sim.Agents
             if (WallWeight < 0f) throw new ArgumentException("WallWeight must be >= 0.");
             if (ForestSpeed < 0f || SwampSpeed < 0f) throw new ArgumentException("ForestSpeed and SwampSpeed must be >= 0.");
             if (UphillSlowdown < 0f || DownhillBoost < 0f) throw new ArgumentException("UphillSlowdown and DownhillBoost must be >= 0.");
+            if (MountedMaxSpeed < 0f || MountedAcceleration < 0f || MountedBraking < 0f || MountedLateralAcceleration < 0f || MountedTurnRateDeg < 0f || MountedForestSpeed < 0f || MountedSwampSpeed < 0f)
+                throw new ArgumentException("Horse values must be >= 0.");
             if ((UphillSlowdown > 0f || DownhillBoost > 0f) && (SlopeSpeedMin <= 0f || SlopeSpeedMax < 1f)) throw new ArgumentException("Require SlopeSpeedMin > 0 and SlopeSpeedMax >= 1.");
         }
     }

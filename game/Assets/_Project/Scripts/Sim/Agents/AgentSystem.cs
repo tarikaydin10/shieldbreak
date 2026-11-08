@@ -86,7 +86,11 @@ namespace Shieldbreak.Sim.Agents
                     NewFacing[i] = a.Facing;
                     return;
                 }
-                float maxSpeed = Settings.MaxSpeed * math.max(a.BaseSpeedScale, 0f) * math.max(a.SpeedScale, 0f) * Settings.GroundSpeed(Ground[Layout.ClampedCellIndex(a.Position)]);
+                bool mounted = a.IsMounted;
+                byte groundKind = Ground[Layout.ClampedCellIndex(a.Position)];
+                float maxSpeed = mounted
+                    ? Settings.MountedMaxSpeed * math.max(a.SpeedScale, 0f) * Settings.MountedGroundSpeed(groundKind)
+                    : Settings.MaxSpeed * math.max(a.BaseSpeedScale, 0f) * math.max(a.SpeedScale, 0f) * Settings.GroundSpeed(groundKind);
 
                 // Seek with linear slow-down inside SlowRadius
                 float2 desired = float2.zero;
@@ -96,7 +100,9 @@ namespace Shieldbreak.Sim.Agents
                 {
                     float2 way = toTarget / dist;
                     maxSpeed *= Settings.SlopeFactor(Terrain.SlopeAt(Heights, Layout, a.Position), way);
-                    desired = way * (maxSpeed * math.min(1f, dist / Settings.SlowRadius));
+                    // A horse brakes in time: the speed from which it can still stop before the target
+                    desired = way * (mounted ? math.min(maxSpeed, math.sqrt(2f * Settings.MountedBraking * (dist - Settings.StopRadius)))
+                                             : maxSpeed * math.min(1f, dist / Settings.SlowRadius));
                 }
 
                 // Separation over the 3x3 cells around the agent; push grows linearly as neighbours get closer
@@ -153,6 +159,12 @@ namespace Shieldbreak.Sim.Agents
                     }
                 }
 
+                if (mounted)
+                {
+                    Ride(i, a, desired, push * (Settings.SeparationWeight * Settings.MaxSpeed) + wallPush * (Settings.WallWeight * Settings.MaxSpeed));
+                    return;
+                }
+
                 // Separation keeps its full strength even when the agent itself is slowed (no overlap while attacking)
                 desired += push * (Settings.SeparationWeight * Settings.MaxSpeed) + wallPush * (Settings.WallWeight * Settings.MaxSpeed);
 
@@ -177,6 +189,30 @@ namespace Shieldbreak.Sim.Agents
                 else if (math.lengthsq(v) > FacingMinSpeed * FacingMinSpeed)
                     wanted = math.normalize(v);
                 NewFacing[i] = RotateTowards(a.Facing, wanted, math.radians(Settings.MaxTurnRateDeg) * SimConstants.DT);
+            }
+
+            /// <summary>
+            /// A horse runs where it faces: it turns towards the way it wants within its turning circle (the faster, the
+            /// wider), slows down for a sharp turn, and speeds up and brakes with limited force. It cannot step sideways;
+            /// only being pushed by neighbours moves it off its line. Standing, it turns on the spot to its facing.
+            /// </summary>
+            void Ride(int i, in AgentData a, float2 desired, float2 push)
+            {
+                float speed = math.max(0f, math.dot(a.Velocity, a.Facing));
+                float want = math.length(desired);
+                float turn = math.radians(Settings.MountedTurnRateDeg);
+                if (speed > 0.1f) turn = math.min(turn, Settings.MountedLateralAcceleration / speed);
+                float2 wantedFacing;
+                if (want > 0.05f) wantedFacing = desired / want;
+                else if (a.FaceAgent == AgentData.FaceFixed) wantedFacing = math.normalizesafe(a.FaceDirection, a.Facing);
+                else if (a.FaceAgent >= 0 && a.FaceAgent < Agents.Length && a.FaceAgent != i) wantedFacing = math.normalizesafe(Agents[a.FaceAgent].Position - a.Position, a.Facing);
+                else wantedFacing = a.Facing;
+                float2 facing = RotateTowards(a.Facing, wantedFacing, turn * SimConstants.DT);
+                float goal = want * math.saturate(math.dot(facing, wantedFacing));
+                float change = goal > speed ? Settings.MountedAcceleration : Settings.MountedBraking;
+                speed += math.clamp(goal - speed, -change * SimConstants.DT, change * SimConstants.DT);
+                NewVelocity[i] = facing * speed + push;
+                NewFacing[i] = facing;
             }
         }
 

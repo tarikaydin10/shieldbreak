@@ -13,11 +13,11 @@ namespace Shieldbreak.Tests
 {
     /// <summary>
     /// Builds combat setups from the default ScriptableObject values (preset "Mittel"): weapon 0 = one-hand + shield,
-    /// weapon 1 = two-hand (same values the duel scene builder writes into new assets).
+    /// weapon 1 = two-hand, weapon 2 = spear, weapon 3 = lance (same values the scene builders write into new assets).
     /// </summary>
     static class TestCombat
     {
-        public const int OneHand = 0, TwoHand = 1, Polearm = 2;
+        public const int OneHand = 0, TwoHand = 1, Polearm = 2, Lance = 3;
 
         public static CombatSetup Setup(Action<CombatTuningDefinition> tune = null)
         {
@@ -74,9 +74,17 @@ namespace Shieldbreak.Tests
             polearm.specialAttack.ApplySweepDefaults();
             created.Add(polearm.specialAttack);
 
+            var lance = ScriptableObject.CreateInstance<WeaponDefinition>();
+            created.Add(lance);
+            lance.ApplyLanceDefaults();
+            var couch = ScriptableObject.CreateInstance<AttackDefinition>();
+            couch.ApplyCouchDefaults();
+            created.Add(couch);
+            for (int d = 0; d < AttackDirection.Count; d++) lance.attacks[d] = couch;
+
             tuning = ScriptableObject.CreateInstance<CombatTuningDefinition>();
             created.Add(tuning);
-            return new[] { oneHand, twoHand, polearm };
+            return new[] { oneHand, twoHand, polearm, lance };
         }
 
         public static SimWorld World(CombatSetup setup, int maxAgents, int size = 32, ulong seed = 1) =>

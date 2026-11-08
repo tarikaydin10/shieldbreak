@@ -112,11 +112,12 @@ namespace Shieldbreak.Sim.Formations
         }
 
         /// <summary>Scenario setup: what the soldiers of a formation carry decides what it can do.</summary>
-        public void SetArms(int formation, bool ranged, bool shields)
+        public void SetArms(int formation, bool ranged, bool shields, bool mounted = false)
         {
             var f = formations[formation];
             f.Ranged = ranged ? 1 : 0;
             f.Shields = shields ? 1 : 0;
+            f.Mounted = mounted ? 1 : 0;
             formations[formation] = f;
         }
 

@@ -40,6 +40,8 @@ namespace Shieldbreak.Data
             public Vector2 faceTowards;
             [Tooltip("What it does from the start until it gets an order.")]
             public FormationBehavior startBehavior = FormationBehavior.Hold;
+            [Tooltip("On horseback: the soldiers move as one with their horse and charge with its weight (weapon: the lance).")]
+            public bool mounted;
         }
 
         public int seed = 1;
@@ -200,7 +202,7 @@ namespace Shieldbreak.Data
                 int weapon = math.clamp(u.weapon, 0, world.CombatSetup.Weapons.Length - 1);
                 int level = math.clamp(u.botLevel, 1, world.CombatSetup.BotProfiles.Length - 1);
                 int count = math.clamp(u.count, 1, FormationLimits.MaxMembers);
-                int f = world.SpawnFormation(team, owner, u.formationType, u.files, count, u.front, facing, agentRadius, weapon, level, u.sideWeapon);
+                int f = world.SpawnFormation(team, owner, u.formationType, u.files, count, u.front, facing, agentRadius, weapon, level, u.sideWeapon, u.mounted);
                 // Setup, not an input: every peer applies the same start behavior before tick 0
                 if (u.startBehavior != FormationBehavior.Hold) world.ApplyFormationOrder(FormationOrder.SetBehavior(f, u.startBehavior), owner);
             }

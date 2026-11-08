@@ -15,6 +15,8 @@ namespace Shieldbreak.Sim.AI
     /// In a formation the context rules (FormationCombatRules) decide whom it may fight and how far it may leave its slot.
     /// A player's hero runs here too while the player is in the command view (HeroUnattended): bound to its post behind
     /// the own line like a soldier to its slot, the block held while an enemy is near.
+    /// Riders charge pass after pass with the couched lance; a soldier who sees one coming at him braces his spear,
+    /// raises his shield or steps aside, after the same reaction time as against a sword.
     /// </summary>
     internal static class BotBrain
     {
@@ -22,7 +24,27 @@ namespace Shieldbreak.Sim.AI
         /// <summary>A target is kept a little further than it would be picked, so it does not flicker at the edge (m).</summary>
         const float KeepMargin = 0.5f;
 
+        /// <summary>A soldier looks for riders charging at him this often (ticks), staggered by id.</summary>
+        const int RiderScanInterval = 6;
+        /// <summary>A rider coming at a soldier passes within this distance (m) of him: closer, he has to answer it.</summary>
+        const float RiderPathWidth = 2.5f;
+        /// <summary>A rider riding at a soldier this fast (m/s) is watched: one that comes at a walk may still gallop the last metres.</summary>
+        const float RiderWatchMinSpeed = 1f;
+
         public static void Think(int i, ref CombatData c, ref CombatSystem.CombatJob job)
+        {
+            var self = job.Agent(i);
+            if (self.IsMounted && !self.IsRouting && !self.IsUnattended)
+            {
+                ThinkRider(i, ref c, ref job);
+                return;
+            }
+            bool rider = !self.IsRouting && !self.IsMounted && WatchRiders(i, ref c, ref job);
+            ThinkOnFoot(i, ref c, ref job, rider);
+            if (rider) AnswerRider(i, ref c, ref job);
+        }
+
+        static void ThinkOnFoot(int i, ref CombatData c, ref CombatSystem.CombatJob job, bool riderComing)
         {
             var p = job.Profile(c.BotProfile);
             var rng = new SimRandom { State = c.RngState };
@@ -78,7 +100,7 @@ namespace Shieldbreak.Sim.AI
                 {
                     if (c.State == CombatState.Idle && c.BlockHeld == 0) CombatSystem.SetBlock(ref c, true, tick, job.Attack(c), rules, job.EventList, i);
                 }
-                else if (c.BlockHeld == 1 && (p.HoldBlock == 0 || unattended)) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
+                else if (c.BlockHeld == 1 && (p.HoldBlock == 0 || unattended) && !riderComing) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
                 DrawBow(i, ref c, ref job);
                 c.RngState = rng.State;
                 return;
@@ -150,14 +172,14 @@ namespace Shieldbreak.Sim.AI
                 {
                     if (c.State == CombatState.Idle && c.BlockHeld == 0) CombatSystem.SetBlock(ref c, true, tick, job.Attack(c), rules, job.EventList, i);
                 }
-                else if (c.BlockHeld == 1 && tick - c.BotThreatStartTick > p.ReactionMaxTicks + 20)
+                else if (c.BlockHeld == 1 && tick - c.BotThreatStartTick > p.ReactionMaxTicks + 20 && !riderComing)
                 {
                     CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
                 }
             }
 
             // Attack when in range and not under threat; openings (enemy recovering or stunned) are punished more often
-            if (tick >= c.BotNextDecisionTick)
+            if (tick >= c.BotNextDecisionTick && !riderComing)
             {
                 c.BotNextDecisionTick = tick + p.DecisionIntervalTicks;
                 var weapon = job.Weapon(c);
@@ -241,6 +263,230 @@ namespace Shieldbreak.Sim.AI
             if (tick < c.BotNextDecisionTick || c.State != CombatState.Idle) return;
             c.BotNextDecisionTick = tick + p.DecisionIntervalTicks;
             if (rng.NextFloat() < p.AttackChance) CombatSystem.TryAttack(ref c, AttackDirection.Thrust, tick, job.Attack(c), job.Rules, job.EventList, i);
+        }
+
+        // ---- Cavalry ----
+
+        /// <summary>
+        /// A rider on the same grammar: it picks the nearest enemy anywhere on the field, aims behind him so the horse
+        /// rides through, lowers the lance at a gallop within CouchRange, and after the pass rides on and turns for the
+        /// next. A rider whose horse came to a stand at the enemy (refused, or stuck in the crowd) rides away to charge
+        /// again. Bound to a holding formation it keeps its slot; only a charge order sends it in.
+        /// </summary>
+        static void ThinkRider(int i, ref CombatData c, ref CombatSystem.CombatJob job)
+        {
+            var p = job.Profile(c.BotProfile);
+            var rng = new SimRandom { State = c.RngState };
+            int tick = job.CurrentTick;
+            var rules = job.Rules;
+            var me = job.Agent(i);
+            var ctx = job.FormationContext(i);
+            c.Sprinting = 0;
+            if (c.BlockHeld == 1) CombatSystem.SetBlock(ref c, false, tick, job.Attack(c), rules, job.EventList, i);
+
+            if (ctx.Disengaged == 1 || ctx.Bound == 1)
+            {
+                c.BotTarget = -1;
+                c.RidePhase &= ~1;
+                c.RidePoint = me.Position;
+                me.Target = c.OrderTarget;
+                if (math.lengthsq(c.OrderFacing) > 0f)
+                {
+                    me.FaceAgent = AgentData.FaceFixed;
+                    me.FaceDirection = c.OrderFacing;
+                }
+                else me.FaceAgent = -1;
+                job.SetAgent(i, me);
+                c.RngState = rng.State;
+                return;
+            }
+
+            me.FaceAgent = -1;
+            if ((c.RidePhase & 1) == 1)
+            {
+                // Riding out after a pass; at the turning point the next pass begins from here
+                me.Target = c.RidePoint;
+                job.SetAgent(i, me);
+                if (math.distancesq(me.Position, c.RidePoint) < 36f)
+                {
+                    c.RidePhase += 1;
+                    c.RidePoint = me.Position;
+                    c.BotTarget = -1;
+                }
+                c.RngState = rng.State;
+                return;
+            }
+
+            bool lost = c.BotTarget < 0 || c.BotTarget >= job.AgentCount || job.Agent(c.BotTarget).IsDead;
+            if (lost || (tick + i) % ReacquireInterval == 0) c.BotTarget = FindRiderTarget(me, ref job);
+            if (c.BotTarget < 0)
+            {
+                me.Target = c.OrderTarget;
+                job.SetAgent(i, me);
+                c.RngState = rng.State;
+                return;
+            }
+
+            var enemy = job.Agent(c.BotTarget);
+            float2 to = enemy.Position - me.Position;
+            float dist = math.length(to);
+            float2 dir = dist > 1e-4f ? to / dist : me.Facing;
+            float speed = math.length(me.Velocity);
+            me.Target = InsideMap(enemy.Position + dir * rules.RideThroughDistance, job.Grid, 2f);
+            job.SetAgent(i, me);
+
+            if (c.State == CombatState.Idle && dist <= rules.CouchRange && speed >= rules.CouchMinSpeed && tick >= c.BotNextDecisionTick)
+            {
+                c.BotNextDecisionTick = tick + p.DecisionIntervalTicks;
+                if (rng.NextFloat() < p.OpeningAttackChance) CombatSystem.TryAttack(ref c, AttackDirection.Thrust, tick, job.Attack(c), rules, job.EventList, i);
+            }
+
+            // The pass is over once the target lies between where it began and the rider, the lance struck, or the
+            // horse stands at the enemy
+            bool passed = math.dot(enemy.Position - c.RidePoint, me.Position - enemy.Position) > 0f;
+            bool struck = c.State == CombatState.Recovery && c.HitCount > 0;
+            bool stalled = dist < 4f && speed < 2f;
+            if (passed || struck || stalled)
+            {
+                float2 away = stalled ? math.normalizesafe(me.Position - enemy.Position, -me.Facing) : math.normalizesafe(me.Velocity, me.Facing);
+                c.RidePoint = InsideMap(me.Position + away * rules.RideOutDistance, job.Grid, 6f);
+                c.RidePhase |= 1;
+            }
+            c.RngState = rng.State;
+        }
+
+        /// <summary>Nearest living enemy on foot in a formation (riders charge the ranks, they do not hunt stragglers), else the nearest
+        /// on foot, else the nearest rider; a plain loop, riders look across the whole field.</summary>
+        static int FindRiderTarget(in AgentData me, ref CombatSystem.CombatJob job)
+        {
+            int best = -1, bestLoose = -1, bestRider = -1;
+            float bestSq = float.MaxValue, bestLooseSq = float.MaxValue, bestRiderSq = float.MaxValue;
+            for (int j = 0; j < job.AgentCount; j++)
+            {
+                var other = job.Agent(j);
+                if (other.IsDead || other.Team == me.Team) continue;
+                float dsq = math.distancesq(other.Position, me.Position);
+                if (other.IsMounted)
+                {
+                    if (dsq < bestRiderSq) { bestRiderSq = dsq; bestRider = j; }
+                }
+                else if (!job.InFormation(j))
+                {
+                    if (dsq < bestLooseSq) { bestLooseSq = dsq; bestLoose = j; }
+                }
+                else if (dsq < bestSq) { bestSq = dsq; best = j; }
+            }
+            return best >= 0 ? best : bestLoose >= 0 ? bestLoose : bestRider;
+        }
+
+        static float2 InsideMap(float2 p, in Shieldbreak.Sim.Grid.GridLayout layout, float margin)
+        {
+            float2 max = layout.Origin + new float2(layout.Width, layout.Height) * SimConstants.CellSize;
+            return math.clamp(p, layout.Origin + margin, math.max(layout.Origin + margin, max - margin));
+        }
+
+        /// <summary>
+        /// A rider riding at the soldier: in front of him (nobody sees one behind his back), moving, and its path
+        /// passes within RiderPathWidth of him. The one already seen is kept while it still comes; others are looked for
+        /// every RiderScanInterval ticks. A new one starts the reaction time.
+        /// </summary>
+        static bool WatchRiders(int i, ref CombatData c, ref CombatSystem.CombatJob job)
+        {
+            var me = job.Agent(i);
+            int tick = job.CurrentTick;
+            int rider = c.BotRider >= 0 && Comes(me, c.BotRider, ref job) ? c.BotRider : -1;
+            if (rider < 0 && (tick + i) % RiderScanInterval == 0)
+            {
+                float bestSq = float.MaxValue;
+                for (int j = 0; j < job.AgentCount; j++)
+                {
+                    if (!job.Agent(j).IsMounted || !Comes(me, j, ref job)) continue;
+                    float dsq = math.distancesq(job.Agent(j).Position, me.Position);
+                    if (dsq < bestSq) { bestSq = dsq; rider = j; }
+                }
+            }
+            if (rider != c.BotRider)
+            {
+                c.BotRider = rider;
+                c.BotRiderPlan = BotRiderAnswer.Undecided;
+                if (rider >= 0)
+                {
+                    var p = job.Profile(c.BotProfile);
+                    var rng = new SimRandom { State = c.RngState };
+                    c.BotReactAtTick = tick + rng.NextInt(p.ReactionMinTicks, p.ReactionMaxTicks + 1);
+                    c.RngState = rng.State;
+                }
+            }
+            return rider >= 0;
+        }
+
+        static bool Comes(in AgentData me, int id, ref CombatSystem.CombatJob job)
+        {
+            if (id < 0 || id >= job.AgentCount) return false;
+            var r = job.Agent(id);
+            if (!r.IsMounted || r.IsDead || r.IsRouting || r.Team == me.Team) return false;
+            var rules = job.Rules;
+            float2 d = me.Position - r.Position;
+            float dist = math.length(d);
+            float speed = math.length(r.Velocity);
+            if (dist < 1e-3f || dist > rules.RiderWatchRange || speed < RiderWatchMinSpeed) return false;
+            if (math.dot(-d / dist, me.Facing) < -0.2f) return false;
+            float2 heading = r.Velocity / speed;
+            return math.dot(d, heading) > 0f && math.abs(heading.x * d.y - heading.y * d.x) < RiderPathWidth;
+        }
+
+        /// <summary>
+        /// Once its reaction time is up the soldier answers the rider once, with its own skill: a spear braces and a
+        /// shield wall stands (the step share goes to the block, as against a sword); a shooter has nothing to block
+        /// with and can only step aside. A step aside comes at the last moment, away from the horse's line.
+        /// </summary>
+        static void AnswerRider(int i, ref CombatData c, ref CombatSystem.CombatJob job)
+        {
+            var me = job.Agent(i);
+            var r = job.Agent(c.BotRider);
+            var rules = job.Rules;
+            int tick = job.CurrentTick;
+            me.FaceAgent = c.BotRider;
+            job.SetAgent(i, me);
+            if (tick < c.BotReactAtTick || !CombatSystem.CanAct(c)) return;
+            if (c.BotRiderPlan == BotRiderAnswer.Undecided)
+            {
+                var p = job.Profile(c.BotProfile);
+                var weapon = job.Weapon(c);
+                float block = p.BlockChance + p.PerfectBlockChance, step = p.StepChance;
+                if (weapon.IsRanged || weapon.Archetype == WeaponArchetype.Lance)
+                {
+                    step += block;
+                    block = 0f;
+                }
+                else if (weapon.Archetype == WeaponArchetype.Polearm || job.FormationContext(i).ShieldWall == 1)
+                {
+                    block += step;
+                    step = 0f;
+                }
+                var rng = new SimRandom { State = c.RngState };
+                float roll = rng.NextFloat();
+                c.RngState = rng.State;
+                c.BotRiderPlan = roll < block ? BotRiderAnswer.Block : roll < block + step ? BotRiderAnswer.Step : BotRiderAnswer.None;
+                // The unattended hero holds his block (CLAUDE.md 3.9, HeroUnattended)
+                if (me.IsUnattended && block > 0f) c.BotRiderPlan = BotRiderAnswer.Block;
+            }
+            if (c.BotRiderPlan == BotRiderAnswer.Block)
+            {
+                if (c.BlockHeld == 0) CombatSystem.SetBlock(ref c, true, tick, job.Attack(c), rules, job.EventList, i);
+                return;
+            }
+            if (c.BotRiderPlan != BotRiderAnswer.Step) return;
+            float2 d = me.Position - r.Position;
+            float speed = math.max(math.length(r.Velocity), 0.1f);
+            float2 heading = r.Velocity / speed;
+            float arrival = (math.dot(d, heading) - rules.TrampleReach - me.Radius - r.Radius) / speed;
+            if (arrival > rules.StepTicks * SimConstants.DT) return;
+            float side = heading.x * d.y - heading.y * d.x;
+            float2 away = side >= 0f ? new float2(-heading.y, heading.x) : new float2(heading.y, -heading.x);
+            float2 right = new float2(me.Facing.y, -me.Facing.x);
+            if (CombatSystem.TryStep(ref c, math.dot(away, right) >= 0f ? StepDirection.Right : StepDirection.Left, tick, rules, job.EventList, i))
+                c.BotRiderPlan = BotRiderAnswer.None;
         }
 
         /// <summary>A shooter fighting with its side arm takes up the bow again.</summary>

@@ -21,6 +21,13 @@ namespace Shieldbreak.Tests
             SeparationWeight = 1.5f,
             MaxTurnRateDeg = 540f,
             WallWeight = 2f,
+            MountedMaxSpeed = 9f,
+            MountedAcceleration = 3f,
+            MountedBraking = 6f,
+            MountedLateralAcceleration = 8f,
+            MountedTurnRateDeg = 120f,
+            MountedForestSpeed = 0.45f,
+            MountedSwampSpeed = 0.3f,
         };
 
         /// <summary>Mirrors the FormationDefinition defaults.</summary>

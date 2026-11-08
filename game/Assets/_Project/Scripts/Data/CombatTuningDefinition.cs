@@ -112,6 +112,36 @@ namespace Shieldbreak.Data
         [Tooltip("Above this height over the ground an arrow flies over the forest (m).")]
         [Min(0f)] public float forestCrownHeight = 7f;
 
+        [Header("Cavalry")]
+        [Tooltip("Mass of horse and rider behind a charge (kg); the energy is ½·m·v² of the closing speed.")]
+        [Min(1f)] public float horseMass = 500f;
+        [Tooltip("Below this closing speed (m/s) a horse pushes, it runs nobody down.")]
+        [Min(0.1f)] public float trampleMinSpeed = 3f;
+        [Tooltip("The horse's chest is this far (m) ahead of the rider's centre.")]
+        [Min(0f)] public float trampleReach = 0.9f;
+        [Tooltip("Share of the charge energy that strikes a man run down (blunt). 500 kg at a gallop: about 40 damage.")]
+        [Min(0f)] public float trampleEnergyShare = 0.025f;
+        [Tooltip("Speed the horse keeps per man it runs down.")]
+        [Range(0f, 1f)] public float trampleSpeedKeep = 0.75f;
+        [Tooltip("A horse strikes the same man again at the earliest after this (ms).")]
+        [Min(17f)] public float trampleCooldownMs = 500f;
+        [Tooltip("Share of the charge energy a braced spear puts into the rider, times its point factor. At a gallop deadly, at a trot a wound.")]
+        [Min(0f)] public float braceEnergyShare = 0.02f;
+        [Tooltip("Speed a horse keeps when it refuses a shield wall.")]
+        [Range(0f, 1f)] public float shieldWallSpeedKeep = 0.15f;
+        [Tooltip("The rider of a refusing horse is shaken this long (ms).")]
+        [Min(0f)] public float refuseStunMs = 600f;
+        [Tooltip("Below this closing speed (m/s) a couched lance does not pierce.")]
+        [Min(0.1f)] public float couchMinSpeed = 3f;
+        [Tooltip("Rider bots lower the lance this far (m) from their target.")]
+        [Min(1f)] public float couchRange = 14f;
+        [Tooltip("Rider bots aim this far (m) behind their target, so they ride through.")]
+        [Min(0f)] public float rideThroughDistance = 12f;
+        [Tooltip("After a pass rider bots ride on this far (m) before they turn.")]
+        [Min(1f)] public float rideOutDistance = 25f;
+        [Tooltip("Soldier bots notice a rider charging at them from this far (m).")]
+        [Min(1f)] public float riderWatchRange = 20f;
+
         [Header("Movement in combat")]
         [Range(0f, 1f)] public float attackSpeedScale = 0.5f;
         [Range(0f, 1f)] public float blockSpeedScale = 0.6f;
@@ -170,6 +200,20 @@ namespace Shieldbreak.Data
             HeightEnergyLimit = heightEnergyLimit,
             ForestArrowStopPerMeter = forestArrowStopPerMeter,
             ForestCrownHeight = forestCrownHeight,
+            HorseMass = horseMass,
+            TrampleMinSpeed = trampleMinSpeed,
+            TrampleReach = trampleReach,
+            TrampleEnergyShare = trampleEnergyShare,
+            TrampleSpeedKeep = trampleSpeedKeep,
+            TrampleCooldownTicks = AttackTiming.MsToTicks(trampleCooldownMs),
+            BraceEnergyShare = braceEnergyShare,
+            ShieldWallSpeedKeep = shieldWallSpeedKeep,
+            RefuseStunTicks = refuseStunMs <= 0f ? 0 : AttackTiming.MsToTicks(refuseStunMs),
+            CouchMinSpeed = couchMinSpeed,
+            CouchRange = couchRange,
+            RideThroughDistance = rideThroughDistance,
+            RideOutDistance = rideOutDistance,
+            RiderWatchRange = riderWatchRange,
         };
     }
 }

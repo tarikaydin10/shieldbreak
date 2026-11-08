@@ -118,6 +118,16 @@ namespace Shieldbreak.Sim.AI
                     else if (f.Behavior != FormationBehavior.Screen) Give(c, FormationOrder.SetBehavior(id, FormationBehavior.Screen));
                     continue;
                 }
+                if (f.Mounted == 1)
+                {
+                    // Riders charge, pass after pass, and only a retreat calls them back (their own tactics come with M4 task 7)
+                    if (c.Tactic == CommanderTactic.Retreat)
+                    {
+                        if (changed) Give(c, FormationOrder.Retreat(id));
+                    }
+                    else if (f.Behavior != FormationBehavior.Charge) Give(c, FormationOrder.Charge(id));
+                    continue;
+                }
                 if (id == c.Flanker) SendRound(c, f, changed);
                 else if (c.Tactic == CommanderTactic.Hold) StandFast(c, f, changed);
                 else if (c.Tactic == CommanderTactic.Retreat)
@@ -141,7 +151,7 @@ namespace Shieldbreak.Sim.AI
             for (int id = 0; id < all.Length; id++)
             {
                 var f = all[id];
-                if (f.Owner != c.Owner || f.MemberCount == 0 || f.Ranged == 1) continue;
+                if (f.Owner != c.Owner || f.MemberCount == 0 || f.Ranged == 1 || f.Mounted == 1) continue;
                 float reach = math.dot(f.Position - c.Features.OwnCentre, outwards);
                 if (reach > bestOut)
                 {

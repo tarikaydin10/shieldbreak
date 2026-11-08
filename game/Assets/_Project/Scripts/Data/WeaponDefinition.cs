@@ -19,6 +19,7 @@ namespace Shieldbreak.Data
             [Tooltip("Both hands on the weapon; special: leaping overhead")] TwoHand = WeaponArchetype.TwoHand,
             [Tooltip("Shoots arrows; no block, a side arm for melee")] Bow = WeaponArchetype.Bow,
             [Tooltip("Long reach, weak block; special: sweep")] Polearm = WeaponArchetype.Polearm,
+            [Tooltip("Mounted: the couched lance, energy from the closing speed")] Lance = WeaponArchetype.Lance,
         }
 
         [Tooltip("Decides the special move and how the soldier holds the weapon (CLAUDE.md 3.5, Schicht B).")]
@@ -85,6 +86,21 @@ namespace Shieldbreak.Data
         }
 
         /// <summary>Starting values of the two-hand sword (preset "Mittel"): heavier, 90° weapon block, presses a blocker hard.</summary>
+        /// <summary>The mass is the effective mass of lance, arm and saddle behind the point: a gallop (9 m/s) into a
+        /// standing man kills, a trot wounds, a standing horse does nothing.</summary>
+        public void ApplyLanceDefaults()
+        {
+            archetype = Archetype.Lance;
+            displayName = "Lanze";
+            mass = 10f;
+            edgeFactor = 0.3f;
+            pointFactor = 3.5f;
+            blockArcDeg = 30f;
+            blockPressure = 1.5f;
+            blockCost = 2f;
+            engageBonus = 0f;
+        }
+
         public void ApplyTwoHandDefaults()
         {
             archetype = Archetype.TwoHand;

@@ -5,7 +5,7 @@ Innereien von `../sb.ps1`. Du rufst nur `sb.ps1 play|test|build|assets|setup` au
 | sb.ps1 | Skript dahinter | Macht |
 |---|---|---|
 | `setup` | `git submodule update --init`, `setup-windows.ps1` bzw. `setup-mac.ps1`, dann `add-packages.ps1` | Submodul `assetgen` holen; uv, Blender-MCP-Addon, Git LFS (Mac: über Homebrew, prüft auch Xcode Command Line Tools und die Unity-Version); Unity-Pakete in `game/Packages/manifest.json` |
-| `test` | `run-tests.ps1 -Shadow` | EditMode-Tests im Batchmode auf einer Kopie unter `.ci/game`, damit Unity offen bleiben darf |
+| `test` | `run-tests.ps1 -Shadow` | EditMode-Tests im Batchmode auf einer Kopie unter `.ci/game`, damit Unity offen bleiben darf. `-Filter CavalryTests` (Klasse, Name oder Regex) lässt nur diese laufen, zum schnellen Nachsehen; vor einem Commit laufen alle |
 | `build` | `build.ps1 -Shadow -Output builds/M1-duel` | spielbarer Build für das eigene System: Windows `builds/M1-duel/SHIELDBREAK.exe`, Mac `builds/M1-duel/SHIELDBREAK.app` |
 | `play` | `build` (falls nötig) + Start | Spiel starten |
 | `assets` | `assetgen/forge.ps1 -Project .` und `-Check` | Asset-Pipeline, siehe [assetgen/README.md](assetgen/README.md) |

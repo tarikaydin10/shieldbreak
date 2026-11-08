@@ -15,8 +15,10 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         public const int TwoHand = 1;
         /// <summary>Shoots: windup = draw, release = loose, recovery = nock the next arrow. Cannot block; the side arm is for melee.</summary>
         public const int Bow = 2;
-        /// <summary>Long reach, a weak block; special: sweep (strikes everyone in the arc). Brace against cavalry comes with the cavalry.</summary>
+        /// <summary>Long reach, a weak block; special: sweep (strikes everyone in the arc). Its block against a rider is the brace.</summary>
         public const int Polearm = 3;
+        /// <summary>Mounted: the couched lance, every direction is the couch; the energy comes from the closing speed (ContactTrace). No block.</summary>
+        public const int Lance = 4;
     }
 
     /// <summary>How an attack finds its targets (CLAUDE.md 3.5, Schicht B).</summary>
@@ -24,6 +26,8 @@ namespace Shieldbreak.Sim.Combat.Archetypes
     {
         public const int SwingTrace = 0;
         public const int Projectile = 1;
+        /// <summary>Couched lance: the lance is held still, contact during the release strikes with the closing speed of rider and target.</summary>
+        public const int ContactTrace = 2;
     }
 
     /// <summary>
@@ -81,7 +85,7 @@ namespace Shieldbreak.Sim.Combat.Archetypes
         public float LungeDistance;
         public float LungeStartPose;
         public float LungeEndPose;
-        /// <summary>AttackResolver: the blade sweeps, or an arrow leaves at the start of the release.</summary>
+        /// <summary>AttackResolver: the blade sweeps, an arrow leaves at the start of the release, or the couched lance strikes on contact.</summary>
         public int Resolver;
     }
 

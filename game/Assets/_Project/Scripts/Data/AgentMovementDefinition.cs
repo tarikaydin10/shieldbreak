@@ -44,6 +44,22 @@ namespace Shieldbreak.Data
         [Tooltip("Cost of a swamp cell on the way (open ground = 1).")]
         [Range(1, 254)] public int swampNavCost = 5;
 
+        [Header("Horse (rider and horse are one agent)")]
+        [Tooltip("Gallop (m/s).")]
+        [Min(0.1f)] public float mountedMaxSpeed = 9f;
+        [Tooltip("Speeding up (m/s²): from a stand to the gallop takes mountedMaxSpeed / this seconds.")]
+        [Min(0.1f)] public float mountedAcceleration = 3f;
+        [Tooltip("Slowing down (m/s²).")]
+        [Min(0.1f)] public float mountedBraking = 6f;
+        [Tooltip("Most sideways acceleration (m/s²); the turning circle at speed v has the radius v² / this.")]
+        [Min(0.1f)] public float mountedLateralAcceleration = 8f;
+        [Tooltip("Turning at a walk (degrees per second).")]
+        [Min(1f)] public float mountedTurnRateDeg = 120f;
+        [Tooltip("Factor on a horse's speed in the forest.")]
+        [Range(0.1f, 1f)] public float mountedForestSpeed = 0.45f;
+        [Tooltip("Factor on a horse's speed in the swamp.")]
+        [Range(0.1f, 1f)] public float mountedSwampSpeed = 0.3f;
+
         public AgentMoveSettings ToSettings() => new AgentMoveSettings
         {
             MaxSpeed = maxSpeed,
@@ -62,6 +78,13 @@ namespace Shieldbreak.Data
             SwampSpeed = swampSpeed,
             ForestNavCost = forestNavCost,
             SwampNavCost = swampNavCost,
+            MountedMaxSpeed = mountedMaxSpeed,
+            MountedAcceleration = mountedAcceleration,
+            MountedBraking = mountedBraking,
+            MountedLateralAcceleration = mountedLateralAcceleration,
+            MountedTurnRateDeg = mountedTurnRateDeg,
+            MountedForestSpeed = mountedForestSpeed,
+            MountedSwampSpeed = mountedSwampSpeed,
         };
     }
 }

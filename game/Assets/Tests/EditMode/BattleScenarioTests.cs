@@ -75,10 +75,33 @@ namespace Shieldbreak.Tests
             }
         }
 
+        [Test]
+        public void CavalryBattle_HasTwelveRidersASide_AndTheEnemyRidersCharge()
+        {
+            using var world = World(Load("Battle_Cavalry"));
+            int[] riders = new int[2];
+            for (int i = 0; i < world.AgentCount; i++) if (world.Agents[i].IsMounted) riders[world.Agents[i].Team]++;
+            Assert.That(riders, Is.EqualTo(new[] { 12, 12 }));
+            int couches = 0, tramples = 0;
+            for (int t = 0; t < 60 * 60; t++)
+            {
+                world.Step();
+                foreach (var e in world.LastEvents)
+                {
+                    if (e.Type == CombatEventType.AttackStart && world.Agents[e.Attacker].IsMounted) couches++;
+                    if (e.Type == CombatEventType.Trample || e.Type == CombatEventType.Brace || e.Type == CombatEventType.Refuse) tramples++;
+                }
+            }
+            TestContext.WriteLine($"first minute: {couches} couches, {tramples} horses at the line");
+            Assert.That(couches, Is.GreaterThan(5), "the enemy riders charged with the lance");
+            Assert.That(tramples, Is.GreaterThan(3), "and their horses reached the line");
+        }
+
         [TestCase("Battle_50v50")]
         [TestCase("Battle_100v100")]
         [TestCase("Battle_Hill")]
         [TestCase("Battle_Forest")]
+        [TestCase("Battle_Cavalry")]
         public void Battle_IsDecided_WithoutAnyOrder(string name)
         {
             var scenario = Object.Instantiate(Load(name));
@@ -113,6 +136,7 @@ namespace Shieldbreak.Tests
         [TestCase("Battle_100v100")]
         [TestCase("Battle_Hill")]
         [TestCase("Battle_Forest")]
+        [TestCase("Battle_Cavalry")]
         public void Battle_FromTheCommandView_TheHeroLastsLongEnoughToCommand(string name)
         {
             var scenario = Object.Instantiate(Load(name));
@@ -131,8 +155,9 @@ namespace Shieldbreak.Tests
                         result = BattleOutcome.Evaluate(world.Agents, 0, 0);
                     }
                     Assert.That(result, Is.Not.EqualTo(BattleResult.Undecided), $"seed {seed}");
-                    // The hero falls with a beaten army, not in the first clash of a battle that is going well
-                    Assert.That(world.Tick, Is.GreaterThan(60 * 60), $"seed {seed}: a battle from above needs time to be led");
+                    // The hero falls with a beaten army, not in the first clash of a battle that is going well. A quick victory
+                    // is no failure: riders decide battles sooner
+                    if (result != BattleResult.Victory) Assert.That(world.Tick, Is.GreaterThan(60 * 60), $"seed {seed}: a battle from above needs time to be led (hero dead: {world.Agents[0].IsDead})");
                     line += $" {result.ToString()[0]}{world.Tick / 60}{(world.Agents[0].IsDead ? "+" : "")}";
                 }
                 TestContext.WriteLine($"{name}: hero unattended, no orders (+ = hero fell):{line}");
@@ -178,6 +203,7 @@ namespace Shieldbreak.Tests
         [TestCase("Battle_100v100")]
         [TestCase("Battle_Hill")]
         [TestCase("Battle_Forest")]
+        [TestCase("Battle_Cavalry")]
         public void Battle_IsFoughtOut_ThenTheLoserBreaks(string name)
         {
             var scenario = Object.Instantiate(Load(name));
@@ -204,7 +230,7 @@ namespace Shieldbreak.Tests
             }
         }
 
-        [TestCase("Battle_50v50", 40), TestCase("Battle_100v100", 45), TestCase("Battle_Hill", 50), TestCase("Battle_Forest", 50), Category("Performance")]
+        [TestCase("Battle_50v50", 40), TestCase("Battle_100v100", 45), TestCase("Battle_Hill", 50), TestCase("Battle_Forest", 50), TestCase("Battle_Cavalry", 45), Category("Performance")]
         public void Battle_MedianStepUnderBudget_WhileEverybodyFights(string name, int contactSeconds)
         {
             using var world = World(Load(name));

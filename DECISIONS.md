@@ -485,6 +485,22 @@ Bannerlord laut Entwickler-Blog (keine Zahlen veröffentlicht): Startmoral pro S
 
 Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 100 gegen 100 vorher 61 Tote im Schnitt, mindestens 47; jetzt 76, mindestens 71. Am Hügel 65 im Schnitt, einmal 48; am Wald 64, einmal 48. Es fliehen jeweils 20 bis 50. Kompanie: Der erste flieht nach 17 von 24 Toten statt nach 13.
 
+## 2026-11-08 — M4 Task 6: Reiterei in der Sim
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Reiter und Pferd sind **ein Agent** mit Flag `Mounted`; das Pferd hat kein eigenes Leben | CLAUDE.md M4: „Reiter als Einheit“. Ein Agent hält Formationen, Moral und Spatial Hash unverändert | Pferd als eigener Agent mit Reiter darauf |
+| Pferd mit **Trägheit**: 9 m/s, 3 m/s² Beschleunigung, 6 m/s² Bremsen, 8 m/s² Querbeschleunigung (Wendekreis v²/8), läuft nur in Blickrichtung | Ein Pferd muss Anlauf nehmen und im Bogen wenden, sonst ist eine Reiterei nur schnelle Infanterie | Gleiche Steuerung wie zu Fuß mit höherem Tempo |
+| Die **Sattelhöhe** spielt in der Sim keine Rolle | Wie am Hang: Hiebe zielen auf den Gegner (`DECISIONS.md` 2026-11-07). Pfeile zielen auf die Brust und treffen den Reiter | Eigene Trefferkapseln für Reiter |
+| **Lanze = ContactTrace:** Die Strecke Griff bis Spitze wird gegen die Körperkapseln getestet, Energie ½·m·v² aus der Annäherung entlang der Lanze, Wirkmasse 10 kg | CLAUDE.md 3.5: Energie aus Relativgeschwindigkeit. 10 kg sind Lanze, Arm und Sattel: Galopp tötet (118 Schaden), Trab verwundet, Stand tut nichts | Lanzenmasse 4 kg (dann bräuchte es einen Faktor, der kein Gewicht ist) |
+| **Niederreiten** mit 500 kg aus der Annäherung, 2,5 % davon treffen den Mann (40 Schaden im Galopp), das Pferd behält 75 % pro Mann | Die Wucht in die Linie soll belohnt werden (CLAUDE.md 3.5), aber ein Reiter darf nicht durch zehn Glieder pflügen | Pferd bleibt am ersten Mann stehen |
+| **Brace** ist der Block des Speers gegen einen Reiter, kein neues Verb | Die Grammatik bleibt klein (CLAUDE.md 3.5: kein neues Verb ohne Not); der Bot nutzt dieselbe Reaktionszeit wie gegen ein Schwert | Eigene Taste und eigener Zustand Brace |
+| **Schildwall:** Ein Pferd scheut vor einem blockenden Soldaten im Schildwall (15 % Tempo, Reiter 600 ms benommen); eine Linie mit Schilden wird überritten | Reale Pferde laufen nicht in eine geschlossene Wand; der Schildwall bekommt damit eine eigene Aufgabe | Jeder erhobene Schild stoppt das Pferd |
+| Soldaten sehen **keinen Reiter im Rücken** | Ein Angriff in Flanke und Rücken muss sich lohnen (Säule 2); fair, weil Bots nur sehen, was ein Spieler sähe | Rundumsicht |
+| Bis Task 7 schickt der Kommandant seine Reiter immer in den **Angriff** (außer beim Rückzug); in `Battle_Cavalry` greifen auch deine von Anfang an an. Reiter wählen Soldaten in Formationen vor Einzelnen | Eigene Reiter-Taktik, Formationsabstände und „Schildwall bei Kavallerie“ sind Task 7 | Reiter wie Infanterie führen |
+| Ein Soldat achtet auf jeden Reiter, der auf ihn zureitet (ab 1 m/s), nicht erst im Galopp; der unbeaufsichtigte Held blockt immer | Gemessen: Ein Reiter kam im Schritt heran und galoppierte erst die letzten 8 m, der Held (L2) reagierte zu spät und fiel nach 19 s | Erst ab 3 m/s |
+| Pferde sind bis Task 9 **Quader in Palettenfarben** | Wie die Kegelbäume: sichtbar und lesbar, das Modell kommt aus der Pipeline | Schnell ein Modell in Blender |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

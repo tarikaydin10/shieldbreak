@@ -13,6 +13,8 @@ namespace Shieldbreak.Presentation
     /// helmet, shield on an IK left arm, sword on an IK right arm following the sim's WeaponPath (interpolated between
     /// ticks), two-hand weapons with both hands on the grip and the shield slung on the back, drawing on a weapon switch,
     /// a jump arc for leaping attacks, lean in windup/release, flinch on hits, stagger when stunned, falling when dead.
+    /// Riders sit on a horse of plain cubes (a placeholder until the pipeline model, M4 task 9) whose legs swing with its
+    /// speed, the couched lance a long pole.
     /// Reads sim state only.
     /// </summary>
     public class CombatFigureRenderer : MonoBehaviour
@@ -24,6 +26,20 @@ namespace Shieldbreak.Presentation
         public Vector2 arrowSize = new Vector2(1f, 0.05f);
         [Tooltip("Colour of an arrow (wood_dark of the palette): a cube's UVs would span the whole palette texture.")]
         public Color arrowColor = new Color(0.29f, 0.184f, 0.133f);
+
+        [Header("Horse (cubes until the pipeline model, M4 task 9; colours from the palette)")]
+        [Tooltip("leather")] public Color horseColor = new Color(0.541f, 0.337f, 0.204f);
+        [Tooltip("leather_dark: mane, tail, hooves")] public Color horseDarkColor = new Color(0.31f, 0.184f, 0.125f);
+        [Tooltip("team_a, team_b: the saddle cloth")] public Color[] saddleColors = { new Color(0.698f, 0.208f, 0.169f), new Color(0.184f, 0.373f, 0.659f) };
+        [Tooltip("wood_light: the lance")] public Color lanceColor = new Color(0.659f, 0.463f, 0.29f);
+        [Tooltip("The rider sits this much higher than a man standing (m).")]
+        [Min(0f)] public float saddleHeight = 0.6f;
+        [Tooltip("Ground a horse covers per stride (m): the legs swing faster the faster it runs.")]
+        [Min(0.1f)] public float stride = 2.4f;
+        [Tooltip("Swing of the legs at a gallop (degrees).")]
+        public float legSwing = 32f;
+        [Tooltip("Length and thickness of the lance (m); it reaches from behind the hand to the sim's point.")]
+        public Vector2 lanceSize = new Vector2(4.1f, 0.07f);
 
         [Header("Body (soldier frame: x right, y up, z forward)")]
         public Vector3 rightShoulder = new Vector3(0.22f, 1.42f, 0f);
@@ -56,6 +72,10 @@ namespace Shieldbreak.Presentation
         class Figure
         {
             public Transform root, body, helmet, shield, upperR, foreR, upperL, foreL, weapon, weapon2, weapon3;
+            /// <summary>Riders only: the horse and its four leg pivots (front left, front right, hind left, hind right), and the lance.</summary>
+            public Transform horse, lance;
+            public Transform[] legs;
+            public float gait;
             public float shieldT, flinch, deadTime = -1f;
             /// <summary>Local axis the body falls around (away from the killer) and how sideways that fall is.</summary>
             public Vector3 fallAxis = Vector3.back;
@@ -76,7 +96,11 @@ namespace Shieldbreak.Presentation
 
         void Clear()
         {
-            foreach (var f in figures) if (f.root != null) Destroy(f.root.gameObject);
+            foreach (var f in figures)
+            {
+                if (f.root != null) Destroy(f.root.gameObject);
+                if (f.horse != null) Destroy(f.horse.gameObject);
+            }
             figures.Clear();
         }
 
@@ -94,7 +118,7 @@ namespace Shieldbreak.Presentation
             return go.transform;
         }
 
-        Figure Build(int team)
+        Figure Build(int team, bool mounted)
         {
             var look = visual.teams[team];
             var f = new Figure { root = new GameObject($"Fighter_{figures.Count}").transform };
@@ -111,7 +135,78 @@ namespace Shieldbreak.Presentation
             f.weapon = Part(f.root, "Weapon", visual.oneHandWeapon);
             f.weapon2 = Part(f.root, "TwoHandWeapon", visual.twoHandWeapon);
             f.weapon3 = Part(f.root, "Polearm", visual.polearmWeapon);
+            if (mounted) BuildHorse(f, team);
             return f;
+        }
+
+        readonly Dictionary<Color, Material> solids = new Dictionary<Color, Material>();
+        readonly List<Texture2D> solidTextures = new List<Texture2D>();
+
+        /// <summary>The figure material in one flat colour: a cube's UVs would span the whole palette texture.</summary>
+        Material Solid(Color color)
+        {
+            if (solids.TryGetValue(color, out var m)) return m;
+            var texture = new Texture2D(1, 1) { hideFlags = HideFlags.HideAndDontSave };
+            texture.SetPixel(0, 0, color);
+            texture.Apply();
+            solidTextures.Add(texture);
+            m = new Material(visual.material) { hideFlags = HideFlags.HideAndDontSave, mainTexture = texture };
+            solids[color] = m;
+            return m;
+        }
+
+        Transform Cube(Transform parent, string partName, Vector3 position, Vector3 scale, Color color, float pitch = 0f)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = partName;
+            Destroy(go.GetComponent<Collider>());
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = position;
+            go.transform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+            go.transform.localScale = scale;
+            go.GetComponent<MeshRenderer>().sharedMaterial = Solid(color);
+            return go.transform;
+        }
+
+        void BuildHorse(Figure f, int team)
+        {
+            f.horse = new GameObject("Horse").transform;
+            f.horse.SetParent(f.root.parent, false);
+            Cube(f.horse, "Body", new Vector3(0f, 1.15f, 0.1f), new Vector3(0.55f, 0.6f, 1.7f), horseColor);
+            Cube(f.horse, "Neck", new Vector3(0f, 1.6f, 0.95f), new Vector3(0.3f, 0.8f, 0.38f), horseColor, 35f);
+            Cube(f.horse, "Head", new Vector3(0f, 1.95f, 1.3f), new Vector3(0.26f, 0.3f, 0.62f), horseColor, 25f);
+            Cube(f.horse, "Mane", new Vector3(0f, 1.75f, 0.85f), new Vector3(0.08f, 0.7f, 0.14f), horseDarkColor, 35f);
+            Cube(f.horse, "Tail", new Vector3(0f, 1.15f, -0.85f), new Vector3(0.1f, 0.6f, 0.12f), horseDarkColor, -20f);
+            Cube(f.horse, "SaddleCloth", new Vector3(0f, 1.46f, 0f), new Vector3(0.62f, 0.06f, 0.72f), saddleColors[Mathf.Clamp(team, 0, saddleColors.Length - 1)]);
+            f.legs = new Transform[4];
+            for (int l = 0; l < 4; l++)
+            {
+                var hip = new GameObject($"Leg{l}").transform;
+                hip.SetParent(f.horse, false);
+                hip.localPosition = new Vector3(l % 2 == 0 ? -0.17f : 0.17f, 0.95f, l < 2 ? 0.7f : -0.55f);
+                Cube(hip, "Leg", new Vector3(0f, -0.45f, 0f), new Vector3(0.14f, 0.9f, 0.14f), horseColor);
+                Cube(hip, "Hoof", new Vector3(0f, -0.9f, 0f), new Vector3(0.16f, 0.1f, 0.18f), horseDarkColor);
+                f.legs[l] = hip;
+            }
+            f.lance = Cube(f.root, "Lance", Vector3.zero, new Vector3(lanceSize.y, lanceSize.y, lanceSize.x), lanceColor);
+        }
+
+        /// <summary>Horse under the rider: legs swing with the speed (diagonal pairs, like a trot), it falls over with him.</summary>
+        void PlaceHorse(Figure f, Vector3 pos, Quaternion facing, float speed, float fall, float dt)
+        {
+            if (f.horse.gameObject.activeSelf != f.root.gameObject.activeSelf) f.horse.gameObject.SetActive(f.root.gameObject.activeSelf);
+            f.horse.SetPositionAndRotation(pos + Vector3.down * (0.35f * fall), facing * Quaternion.AngleAxis(80f * fall, Vector3.forward));
+            f.gait = Mathf.Repeat(f.gait + speed * dt / stride, 1f);
+            float swing = legSwing * Mathf.Clamp01(speed / 3f) * (1f - fall) * Mathf.Sin(f.gait * 2f * Mathf.PI);
+            for (int l = 0; l < 4; l++)
+                f.legs[l].localRotation = Quaternion.Euler(l == 0 || l == 3 ? swing : -swing, 0f, 0f);
+        }
+
+        void PlaceLance(Transform lance, Vector3 hand, Vector3 blade, float reach)
+        {
+            float behind = lanceSize.x - reach;
+            lance.SetPositionAndRotation(hand + blade * (reach - behind) * 0.5f, Quaternion.LookRotation(blade, Vector3.up));
+            lance.localScale = new Vector3(lanceSize.y, lanceSize.y, lanceSize.x);
         }
 
         readonly List<Transform> arrows = new List<Transform>();
@@ -161,6 +256,8 @@ namespace Shieldbreak.Presentation
         {
             if (arrowMaterial != null) Destroy(arrowMaterial);
             if (arrowTexture != null) Destroy(arrowTexture);
+            foreach (var m in solids.Values) Destroy(m);
+            foreach (var t in solidTextures) Destroy(t);
         }
 
         void LateUpdate()
@@ -170,7 +267,7 @@ namespace Shieldbreak.Presentation
             var agents = world.Agents;
             var combat = world.Combat;
             int count = Mathf.Min(agents.Length, maxFigures);
-            while (figures.Count < count) figures.Add(Build(Mathf.Clamp(agents[figures.Count].Team, 0, 1)));
+            while (figures.Count < count) figures.Add(Build(Mathf.Clamp(agents[figures.Count].Team, 0, 1), agents[figures.Count].IsMounted));
 
             foreach (var e in runner.FrameEvents)
             {
@@ -199,6 +296,7 @@ namespace Shieldbreak.Presentation
                 var f = figures[i];
                 // Fled soldiers (Sim/Morale) left the field
                 if (f.root.gameObject.activeSelf == a.HasFled) f.root.gameObject.SetActive(!a.HasFled);
+                if (f.horse != null && f.horse.gameObject.activeSelf == a.HasFled) f.horse.gameObject.SetActive(!a.HasFled);
                 if (a.HasFled) continue;
                 Vector3 pos = SimRunner.ToWorld(runner.InterpolatedPosition(i));
                 var facing = Quaternion.LookRotation(new Vector3(a.Facing.x, 0f, a.Facing.y), Vector3.up);
@@ -208,6 +306,7 @@ namespace Shieldbreak.Presentation
                 float switchT = switching ? Mathf.Clamp01((c.StateTick - 1 + runner.Alpha) / setup.Tuning.WeaponSwitchTicks) : 1f;
                 int shownWeapon = switching && switchT < 0.5f ? c.PreviousWeaponId : c.WeaponId;
                 bool polearm = hasCombat && setup.Weapons[shownWeapon].Archetype == WeaponArchetype.Polearm;
+                bool lance = hasCombat && setup.Weapons[shownWeapon].Archetype == WeaponArchetype.Lance;
                 bool twoHand = polearm || (hasCombat && setup.Weapons[shownWeapon].Archetype == WeaponArchetype.TwoHand);
                 bool carriesShield = !hasCombat || LoadoutHasShield(c, setup);
 
@@ -238,6 +337,7 @@ namespace Shieldbreak.Presentation
                 if (hasCombat && c.State == CombatState.Jumping && setup.Tuning.JumpTicks > 0)
                     lift += Mathf.Sin(Mathf.PI * Mathf.Clamp01((c.StateTick - 1 + runner.Alpha) / setup.Tuning.JumpTicks)) * setup.Tuning.JumpHeight;
                 f.root.SetPositionAndRotation(pos + Vector3.up * lift, facing);
+                bool riding = f.horse != null;
 
                 if (switching)
                 {
@@ -273,6 +373,12 @@ namespace Shieldbreak.Presentation
                 }
                 else f.deadTime = -1f;
                 float fall = f.deadTime < 0f ? 0f : Mathf.SmoothStep(0f, 1f, f.deadTime / fallSeconds);
+                if (riding)
+                {
+                    // In the saddle until he falls; the horse goes down with him
+                    PlaceHorse(f, pos, facing, math.length(a.Velocity), fall, dt);
+                    f.root.position += Vector3.up * (saddleHeight * (1f - fall));
+                }
 
                 // Guard blend: shield raised (one-hand) or weapon across the body (two-hand)
                 float guardTarget = (c.BlockHeld == 1 && c.State == CombatState.Idle) || bashing ? 1f : 0f;
@@ -297,10 +403,15 @@ namespace Shieldbreak.Presentation
                 Vector3 handWorld = bodyToWorld.MultiplyPoint3x4((Vector3)hand);
                 Vector3 bladeWorld = bodyToWorld.MultiplyVector((Vector3)blade).normalized;
                 Vector3 right = f.root.right;
-                f.weapon.gameObject.SetActive(!twoHand);
+                f.weapon.gameObject.SetActive(!twoHand && !lance);
+                if (f.lance != null)
+                {
+                    f.lance.gameObject.SetActive(lance);
+                    if (lance) PlaceLance(f.lance, handWorld, bladeWorld, setup.Attacks[setup.Weapons[shownWeapon].AttackIndex(0)].BladeLength);
+                }
                 f.weapon2.gameObject.SetActive(twoHand && !polearm);
                 f.weapon3.gameObject.SetActive(polearm);
-                PlaceWeapon(polearm ? f.weapon3 : twoHand ? f.weapon2 : f.weapon, polearm ? visual.polearmWeapon : twoHand ? visual.twoHandWeapon : visual.oneHandWeapon, handWorld, bladeWorld, right);
+                if (!lance) PlaceWeapon(polearm ? f.weapon3 : twoHand ? f.weapon2 : f.weapon, polearm ? visual.polearmWeapon : twoHand ? visual.twoHandWeapon : visual.oneHandWeapon, handWorld, bladeWorld, right);
                 Vector3 shoulderR = bodyToWorld.MultiplyPoint3x4(rightShoulder);
                 Vector3 elbowR = SolveElbow(shoulderR, handWorld, upperArmLength, forearmLength, bodyToWorld.MultiplyVector(rightElbowHint));
                 PlaceLimb(f.upperR, shoulderR, elbowR);

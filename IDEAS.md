@@ -45,6 +45,9 @@ Regel: Neue Ideen landen hier, nicht im Sprint. Bewertung (Wert / Risiko / Aufwa
 - **Moral pro Truppentyp**: Veteranen oder Elite brechen später (eigener Faktor auf den Moral-Verlust); hängt an der Progressions-Entscheidung
 - **Kämpfender Rückzug**: Formation weicht rückwärts mit Front zum Feind (aus M2 Task 4, heute dreht der Rückzug dem Feind den Rücken zu)
 - **Kommandoansicht** (aus M2 Task 7): Verschieben gibt es seit M3 (WASD); offen: am Bildrand schieben, Gruppen speichern und per Taste wählen
+- **Pferd als eigenes Ziel** (aus M4 Task 6): heute sind Reiter und Pferd ein Agent mit einem Leben; später ein verwundbares Pferd, Absitzen nach dem Tod des Pferdes, Speere zielen auf das Pferd
+- **Reiter mit Zweitwaffe** (aus M4 Task 6): Reiter tragen nur die Lanze; ein Schwert für das Gedränge, wenn das Pferd steht
+- **Sattelhöhe in der Sim** (aus M4 Task 6): Reiter treffen von oben härter, Fußvolk trifft eher Beine und Pferd
 
 ## Meta (frühestens nach Setting-Entscheidung)
 

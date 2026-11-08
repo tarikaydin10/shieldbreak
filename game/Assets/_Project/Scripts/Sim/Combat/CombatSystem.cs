@@ -18,7 +18,8 @@ namespace Shieldbreak.Sim.Combat
     /// The combat grammar (CLAUDE.md 3.5, Schicht A): Windup → Release → Recovery, feint and morph in the windup,
     /// input buffer, one-button block in a front arc with stamina cost, perfect block with riposte stun, guard break,
     /// dodge step, sprint, archetype specials (shield bash, two-hand leaping overhead with a lunge), weapon switching,
-    /// SwingTrace hits with energy-based damage, 1vX attack tokens. Players (via InputQueue commands) and bots (BotBrain) call the same Try* rules. Runs single-threaded
+    /// SwingTrace hits with energy-based damage, 1vX attack tokens, the couched lance (ContactTrace) and horses that run
+    /// men down unless a braced spear or a shield wall stops them. Players (via InputQueue commands) and bots (BotBrain) call the same Try* rules. Runs single-threaded
     /// in agent id order, so hits resolve identically on every peer. Bots in a formation follow its context rules
     /// (FormationCombatRules); the formation arrays are only read here.
     /// </summary>
@@ -328,6 +329,7 @@ namespace Shieldbreak.Sim.Combat
                     Combat[i] = c;
                     UpdateMovement(i, c);
                 }
+                Charges();
                 FlyArrows();
             }
 
@@ -373,6 +375,7 @@ namespace Shieldbreak.Sim.Combat
                 float3 lunge = attack.LungeDistance > 0f ? Lunge(i, attack, c.StateTick) : float3.zero;
                 if (c.State != CombatState.Release) return;
                 if (attack.Resolver == AttackResolver.SwingTrace) Trace(i, ref c, attack, lunge);
+                else if (attack.Resolver == AttackResolver.ContactTrace) Couch(i, ref c, attack);
                 else if (c.HitCount == 0)
                 {
                     // Once per shot, at the start of the release
@@ -596,6 +599,179 @@ namespace Shieldbreak.Sim.Combat
                     if (stopped) return;
                     energyKeep *= Tuning.MultiHitEnergyKeep;
                 }
+            }
+
+            /// <summary>
+            /// ContactTrace (CLAUDE.md 3.5): the couched lance is held still along the pose; the first enemy body on it
+            /// is struck with the closing speed of rider and target along the lance, E = ½·m·v². A lance at rest pushes,
+            /// it does not pierce. One strike, then the lance is raised again (recovery).
+            /// </summary>
+            void Couch(int i, ref CombatData c, in AttackData attack)
+            {
+                if (c.HitCount >= attack.MaxTargets) return;
+                var me = Agents[i];
+                var weapon = Weapons[c.WeaponId];
+                WeaponPath.Evaluate(Keys, attack.FirstKey, attack.KeyCount, attack.Timing.PoseTime(c.StateTick), out float3 hand, out float3 blade);
+                float3 hilt = SwingTrace.ToWorld(me.Position, me.Facing, hand);
+                float3 tip = SwingTrace.ToWorld(me.Position, me.Facing, hand + blade * attack.BladeLength);
+                float2 along = math.normalizesafe(tip.xz - hilt.xz, me.Facing);
+
+                int best = -1, bestZone = -1;
+                float bestS = 2f;
+                int r = (int)math.ceil((attack.BladeLength + 1f) / SimConstants.CellSize);
+                int2 cell = math.clamp(Layout.WorldToCell(me.Position), int2.zero, new int2(Layout.Width - 1, Layout.Height - 1));
+                for (int dy = -r; dy <= r; dy++)
+                for (int dx = -r; dx <= r; dx++)
+                {
+                    int2 cc = cell + new int2(dx, dy);
+                    if (!Layout.InBounds(cc)) continue;
+                    int index = Layout.CellIndex(cc);
+                    for (int e = CellStart[index]; e < CellStart[index + 1]; e++)
+                    {
+                        int j = Entries[e];
+                        if (j == i || j >= Count || AlreadyHit(c, j)) continue;
+                        var other = Agents[j];
+                        if (other.IsDead || other.Team == me.Team) continue;
+                        if (SwingTrace.SweepAgent(hilt, tip, other.Position, out float s, out int zone) && (s < bestS || (s == bestS && j < best)))
+                        {
+                            bestS = s;
+                            best = j;
+                            bestZone = zone;
+                        }
+                    }
+                }
+                if (best < 0) return;
+
+                var struck = Agents[best];
+                float closing = math.dot(me.Velocity - struck.Velocity, along);
+                if (closing < Tuning.CouchMinSpeed) return;
+                float3 motion = new float3(along.x, 0f, along.y) * closing;
+                float energy = 0.5f * weapon.Mass * closing * closing;
+                float struckGround = GroundAt(struck.Position);
+                float above = math.clamp((GroundAt(me.Position) - struckGround) * Tuning.HeightEnergyPerMeter, -Tuning.HeightEnergyLimit, Tuning.HeightEnergyLimit);
+                float effective = energy * (1f + above) * SwingTrace.Penetration(motion, SwingTrace.DirectionToWorld(me.Facing, blade), weapon.EdgeFactor, weapon.PointFactor);
+                float3 point = math.lerp(hilt, tip, bestS);
+                point.y += struckGround;
+                RecordHit(ref c, best);
+                if (Resolve(i, ref c, best, bestZone, effective, weapon, point) || c.State != CombatState.Release) return;
+                c.State = CombatState.Recovery;
+                c.StateTick = math.max(c.StateTick, attack.Timing.WindupTicks + attack.Timing.ReleaseTicks);
+            }
+
+            /// <summary>
+            /// Horses (CLAUDE.md M4): a horse that reaches a man on foot at speed runs him down with its weight, E = ½·m·v²
+            /// of the closing speed, and loses some of its own speed with every man. A spear braced against it (the block
+            /// of a polearm) turns that energy against the rider; a shield wall makes the horse refuse. Runs after every
+            /// agent acted, in id order.
+            /// </summary>
+            void Charges()
+            {
+                for (int i = 0; i < Count; i++)
+                {
+                    var rider = Agents[i];
+                    if (!rider.IsMounted || rider.IsDead || math.lengthsq(rider.Velocity) < Tuning.TrampleMinSpeed * Tuning.TrampleMinSpeed) continue;
+                    int r = (int)math.ceil((rider.Radius + Tuning.TrampleReach + 0.5f) / SimConstants.CellSize);
+                    int2 cell = math.clamp(Layout.WorldToCell(rider.Position), int2.zero, new int2(Layout.Width - 1, Layout.Height - 1));
+                    for (int dy = -r; dy <= r; dy++)
+                    for (int dx = -r; dx <= r; dx++)
+                    {
+                        int2 cc = cell + new int2(dx, dy);
+                        if (!Layout.InBounds(cc)) continue;
+                        int index = Layout.CellIndex(cc);
+                        for (int e = CellStart[index]; e < CellStart[index + 1]; e++)
+                        {
+                            int j = Entries[e];
+                            if (j == i || j >= Count) continue;
+                            var me = Agents[i];
+                            if (me.IsDead) continue;
+                            var other = Agents[j];
+                            if (other.IsDead || other.IsMounted || other.Team == me.Team || Tick - Combat[j].LastTrampledTick < Tuning.TrampleCooldownTicks) continue;
+                            float2 d = other.Position - me.Position;
+                            float dist = math.length(d);
+                            if (dist < 1e-4f || dist > me.Radius + other.Radius + Tuning.TrampleReach) continue;
+                            float2 dir = d / dist;
+                            if (math.dot(dir, math.normalizesafe(me.Velocity, me.Facing)) < 0.5f) continue;
+                            float closing = math.dot(me.Velocity - other.Velocity, dir);
+                            if (closing >= Tuning.TrampleMinSpeed) Impact(i, j, dir, closing);
+                        }
+                    }
+                }
+            }
+
+            void Impact(int i, int j, float2 dir, float closing)
+            {
+                var me = Agents[i];
+                var rider = Combat[i];
+                var targetAgent = Agents[j];
+                var target = Combat[j];
+                var arm = Weapons[target.WeaponId];
+                float energy = 0.5f * Tuning.HorseMass * closing * closing;
+                float blow = energy * Tuning.TrampleEnergyShare;
+                float3 point = new float3(targetAgent.Position.x, GroundAt(targetAgent.Position) + 1.2f, targetAgent.Position.y);
+                target.LastTrampledTick = Tick;
+                bool guard = target.BlockHeld == 1 && target.State == CombatState.Idle &&
+                             math.dot(-dir, targetAgent.Facing) >= math.cos(math.radians(arm.BlockArcDeg * 0.5f));
+
+                if (guard && arm.Archetype == WeaponArchetype.Polearm)
+                {
+                    // Brace: the horse runs onto the spear, the rider takes the point with the horse's weight behind it
+                    float effective = energy * Tuning.BraceEnergyShare * arm.PointFactor;
+                    float3 riderPoint = new float3(me.Position.x, GroundAt(me.Position) + 1.2f, me.Position.y);
+                    Events.Add(new CombatEvent { Type = CombatEventType.Brace, Attacker = j, Target = i, Zone = BodyZone.Torso, Energy = effective, Point = riderPoint });
+                    me.Velocity = float2.zero;
+                    Agents[i] = me;
+                    target.Knockback += dir * math.min(Tuning.KnockbackMax, blow * Tuning.KnockbackPerJoule * Tuning.BlockKnockbackScale);
+                    Combat[j] = target;
+                    ApplyHit(j, i, ref rider, ref me, BodyZone.Torso, effective, riderPoint, new CombatEvent { Attacker = j, Target = i, Zone = BodyZone.Torso, Energy = effective, Point = riderPoint });
+                    Agents[i] = me;
+                    Combat[i] = rider;
+                    return;
+                }
+
+                var ev = new CombatEvent { Attacker = i, Target = j, Zone = BodyZone.Torso, Energy = blow, Point = point };
+                if (guard && FormationContext(j).ShieldWall == 1)
+                {
+                    // The horse will not run into a wall of shields: it stops, the rider is shaken, the wall takes the shock
+                    me.Velocity *= Tuning.ShieldWallSpeedKeep;
+                    if (Tuning.RefuseStunTicks > 0 && rider.State != CombatState.Dead)
+                    {
+                        rider.BlockHeld = 0;
+                        rider.State = CombatState.Stunned;
+                        rider.StateTick = 0;
+                        rider.StunTicks = Tuning.RefuseStunTicks;
+                    }
+                    Events.Add(new CombatEvent { Type = CombatEventType.Refuse, Attacker = i, Target = j, Zone = BodyZone.Torso, Energy = blow, Point = point });
+                    Guard(ref target, blow, arm, dir, ref ev);
+                }
+                else
+                {
+                    Events.Add(new CombatEvent { Type = CombatEventType.Trample, Attacker = i, Target = j, Zone = BodyZone.Torso, Energy = blow, Point = point });
+                    if (guard) Guard(ref target, blow, arm, dir, ref ev);
+                    else ApplyHit(i, j, ref target, ref targetAgent, BodyZone.Torso, blow, point, ev);
+                    me.Velocity *= Tuning.TrampleSpeedKeep;
+                }
+                Combat[j] = target;
+                Combat[i] = rider;
+                Agents[i] = me;
+            }
+
+            /// <summary>A raised shield or weapon takes the shock of a horse for stamina, like a blocked blow; empty, the guard breaks.</summary>
+            void Guard(ref CombatData target, float blow, in WeaponData arm, float2 dir, ref CombatEvent ev)
+            {
+                target.Stamina -= blow * Tuning.BlockStaminaPerJoule * arm.BlockCost;
+                target.LastStaminaUseTick = Tick;
+                target.Knockback += dir * math.min(Tuning.KnockbackMax, blow * Tuning.KnockbackPerJoule * Tuning.BlockKnockbackScale);
+                if (target.Stamina <= 0f)
+                {
+                    target.Stamina = 0f;
+                    target.BlockHeld = 0;
+                    target.State = CombatState.Stunned;
+                    target.StateTick = 0;
+                    target.StunTicks = Tuning.GuardBreakStunTicks;
+                    ev.Type = CombatEventType.GuardBreak;
+                }
+                else ev.Type = CombatEventType.Blocked;
+                Events.Add(ev);
             }
 
             static bool AlreadyHit(in CombatData c, int j) => c.HitIds.x == j || c.HitIds.y == j || c.HitIds.z == j || c.HitIds.w == j;
@@ -840,6 +1016,8 @@ namespace Shieldbreak.Sim.Combat
                     a.SpeedScale = 0f;
                     a.Flags |= AgentFlags.Dead;
                 }
+                // The horse runs on whatever the rider's arm does; only a shaken rider (refused, struck) holds it in
+                else if (a.IsMounted) a.SpeedScale = c.State == CombatState.Stunned ? Tuning.StunSpeedScale : 1f;
                 else if (c.State == CombatState.Stepping) a.SpeedScale = 0f;
                 else if (c.State == CombatState.Jumping) a.SpeedScale = c.StateTick < Tuning.JumpTicks ? (c.Sprinting == 1 ? Tuning.SprintSpeedScale : 1f) : Tuning.StunSpeedScale;
                 else if (c.State == CombatState.Stunned) a.SpeedScale = Tuning.StunSpeedScale;
@@ -903,6 +1081,7 @@ namespace Shieldbreak.Sim.Combat
                 var ctx = FormationCombatRules.For(m, Formations[m.Formation]);
                 return Ground[Layout.ClampedCellIndex(Agents[i].Position)] == (byte)GroundKind.Forest ? FormationCombatRules.InForest(ctx) : ctx;
             }
+            public bool InFormation(int i) => i < Members.Length && Members[i].Formation >= 0;
             public void ClaimAttackToken(int target) { if (target >= 0 && target < Count) AttackersOn[target]++; }
         }
     }

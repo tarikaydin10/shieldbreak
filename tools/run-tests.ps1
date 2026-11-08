@@ -1,8 +1,8 @@
 ﻿# SHIELDBREAK — EditMode-Tests im Unity-Batchmode ausführen (Pflicht vor jedem Commit, siehe CLAUDE.md §8)
 # Unity-Editor mit diesem Projekt muss geschlossen sein, ausser mit -Shadow: dann laufen die Tests auf einer Kopie
 # unter .ci/game (ohne Library; der erste Lauf importiert alles neu und dauert einige Minuten).
-# Aufruf aus dem Repo-Root:  .\tools\run-tests.ps1  [-Shadow]   (Windows und macOS, siehe common.ps1)
-param([switch]$Shadow)
+# Aufruf aus dem Repo-Root:  .\tools\run-tests.ps1  [-Shadow] [-Filter Klasse]   (Windows und macOS, siehe common.ps1)
+param([switch]$Shadow, [string]$Filter)
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "common.ps1")
@@ -22,10 +22,13 @@ $Log = Join-Path $OutDir "editmode-tests.log"
 if (Test-Path $Results) { Remove-Item $Results }
 
 Write-Host "Unity $($Unity.Version), EditMode-Tests laufen ..." -ForegroundColor Cyan
-$ExitCode = Invoke-Unity $Unity.Path @(
+$Arguments = @(
     "-batchmode", "-projectPath", "`"$Project`"",
     "-runTests", "-testPlatform", "EditMode",
     "-testResults", "`"$Results`"", "-logFile", "`"$Log`"")
+# Nur einige Tests (Klasse, Name oder Regex), zum schnellen Nachsehen; vor einem Commit laufen immer alle
+if ($Filter) { $Arguments += @("-testFilter", "`"$Filter`"") }
+$ExitCode = Invoke-Unity $Unity.Path $Arguments
 
 if (-not (Test-Path $Results)) {
     Select-String -Path $Log -Pattern "error CS|Exception" | Select-Object -First 20 | ForEach-Object { Write-Host $_.Line -ForegroundColor Red }

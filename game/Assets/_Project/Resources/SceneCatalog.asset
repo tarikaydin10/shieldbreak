@@ -175,6 +175,26 @@ MonoBehaviour:
     - "Schützen sind im Wald deutlich schlechter zu treffen als auf freiem Feld"
     - "Bäume stehen nicht so dicht, dass man Soldaten aus der Kommandoansicht nicht mehr erkennt"
     - "Das Bild bleibt flüssig, auch im Wald"
+  - id: battle-cavalry
+    title: "Schlacht mit Reiterei"
+    section: "Spielen"
+    scene: M2_Company
+    launch: 0
+    scenario: {fileID: 11400000, guid: edfcaac98ce6a77136b428315a17cd7e, type: 2}
+    briefingOnStart: 1
+    objective: "100 gegen 100, jede Seite mit 12 Reitern auf der Flanke. Beide Reitereien greifen sofort an, die feindliche von links, deine von rechts; mit dem Radialmenü (Halten) hältst du deine zurück. Reiter kommen nur langsam in Fahrt, senken die Lanze und reiten durch die Reihen. Ein gestemmter Speer oder ein Schildwall hält sie auf, eine Linie nicht."
+    controlMaps:
+    - Radial
+    - CommandView
+    - Combat
+    - CommanderDebug
+    checks:
+    - "Die Pferde kommen erst langsam in Fahrt und reiten im Bogen, sie drehen nicht auf der Stelle"
+    - "Ein Reiter senkt kurz vor dem Gegner die Lanze, und ein Treffer im Galopp wirft den Mann um"
+    - "Wo ein Pferd in eine Linie reitet, fliegen Soldaten zur Seite, und das Pferd wird langsamer"
+    - "Gegen Speere oder einen Schildwall bleiben die Reiter stecken, die Speere werfen sie aus dem Sattel"
+    - "Nach einem Durchgang reiten die Reiter weiter, wenden und greifen wieder an"
+    - "Die Pferde sind klar als Pferde zu erkennen, auch aus der Kommandoansicht (Platzhalter bis zu den Modellen)"
   - id: sandbox
     title: "Sandbox: Formationen und Moral"
     section: "Werkzeuge"

@@ -3,14 +3,15 @@
 #   .\sb.ps1            zeigt diese Hilfe                       (Mac: ./sb.ps1 ...)
 #   .\sb.ps1 play       Spiel starten (baut vorher, falls kein Build da ist)
 #   .\sb.ps1 build      spielbaren Build erzeugen (Windows: builds\M1-duel\SHIELDBREAK.exe, Mac: builds/M1-duel/SHIELDBREAK.app)
-#   .\sb.ps1 test       alle Tests (279, inkl. Determinismus); Unity darf offen bleiben
+#   .\sb.ps1 test       alle Tests (inkl. Determinismus); Unity darf offen bleiben. -Filter CavalryTests: nur diese
 #   .\sb.ps1 assets     Low-Poly-Modelle aus art/specs neu bauen und prüfen (assetforge, Submodul tools/assetgen)
 #   .\sb.ps1 setup      einmalig nach dem Klonen: Submodul, Werkzeuge, Unity-Pakete
 # Die Skripte in tools\ sind die Innereien; du brauchst sie nicht direkt.
 param(
     [ValidateSet("help", "play", "build", "test", "assets", "setup")]
     [string]$Command = "help",
-    [switch]$Fresh
+    [switch]$Fresh,
+    [string]$Filter
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,7 +32,7 @@ switch ($Command) {
         Write-Host "SHIELDBREAK" -ForegroundColor Cyan
         Write-Host "  $Me play      Spiel starten (Hauptmenue; baut vorher, wenn noetig; -Fresh baut immer neu)"
         Write-Host "  $Me build     spielbaren Build erzeugen:  $PlayerName"
-        Write-Host "  $Me test      alle Tests laufen lassen (Unity darf offen bleiben)"
+        Write-Host "  $Me test      alle Tests laufen lassen (Unity darf offen bleiben; -Filter Klasse: nur diese)"
         Write-Host "  $Me assets    Modelle aus art/specs neu bauen und auf Reproduzierbarkeit pruefen"
         Write-Host "  $Me setup     einmalig nach dem Klonen"
         Write-Host ""
@@ -53,7 +54,7 @@ switch ($Command) {
         exit $LASTEXITCODE
     }
     "test" {
-        & (Join-Path $Root "tools/run-tests.ps1") -Shadow
+        & (Join-Path $Root "tools/run-tests.ps1") -Shadow -Filter $Filter
         exit $LASTEXITCODE
     }
     "assets" {

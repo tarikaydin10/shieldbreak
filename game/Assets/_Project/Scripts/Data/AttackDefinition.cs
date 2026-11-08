@@ -44,6 +44,8 @@ namespace Shieldbreak.Data
         [Range(1, 4)] public int maxTargets = 1;
         [Tooltip("Off: the blade sweeps (SwingTrace). On: an arrow leaves at the start of the release, nothing sweeps.")]
         public bool shootsProjectile;
+        [Tooltip("On: a couched lance (ContactTrace). The pose holds it still; contact during the release strikes with the closing speed of rider and target.")]
+        public bool couched;
 
         [Header("Lunge (root motion only for attack lunges)")]
         [Tooltip("Forward distance the attacker travels during the attack (m); its speed adds to the hit energy.")]
@@ -233,6 +235,34 @@ namespace Shieldbreak.Data
                 K(1f, new Vector3(0.16f, 1.1f, 0.25f), new Vector3(0f, 0.25f, 0.97f), Ease.Linear, 1f),
             });
 
+        /// <summary>The couch: lower the lance from upright (300 ms), hold it for two seconds, raise it again.</summary>
+        public void ApplyCouchDefaults()
+        {
+            windupMs = 300f;
+            releaseMs = 2000f;
+            recoveryMs = 500f;
+            releaseStartPose = 0.3f;
+            recoveryStartPose = 0.85f;
+            bladeLength = 3.4f;
+            socketCount = 2;
+            maxTargets = 1;
+            shootsProjectile = false;
+            couched = true;
+            lungeDistance = 0f;
+            var upright = new Vector3(0.25f, 1.3f, 0.1f);
+            var uprightBlade = new Vector3(0f, 1f, 0.15f);
+            var couch = new Vector3(0.25f, 1.25f, 0.2f);
+            // Angled across the horse's neck: from the right hand the point meets the centre line 3.4 m ahead
+            var couchBlade = new Vector3(-0.074f, 0.02f, 1f);
+            keys = new[]
+            {
+                K(0f, upright, uprightBlade, Ease.InOut, 2f),
+                K(0.3f, couch, couchBlade, Ease.Linear, 1f),
+                K(0.85f, couch, couchBlade, Ease.InOut, 2f),
+                K(1f, upright, uprightBlade, Ease.Linear, 1f),
+            };
+        }
+
         public AttackData ToAttackData(int firstKey) => new AttackData
         {
             Timing = ToTiming(),
@@ -241,7 +271,7 @@ namespace Shieldbreak.Data
             BladeLength = bladeLength,
             SocketCount = socketCount,
             MaxTargets = maxTargets,
-            Resolver = shootsProjectile ? AttackResolver.Projectile : AttackResolver.SwingTrace,
+            Resolver = shootsProjectile ? AttackResolver.Projectile : couched ? AttackResolver.ContactTrace : AttackResolver.SwingTrace,
             LungeDistance = lungeDistance,
             LungeStartPose = lungeStartPose,
             LungeEndPose = lungeEndPose,

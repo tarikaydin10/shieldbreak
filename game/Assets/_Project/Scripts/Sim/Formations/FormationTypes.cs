@@ -134,6 +134,8 @@ namespace Shieldbreak.Sim.Formations
         public int Ranged;
         /// <summary>1 = its soldiers carry shields and can take cover from arrows.</summary>
         public int Shields;
+        /// <summary>1 = riders. Until the cavalry gets its own formation rules (M4 task 7) the commander only sends them in or back.</summary>
+        public int Mounted;
         /// <summary>Tick the last arrow struck a soldier of the formation.</summary>
         public int UnderFireTick;
         /// <summary>Arrows that struck since it last was out of fire; sum of the directions they came from.</summary>

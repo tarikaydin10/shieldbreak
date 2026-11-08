@@ -246,6 +246,9 @@ namespace Shieldbreak.Sim.Core
                 BotReactAtTick = -1,
                 BotPlannedBlockTick = -1,
                 BotDefenseDecidedFor = -100000,
+                LastTrampledTick = -100000,
+                RidePoint = position,
+                BotRider = -1,
                 OrderTarget = position,
             };
             return id;
@@ -259,6 +262,16 @@ namespace Shieldbreak.Sim.Core
             var a = agents[agentId];
             a.BaseSpeedScale = baseSpeedScale;
             a.AccelScale = accelScale;
+            agents[agentId] = a;
+        }
+
+        /// <summary>Puts the agent on a horse (scenario setup): from now on it moves and charges as one with it.</summary>
+        public void SetMounted(int agentId)
+        {
+            if (agentId < 0 || agentId >= AgentCount) throw new ArgumentOutOfRangeException(nameof(agentId));
+            if (Config.Movement.MountedMaxSpeed <= 0f || Config.Movement.MountedAcceleration <= 0f) throw new InvalidOperationException("The movement settings have no horse.");
+            var a = agents[agentId];
+            a.Flags |= AgentFlags.Mounted;
             agents[agentId] = a;
         }
 
@@ -312,14 +325,14 @@ namespace Shieldbreak.Sim.Core
         /// formation. Returns the formation id; the agents get contiguous ids in slot order.
         /// </summary>
         public int SpawnFormation(int team, int owner, FormationType type, int files, int count, float2 position, float2 facing,
-            float radius, int weaponId = 0, int botProfile = 0, int sideWeapon = -1)
+            float radius, int weaponId = 0, int botProfile = 0, int sideWeapon = -1, bool mounted = false)
         {
             if (count < 1 || count > FormationLimits.MaxMembers) throw new ArgumentOutOfRangeException(nameof(count));
             int id = CreateFormation(team, owner, type, files, position, facing);
             if (HasCombat)
             {
                 var arm = combatSetup.Weapons[weaponId];
-                formations.SetArms(id, arm.IsRanged, arm.Archetype == WeaponArchetype.OneHandShield);
+                formations.SetArms(id, arm.IsRanged, arm.Archetype == WeaponArchetype.OneHandShield, mounted);
             }
             var f = formations.Formations[id];
             using var local = new NativeArray<float2>(count, Allocator.Temp);
@@ -330,6 +343,7 @@ namespace Shieldbreak.Sim.Core
                 int agent = SpawnAgent(team, f.ToWorld(local[s]), radius, FormationData.Rotate(localFacing[s], f.Facing), weaponId, botProfile);
                 formations.Add(id, agent, team);
                 if (sideWeapon >= 0) SetLoadout(agent, new int4(weaponId, sideWeapon, -1, -1));
+                if (mounted) SetMounted(agent);
             }
             return id;
         }
@@ -560,7 +574,8 @@ namespace Shieldbreak.Sim.Core
         /// <summary>Steering arrives at its target; a point ahead of each hero turns that into "walk this way".</summary>
         void ApplyMoveIntents()
         {
-            const float Lead = 1.5f;
+            // A man walks to a point just ahead; a horse needs a point far ahead, or it brakes for it at once
+            const float Lead = 1.5f, MountedLead = 25f;
             for (int p = 0; p < SimConstants.MaxPlayers; p++)
             {
                 int id = playerAgent[p];
@@ -568,7 +583,7 @@ namespace Shieldbreak.Sim.Core
                 var a = agents[id];
                 if (a.IsDead) continue;
                 float2 move = playerMoveIntent[p];
-                a.Target = math.lengthsq(move) > 0f ? a.Position + move * Lead : a.Position;
+                a.Target = math.lengthsq(move) > 0f ? a.Position + move * (a.IsMounted ? MountedLead : Lead) : a.Position;
                 agents[id] = a;
                 var c = combat[id];
                 c.OrderTarget = a.Target;

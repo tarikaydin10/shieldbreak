@@ -42,11 +42,27 @@ Dead
 |---|---|---|---|
 | Einhand + Schild | Schild, 120° | Schildstoß: bricht jeden Block, sonst Taumeln | schnell, gut geschützt |
 | Zweihand | Waffe, 90° | Sprung-Hieb: Ausfallschritt 1,4 m, Körpertempo geht in die Energie | trifft härter, Block kostet den Gegner 2,5× Stamina, lange Erholung |
-| Stangenwaffe | Waffe, 90°, kostet beim Blocken 1,6-mal so viel Ausdauer | Rundumschlag: bis 4 Ziele im Bogen, lange Erholung | Reichweite: Bots kämpfen 0,7 m weiter weg; Stich und Hieb, kein Schild |
+| Stangenwaffe | Waffe, 90°, kostet beim Blocken 1,6-mal so viel Ausdauer | Rundumschlag: bis 4 Ziele im Bogen, lange Erholung | Reichweite: Bots kämpfen 0,7 m weiter weg; Stich und Hieb, kein Schild. Der Block gegen einen Reiter ist das **Brace** |
+| Lanze (beritten) | keiner | – | jede Richtung ist das Einlegen (Couch): 300 ms senken, 2 s halten; Treffer per ContactTrace mit der Annäherungsgeschwindigkeit |
 
 Der Held trägt ein Loadout (bis 4 Slots, Tasten 1–4). Ein gezogener Zweihänder hängt den Schild auf den Rücken.
 
 ![Held mit Zweihänder gegen Schildträger](../../../../../../docs/screenshots/m1_twohand.jpg)
+
+## Reiterei (M4)
+
+Reiter und Pferd sind **ein Agent** (`AgentFlags.Mounted`). Das Pferd hat Trägheit (`AgentSystem.Ride`): 9 m/s im Galopp, 3 s bis dahin, Wendekreis v²/8 m (im Galopp 10 m), es läuft nur dorthin, wohin es schaut. Im Wald läuft es mit 45 %, im Sumpf mit 30 %. Die Höhe des Reiters spielt in der Sim keine Rolle: Hiebe zielen auf den Gegner, wie am Hang.
+
+| Was | Regel |
+|---|---|
+| **Lanze (ContactTrace)** | Die eingelegte Lanze liegt still entlang der Pose. Der erste feindliche Körper auf ihr wird mit ½·m·v² der Annäherung entlang der Lanze getroffen (Reiter minus Ziel), mal Spitzenfaktor. Unter 3 m/s nur ein Anstoßen. Galopp gegen einen Stehenden: 118 Schaden, Trab etwa ein Viertel. Ein Treffer, dann wird die Lanze gehoben |
+| **Niederreiten** | Erreicht ein Pferd mit mindestens 3 m/s einen Mann zu Fuß (Brust 0,9 m vor dem Reiter, Bogen ±60°), trifft ihn ein Anteil von ½·m·v² (500 kg): im Galopp etwa 40 Schaden und ein Wurf nach hinten. Das Pferd behält 75 % seines Tempos pro Mann. Ein erhobener Schild oder eine Waffe fängt den Stoß für Ausdauer ab |
+| **Brace** | Ein Speerträger, der den Block hält und den Reiter im Frontbogen hat, stemmt den Speer: Das Pferd steht, der Reiter bekommt die Spitze mit dem Gewicht des Pferdes (im Galopp tödlich) |
+| **Schildwall** | Ein blockender Soldat im Schildwall: Das Pferd scheut, behält 15 % seines Tempos, der Reiter ist 600 ms benommen, der Soldat zahlt Ausdauer. Eine Linie mit erhobenen Schilden wird dagegen überritten |
+| **Reiter-Bot** | Nimmt den nächsten Feind zu Fuß auf dem ganzen Feld, zielt 12 m hinter ihn und reitet durch, senkt die Lanze ab 14 m im Galopp. Nach dem Durchgang (Ziel liegt zwischen Start und Reiter, Lanze traf, oder das Pferd steht am Feind) reitet er 25 m weiter und wendet. In einer haltenden Formation bleibt er am Slot; der Angriffsbefehl schickt ihn los |
+| **Soldat gegen Reiter** | Ein Reiter, der im Galopp auf ihn zukommt (vorn, Bahn höchstens 2,5 m neben ihm, bis 20 m), löst seine Reaktionszeit aus. Dann antwortet er einmal mit seiner Stufe: Speer stemmt, Schildwall steht (der Schritt-Anteil geht an den Block wie gegen ein Schwert), sonst Block oder ein Schritt zur Seite im letzten Moment. Wer den Reiter im Rücken hat, sieht ihn nicht |
+
+Ereignisse: `Trample`, `Brace`, `Refuse`; danach folgt das übliche `Hit`, `Blocked` oder `GuardBreak`. Alle Werte stehen in `CombatTuningDefinition` (Kopf „Cavalry“) und `AgentMovementDefinition` (Kopf „Horse“). Tests: `CavalryTests`.
 
 ## Kampf in Formation (`Context/FormationCombatRules`, Schicht D)
 
@@ -68,9 +84,9 @@ Ein dauerhaft erhobener Schild im Schildwall wurde ausprobiert und verworfen: De
 |---|---|
 | `Grammar/` | Zustände, Ereignisse, Regeln (`CombatTuning`), Bot-Profile, Phasen-Timing |
 | `Archetypes/` | `WeaponData`, `AttackData`, `CombatSetup` (alle Tabellen) |
-| `Resolvers/` | `WeaponPath` (Waffenbahn aus Keyframes), `SwingTrace` (Geometrie, Durchdringung) |
+| `Resolvers/` | `WeaponPath` (Waffenbahn aus Keyframes), `SwingTrace` (Geometrie, Durchdringung; auch für die Lanze: Strecke Griff bis Spitze gegen die Kapseln) |
 | `Context/` | `FormationCombatRules`: Leine, Frontbogen, Selbstverteidigung, Schildwall, Angriff, Rückzug, unbeaufsichtigter Held |
 | `Resolvers/Projectile.cs` | Pfeile: `ProjectileData`, Ballistik ohne Trigonometrie; Flug und Treffer laufen im Kampf-Job |
-| `CombatSystem.cs` | der Kampf-Job, ein Tick; die Richtung wechselt jeden Tick, Bots sehen einander im Zustand vom Tick-Anfang, damit keine Agenten-ID einen Vorteil hat |
+| `CombatSystem.cs` | der Kampf-Job, ein Tick; die Richtung wechselt jeden Tick, Bots sehen einander im Zustand vom Tick-Anfang, damit keine Agenten-ID einen Vorteil hat. `Couch` (Lanze) und `Charges` (Pferde gegen Fußvolk, nach allen Agenten in ID-Reihenfolge) |
 
-Werte (Schaden, Fenster, Stamina, Bot-Stufen) kommen aus ScriptableObjects in `Scripts/Data`. Tests: `CombatTests`, `CombatVerbTests`, `TwoHandTests`, `AttackTests`, `FormationCombatTests`. Papier-Test gegen Bogen und Lanze: [docs/combat](../../../../../../docs/combat/papier-test-bogen-lanze.md).
+Werte (Schaden, Fenster, Stamina, Bot-Stufen) kommen aus ScriptableObjects in `Scripts/Data`. Tests: `CombatTests`, `CombatVerbTests`, `TwoHandTests`, `AttackTests`, `FormationCombatTests`, `PolearmTests`, `CavalryTests`. Papier-Test gegen Bogen und Lanze: [docs/combat](../../../../../../docs/combat/papier-test-bogen-lanze.md).

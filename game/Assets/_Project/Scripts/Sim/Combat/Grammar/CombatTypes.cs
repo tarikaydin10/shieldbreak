@@ -61,7 +61,7 @@ namespace Shieldbreak.Sim.Combat.Grammar
 
     /// <summary>
     /// Combat state of one agent, parallel to AgentData (same index). Hashed raw: the ulong comes first and every other
-    /// field is 4 bytes, 160 bytes in total without padding (checked by a test).
+    /// field is 4 bytes, 184 bytes in total without padding (checked by a test).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CombatData
@@ -108,6 +108,30 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public int PreviousWeaponId;
         /// <summary>Stagger push from hits and blocks (m/s); moves the body directly and decays every tick.</summary>
         public float2 Knockback;
+
+        // Cavalry
+        /// <summary>Last tick a horse ran this agent down; a horse strikes the same man once, not every tick it touches him.</summary>
+        public int LastTrampledTick;
+        /// <summary>Rider bot: bit 0 = riding out to turn (1) or charging (0); the bits above count the passes.</summary>
+        public int RidePhase;
+        /// <summary>Rider bot: where it rides out to before it turns for the next pass.</summary>
+        public float2 RidePoint;
+        /// <summary>Soldier bot: the rider it saw charging at it, -1 = none.</summary>
+        public int BotRider;
+        /// <summary>Soldier bot: its answer to that rider once it reacted (BotRiderAnswer).</summary>
+        public int BotRiderPlan;
+    }
+
+    /// <summary>What a soldier does about a rider charging at him (decided once, after his reaction time).</summary>
+    public static class BotRiderAnswer
+    {
+        public const int Undecided = 0;
+        /// <summary>Shield up, or the spear braced: the block of a polearm against a rider is the brace.</summary>
+        public const int Block = 1;
+        /// <summary>A step aside just before the horse arrives.</summary>
+        public const int Step = 2;
+        /// <summary>Failed to answer: he stands there.</summary>
+        public const int None = 3;
     }
 
     public static class CombatEventType
@@ -129,6 +153,12 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public const int Fled = 12;
         /// <summary>An arrow left the bow (Target is whom it was meant for, -1 = nobody).</summary>
         public const int Shot = 13;
+        /// <summary>A horse ran Target down (Attacker = the rider); a Hit or Blocked event with the damage follows.</summary>
+        public const int Trample = 14;
+        /// <summary>A rider ran onto a braced spear (Attacker = the spearman, Target = the rider).</summary>
+        public const int Brace = 15;
+        /// <summary>A horse refused a shield wall and stopped (Attacker = the rider, Target = the wall soldier).</summary>
+        public const int Refuse = 16;
     }
 
     /// <summary>What happened in a tick, for presentation (hitstop, sounds, effects) and tests. Not part of the hash.</summary>
@@ -231,6 +261,33 @@ namespace Shieldbreak.Sim.Combat.Grammar
         public float JumpStaminaCost;
         public float JumpHeight;
 
+        /// <summary>Cavalry: mass of horse and rider (kg) behind a charge, E = ½·m·v² from the closing speed.</summary>
+        public float HorseMass;
+        /// <summary>Below this closing speed (m/s) a horse pushes, it does not run anybody down.</summary>
+        public float TrampleMinSpeed;
+        /// <summary>The horse's chest is this far (m) ahead of the rider's centre: contact at the sum of both radii and this.</summary>
+        public float TrampleReach;
+        /// <summary>Share of the charge energy that strikes the man run down (blunt).</summary>
+        public float TrampleEnergyShare;
+        /// <summary>Speed the horse keeps per man it runs down (0..1).</summary>
+        public float TrampleSpeedKeep;
+        public int TrampleCooldownTicks;
+        /// <summary>Share of the charge energy a braced spear puts into the rider (times the spear's point factor).</summary>
+        public float BraceEnergyShare;
+        /// <summary>Speed a horse keeps when it refuses a shield wall (0..1); the rider is shaken for RefuseStunTicks.</summary>
+        public float ShieldWallSpeedKeep;
+        public int RefuseStunTicks;
+        /// <summary>Below this closing speed (m/s) a couched lance does not pierce.</summary>
+        public float CouchMinSpeed;
+        /// <summary>Rider bot: lowers the lance this far (m) from its target.</summary>
+        public float CouchRange;
+        /// <summary>Rider bot: aims this far (m) behind its target, so it rides through instead of stopping at him.</summary>
+        public float RideThroughDistance;
+        /// <summary>Rider bot: after a pass it rides on this far (m) before it turns for the next.</summary>
+        public float RideOutDistance;
+        /// <summary>Soldier bot: notices a rider charging at it from this far (m).</summary>
+        public float RiderWatchRange;
+
         public void Validate()
         {
             if (HealthMax <= 0f || StaminaMax <= 0f) throw new ArgumentException("HealthMax and StaminaMax must be positive.");
@@ -241,6 +298,9 @@ namespace Shieldbreak.Sim.Combat.Grammar
             if (SprintSpeedScale < 1f) throw new ArgumentException("SprintSpeedScale must be >= 1.");
             if (WeaponSwitchTicks < 1) throw new ArgumentException("WeaponSwitchTicks must be >= 1.");
             if (JumpTicks < 1 || JumpLandTicks < 0) throw new ArgumentException("Jump needs positive airborne ticks.");
+            if (HorseMass <= 0f || TrampleMinSpeed <= 0f || CouchMinSpeed <= 0f) throw new ArgumentException("HorseMass, TrampleMinSpeed and CouchMinSpeed must be positive.");
+            if (TrampleSpeedKeep < 0f || TrampleSpeedKeep > 1f || ShieldWallSpeedKeep < 0f || ShieldWallSpeedKeep > 1f) throw new ArgumentException("TrampleSpeedKeep and ShieldWallSpeedKeep are shares (0..1).");
+            if (TrampleReach < 0f || TrampleEnergyShare < 0f || BraceEnergyShare < 0f || TrampleCooldownTicks < 1 || RefuseStunTicks < 0) throw new ArgumentException("Cavalry: reach and shares >= 0, cooldown >= 1 tick.");
             if (KnockbackDecay < 0f || KnockbackDecay >= 1f || KnockbackPerJoule < 0f || KnockbackMax < 0f) throw new ArgumentException("Knockback: decay in [0, 1), other values >= 0.");
         }
     }

@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29b813158c410b54915e325453b8be6a, type: 3}
+  m_Name: Lance_Couch
+  m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.AttackDefinition
+  windupMs: 300
+  releaseMs: 2000
+  recoveryMs: 500
+  releaseStartPose: 0.3
+  recoveryStartPose: 0.85
+  bladeLength: 3.4
+  socketCount: 2
+  maxTargets: 1
+  shootsProjectile: 0
+  couched: 1
+  lungeDistance: 0
+  lungeStartPose: 0.35
+  lungeEndPose: 0.72
+  keys:
+  - time: 0
+    hand: {x: 0.25, y: 1.3, z: 0.1}
+    blade: {x: 0, y: 1, z: 0.15}
+    easeToNext: 3
+    power: 2
+  - time: 0.3
+    hand: {x: 0.25, y: 1.25, z: 0.2}
+    blade: {x: -0.074, y: 0.02, z: 1}
+    easeToNext: 0
+    power: 1
+  - time: 0.85
+    hand: {x: 0.25, y: 1.25, z: 0.2}
+    blade: {x: -0.074, y: 0.02, z: 1}
+    easeToNext: 3
+    power: 2
+  - time: 1
+    hand: {x: 0.25, y: 1.3, z: 0.1}
+    blade: {x: 0, y: 1, z: 0.15}
+    easeToNext: 0
+    power: 1

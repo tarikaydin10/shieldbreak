@@ -87,6 +87,7 @@ namespace Shieldbreak.Presentation.Menu
             if (MenuStyle.Big("100 gegen 100 · offenes Feld")) Launch("battle-large");
             if (MenuStyle.Big("Am Hügel · 100 gegen 100")) Launch("battle-hill");
             if (MenuStyle.Big("Am Wald · 100 gegen 100")) Launch("battle-forest");
+            if (MenuStyle.Big("Mit Reiterei · 100 gegen 100")) Launch("battle-cavalry");
             GUILayout.Space(8);
             if (MenuStyle.Small("Zurück", 120)) page = Page.Home;
         }
