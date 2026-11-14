@@ -1,0 +1,18 @@
+{
+  "name": "CHR_horse_team_b",
+  "category": "mount",
+  "generator": "horse",
+  "seed": 1,
+  "params": {
+    "part": "body",
+    "barrel_length": 1.6,
+    "barrel_radius": 0.33,
+    "barrel_below_seat": 0.3
+  },
+  "colors": {
+    "coat": "leather",
+    "dark": "leather_dark",
+    "saddle": "wood_dark",
+    "cloth": "team_b"
+  }
+}

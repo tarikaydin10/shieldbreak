@@ -195,6 +195,10 @@ namespace Shieldbreak.EditorTools
                 var parts = v.teams[t].Parts;
                 for (int k = 0; k < parts.Length; k++) SetMesh(parts[k], names[t, k]);
             }
+            GameObject Model(string asset) => AssetDatabase.LoadAssetAtPath<GameObject>(Gen + asset + ".fbx");
+            v.horseBodies = new[] { Model("CHR_horse_team_a"), Model("CHR_horse_team_b") };
+            v.horseLeg = Model("PRP_horse_leg");
+            v.lance = Model("WPN_lance");
             EditorUtility.SetDirty(v);
             AssetDatabase.SaveAssets();
         }

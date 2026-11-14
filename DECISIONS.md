@@ -529,6 +529,17 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 | Deine Reiter greifen auf den Karten mit Schlachtbeginn an | „Die Armee darf ohne Spieler nie dumm werden“: Gemessen standen sie sonst tatenlos, während der Feind seine nutzte. In der Aufstellung sichtbar und mit „Halten“ änderbar | Warten auf Befehl |
 | Der unbeaufsichtigte Held folgt nie Reitern; zu Pferd auch nicht Schützen, und zu Pferd hält er den Block auch ohne Feind in der Nähe | Gemessen: Er ritt hinter angreifenden Reitern in den Feind (53 s). Die Schützen-Regel gilt bewusst nur zu Pferd, zu Fuß verschlechterte sie 50 gegen 50 (von 2 auf 1 von 6) | Für alle gleich |
 
+## 2026-11-15 — M4 Task 9: Modelle aus der Pipeline
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Das Pferd besteht aus zwei Assets: Rumpf (Ursprung im Sattel, Kategorie `mount`, pro Team eine Satteldecke) und ein Bein (Ursprung am Huf), das das Spiel viermal an Hüftpunkte hängt und schwingt | Wie die Arme der Soldaten: Bewegung prozedural, keine Rigs und Clips (CLAUDE.md 4) | Ein Pferd mit Skelett und Gangart-Clips |
+| Neue Kategorien in `style.json`: `mount` (900 Dreiecke, 1,8 bis 3,2 m, Ursprung im Inneren) und `weapon_lance` (300 Dreiecke, 3,2 bis 4,6 m) | Pferd und Lanze passen in keine bestehende Größenspanne; Regeln ändern, nicht das Asset (style-bible) | Lanze als zu langer Speer mit Ausnahme |
+| Modelle kommen als FBX-Wurzel (`GameObject`) in die Daten und werden zur Laufzeit in Mesh und Matrix zerlegt (`GeneratedModel`) | Die IDs der Meshes in einer FBX vergibt Unity per Hash; die Wurzel hat eine feste ID, damit lassen sich Verweise ohne offenen Editor schreiben | Meshes direkt referenzieren |
+| Bäume und Felsen zeichnet `GroundField` per Instancing, Felsen nur im Wald und Sumpf | Massen von Bäumen ohne GameObjects (CLAUDE.md 3.2); Felsen auf freiem Feld wären ohne Sim-Hindernis ein Bild, durch das Soldaten laufen | Felsen überall |
+| Das Relief bleibt ein Mesh aus den Sim-Höhen in Palettenfarben, gebaut zur Laufzeit; die Pipeline liefert das Bodenstück für flache Karten | Das Gelände ist Kartendaten, nicht ein Modell; so stimmen Bild und Sim immer überein | Gelände als FBX pro Karte |
+| Der Soldat bleibt die bisherige Pipeline-Figur | Er kommt schon aus assetforge; Rüstungs- und Truppenvarianten gehören zu M4b (Rüstung pro Soldat) | Neuer Soldat jetzt |
+
 ## Offen (Entscheidung bis M3)
 
 - Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt

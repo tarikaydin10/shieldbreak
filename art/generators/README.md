@@ -11,5 +11,8 @@ Ein Python-Modul pro Form; assetforge (`tools/assetgen`) lädt sie beim Bauen au
 | `dummy_soldier.py` | Platzhalter-Soldat bis M4, statisch, Arme optional weglassbar für prozedurale IK | `character` |
 | `limb.py` | Gliedmaßen-Segment für prozedurale Arme | `prop` |
 | `ground_patch.py` | Bodenstück | `environment` |
+| `horse.py` | Pferd in zwei Teilen: Rumpf mit Kopf, Schweif, Sattel und Teamdecke (Ursprung im Sattel), dazu ein Bein (Ursprung am Huf), damit die Beine im Spiel schwingen | `mount`, `prop` |
+| `tree.py` | Nadelbaum aus gestapelten Kegeln oder Laubbaum aus runden Kronen, Proportionen aus dem Seed | `environment` |
+| `rock.py` | Felsbrocken aus verrauschten Ringen, jeder Seed eine andere Form | `environment` |
 
 Schnittstelle: `REQUIRED_COLORS`, `OPTIONAL_COLORS`, `build(b, p, c, rng)` mit `b` als `MeshBuilder` aus `tools/assetgen/lib/meshkit.py`. Regeln in [`../style/style-bible.md`](../style/style-bible.md), Abschnitt Reproduzierbarkeit.

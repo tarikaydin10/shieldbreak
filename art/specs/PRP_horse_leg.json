@@ -1,0 +1,14 @@
+{
+  "name": "PRP_horse_leg",
+  "category": "prop",
+  "generator": "horse",
+  "seed": 1,
+  "params": {
+    "part": "leg",
+    "height": 0.95
+  },
+  "colors": {
+    "coat": "leather",
+    "hoof": "ink"
+  }
+}

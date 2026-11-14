@@ -381,3 +381,11 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 3a30f45db02546b4684445835616db6e, type: 2}
   - {fileID: 2100000, guid: bd2c8aed190615146b17cbb59f5e95a9, type: 2}
   selectionRadius: 0.45
+  horseBodies:
+  - {fileID: 919132149155446097, guid: 8666fd535598ef8898820f5b56ba6120, type: 3}
+  - {fileID: 919132149155446097, guid: e43deccfd30d5f8f9d29f90d86f2149f, type: 3}
+  horseLeg: {fileID: 919132149155446097, guid: 3b31191d87ce2bd184fe272fb7863321, type: 3}
+  lance: {fileID: 919132149155446097, guid: fd3f4edc14c4f8b4e21133307d141d2e, type: 3}
+  seatHeight: 1.45
+  frontHip: {x: -0.17, y: 0.95, z: 0.62}
+  hindZ: -0.58

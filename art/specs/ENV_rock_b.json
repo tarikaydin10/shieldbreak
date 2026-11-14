@@ -1,0 +1,15 @@
+{
+  "name": "ENV_rock_b",
+  "category": "environment",
+  "generator": "rock",
+  "seed": 23,
+  "params": {
+    "radius": 0.55,
+    "height": 0.95,
+    "jitter": 0.3
+  },
+  "colors": {
+    "stone": "stone_light",
+    "stone_dark": "stone"
+  }
+}

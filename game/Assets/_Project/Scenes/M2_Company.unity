@@ -822,6 +822,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Shieldbreak.Presentation::Shieldbreak.Presentation.GroundField
   runner: {fileID: 569493334}
   tileModel: {fileID: 919132149155446097, guid: bffba550632ed9c429904f0d34578bb9, type: 3}
+  treeModels:
+  - {fileID: 919132149155446097, guid: 0e8be35a7c0358d88b071bd0d246ee86, type: 3}
+  - {fileID: 919132149155446097, guid: 4629d19a93f173c397dafbbd785ab32e, type: 3}
+  - {fileID: 919132149155446097, guid: f86c31cac1200b19179da12e83004227, type: 3}
+  rockModels:
+  - {fileID: 919132149155446097, guid: 95662c44bc6178f57383df188d2126b0, type: 3}
+  - {fileID: 919132149155446097, guid: 39a3ebcf56e5258a33ab325e137b61bb, type: 3}
   tileSize: 20
   margin: 40
 --- !u!4 &246954939

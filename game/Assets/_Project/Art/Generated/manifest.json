@@ -1,6 +1,6 @@
 {
   "generator_version": 1,
-  "style_sha256": "8568401096cb70801e557e1071ae2d9a6b14b649a2c1a7d15a3ec8aefbb6f315",
+  "style_sha256": "fd032b9edf7fbf9819153c83596f48a1b06aa1c7090006848d762a7acf9fbceb",
   "palette_png_sha256": "157744b75ed04e44008c3a7f5d8bf0f0182fe4073f6c913b7d1630989f53b520",
   "assets": [
     {
@@ -74,6 +74,26 @@
       "fbx_sha256": "a4170dd9367c8b325552c297f106045a7149e285c5f3fea23a396578c8013b38"
     },
     {
+      "name": "CHR_horse_team_a",
+      "category": "mount",
+      "generator": "horse",
+      "spec": "art/specs/CHR_horse_team_a.json",
+      "tris": 224,
+      "geometry_sha256": "89e11e925ed1b96c4ffc37b79d4e2dcb5450343eafa9162b594127b4ae531adb",
+      "fbx": "game/Assets/_Project/Art/Generated/CHR_horse_team_a.fbx",
+      "fbx_sha256": "7c2657e06fda315afbd2484bfbf0193f356b11df1408837cb24492323666c75b"
+    },
+    {
+      "name": "CHR_horse_team_b",
+      "category": "mount",
+      "generator": "horse",
+      "spec": "art/specs/CHR_horse_team_b.json",
+      "tris": 224,
+      "geometry_sha256": "dd88fe3839f1aa0bd786ea9dd02a7e18e15c7595324f408bf0bef1250e7987b1",
+      "fbx": "game/Assets/_Project/Art/Generated/CHR_horse_team_b.fbx",
+      "fbx_sha256": "9d3db86c1f1c1af2aa680d321c1a274413620ddf85bb3a43d625f3992d7901c9"
+    },
+    {
       "name": "ENV_ground_grass",
       "category": "environment",
       "generator": "ground_patch",
@@ -82,6 +102,66 @@
       "geometry_sha256": "e8090f6e9fac0ce15faca9c5ba43dabc5d853d248a752e13e0f16162e32b6a65",
       "fbx": "game/Assets/_Project/Art/Generated/ENV_ground_grass.fbx",
       "fbx_sha256": "fdc10ffa09e93dda4cca93c49305e9534b4023b01011a3b80d84d18b86d39ef7"
+    },
+    {
+      "name": "ENV_rock_a",
+      "category": "environment",
+      "generator": "rock",
+      "spec": "art/specs/ENV_rock_a.json",
+      "tris": 40,
+      "geometry_sha256": "4834d2314e852461d032d1e6955bd40eb2b5c9215581025ecf824b71cc83209e",
+      "fbx": "game/Assets/_Project/Art/Generated/ENV_rock_a.fbx",
+      "fbx_sha256": "836160d8ebfc277a8a28226c8819adad8bdbb6caa21a729cbf93b4e5bc6dce54"
+    },
+    {
+      "name": "ENV_rock_b",
+      "category": "environment",
+      "generator": "rock",
+      "spec": "art/specs/ENV_rock_b.json",
+      "tris": 40,
+      "geometry_sha256": "dab8a3f6a2d29884eee39e292a3d79bacc97e844aaadca2b1880cc68a9cec31b",
+      "fbx": "game/Assets/_Project/Art/Generated/ENV_rock_b.fbx",
+      "fbx_sha256": "e658db3836e1d5c7572c07f6684fcf7564fa366929b03d85dc1a048d620c7733"
+    },
+    {
+      "name": "ENV_tree_broadleaf_a",
+      "category": "environment",
+      "generator": "tree",
+      "spec": "art/specs/ENV_tree_broadleaf_a.json",
+      "tris": 104,
+      "geometry_sha256": "a7cf2cdbabace0187eafb4526c064c8de79d1570b3c745aff8ab62dcaf617c98",
+      "fbx": "game/Assets/_Project/Art/Generated/ENV_tree_broadleaf_a.fbx",
+      "fbx_sha256": "13cf33ade4581a24b12641ceaa9593886374480ab3392227e390f1c5b1d92c90"
+    },
+    {
+      "name": "ENV_tree_pine_a",
+      "category": "environment",
+      "generator": "tree",
+      "spec": "art/specs/ENV_tree_pine_a.json",
+      "tris": 56,
+      "geometry_sha256": "3819c114ccd8bd796f08729173ef0b5caa53e5d932b8f4ca26f9791250f52a7d",
+      "fbx": "game/Assets/_Project/Art/Generated/ENV_tree_pine_a.fbx",
+      "fbx_sha256": "4298e930c6337d78c8f657dcb141f7ee0ae405ee44ff9143414f5385dbb17060"
+    },
+    {
+      "name": "ENV_tree_pine_b",
+      "category": "environment",
+      "generator": "tree",
+      "spec": "art/specs/ENV_tree_pine_b.json",
+      "tris": 68,
+      "geometry_sha256": "294dcf43f1f1e9470c016f23e3d2d516a188384c8a9d98bae50f2801bca7dc29",
+      "fbx": "game/Assets/_Project/Art/Generated/ENV_tree_pine_b.fbx",
+      "fbx_sha256": "5a84819dfdd0e6b6176fc80b55bec27c4db4bc931a3530c025683ed44ae7b78d"
+    },
+    {
+      "name": "PRP_horse_leg",
+      "category": "prop",
+      "generator": "horse",
+      "spec": "art/specs/PRP_horse_leg.json",
+      "tris": 60,
+      "geometry_sha256": "52be319ba0b2cf8e53e103f1e19f23d3b469a0847ca9fed62ad7743c9b2fa33e",
+      "fbx": "game/Assets/_Project/Art/Generated/PRP_horse_leg.fbx",
+      "fbx_sha256": "83ef198e4bbd62d460f03848ace5969bd368392067ef03ccc666af23f3323762"
     },
     {
       "name": "PRP_limb_skin_light",
@@ -142,6 +222,16 @@
       "geometry_sha256": "4aad3e5c4d6e2e904776580aaa65a555d49a69f80e2ed7eb54ea43492795425e",
       "fbx": "game/Assets/_Project/Art/Generated/SHD_round_team_b.fbx",
       "fbx_sha256": "96fb70c5d991461c6dd60948335b1925128f3770e82223440d1ce19aa6420f2b"
+    },
+    {
+      "name": "WPN_lance",
+      "category": "weapon_lance",
+      "generator": "spear",
+      "spec": "art/specs/WPN_lance.json",
+      "tris": 88,
+      "geometry_sha256": "6ce85b0620492d1e218d1dc7d5f66888f52e5ec2544f380c33cb00dc3653f44e",
+      "fbx": "game/Assets/_Project/Art/Generated/WPN_lance.fbx",
+      "fbx_sha256": "1cb111d9f04be842681f39c8856af0b3135e4312915110ad63c1311e98b38aed"
     },
     {
       "name": "WPN_spear_basic",

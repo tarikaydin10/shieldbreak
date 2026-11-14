@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-08**, Meilenstein **M4 Schlacht** läuft (neu: **Reiterei** mit Lanze, Niederreiten, Brace und Schildwall; der **Held reitet**, Reiter werden als Formation geführt, der Kommandant setzt sie gezielt ein; **drei Karten mit Aufstellungsphase**), **M3 Feldherr** ist fertig und das Fun-Gate bestanden: **Haltung** (Stellung halten, Reagieren, Aggressiv), **Bedrohungen**, ein **Kommandant für den Feind**, eine **Prognose** (Lanchester), **Bogenschützen** auf beiden Seiten und die **Schlacht 50 gegen 50**, die sich auch ganz von oben führen lässt. Soldaten fliehen deutlich später, und die zuerst erzeugte Seite hat keinen versteckten Vorteil mehr. Formationen greifen von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst, und sie drehen die Front, wenn der Feind in Flanke oder Rücken steht. Der Feind in der Kompanie entscheidet jetzt selbst: angreifen, flankieren, halten oder zurückweichen, sichtbar auf F3. Unter Beschuss bilden haltende Formationen den Schildwall. **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-08**, Meilenstein **M4 Schlacht** läuft (neu: **Reiterei** mit Lanze, Niederreiten, Brace und Schildwall; der **Held reitet**, Reiter werden als Formation geführt, der Kommandant setzt sie gezielt ein; **drei Karten mit Aufstellungsphase**; Pferd, Lanze, Bäume und Felsen kommen aus der Pipeline), **M3 Feldherr** ist fertig und das Fun-Gate bestanden: **Haltung** (Stellung halten, Reagieren, Aggressiv), **Bedrohungen**, ein **Kommandant für den Feind**, eine **Prognose** (Lanchester), **Bogenschützen** auf beiden Seiten und die **Schlacht 50 gegen 50**, die sich auch ganz von oben führen lässt. Soldaten fliehen deutlich später, und die zuerst erzeugte Seite hat keinen versteckten Vorteil mehr. Formationen greifen von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst, und sie drehen die Front, wenn der Feind in Flanke oder Rücken steht. Der Feind in der Kompanie entscheidet jetzt selbst: angreifen, flankieren, halten oder zurückweichen, sichtbar auf F3. Unter Beschuss bilden haltende Formationen den Schildwall. **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
 
 ## Sofort spielen
 
@@ -127,7 +127,7 @@ Hauptmenü → Schlacht wählen → Am Wald. Dieselben Armeen, links ein Wald, r
 
 Formationen umgehen Wald und Sumpf von selbst, wenn der Umweg lohnt.
 
-![Schlacht am Wald](screenshots/m4-battle-forest.png)
+![Schlacht am Wald](screenshots/m4-models-forest.png)
 
 ## Schlacht mit Reiterei (`M2_Company` mit `Battle_Cavalry`)
 
@@ -158,7 +158,7 @@ Schritt, Sprung und Sprint gibt es zu Pferd nicht, die Lanze blockt nicht. Wechs
 | Schildwall | Das Pferd scheut und bleibt stehen; eine Linie mit Schilden wird überritten |
 | Rücken | Wer den Reiter im Rücken hat, sieht ihn nicht kommen |
 
-Pferde sind bis zu den Modellen aus der Pipeline (Task 9) Quader in Palettenfarben.
+Pferd und Lanze kommen aus der Pipeline; die Beine schwingen mit dem Tempo.
 
 Ohne Befehl gewinnst du 4 von 6 als untätiger Held und 4 von 6 aus der Kommandoansicht (70 bis 105 s). 0,34 ms pro Tick.
 
@@ -248,7 +248,7 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Karten und Aufstellung (M4) | Karten als Daten, Sim-Zustand Aufstellung mit Zonen, Formationsbefehle wirken sofort, Start wenn alle bereit sind, Bedienung über die Kommandoansicht | `Data/MapDefinition`, `Data/Maps`, `SimWorld.BeginDeployment`, `FormationSystem.StepDeployment`, `Player/CommandView` |
 | Reiterei (M4) | Reiter und Pferd als ein Agent mit Trägheit und Wendekreis; Lanze per ContactTrace (Energie aus der Annäherung); Niederreiten, Brace des Speers, Schildwall lässt das Pferd scheuen; Reiter-Bot reitet Durchgang um Durchgang, Soldaten sehen Reiter kommen und antworten mit ihrer Stufe; Kommandant schickt Reiter in den Angriff; Pferde als Quader | `AgentFlags.Mounted`, `AgentSystem.Ride`, `CombatSystem.Couch/Charges`, `BotBrain.ThinkRider/WatchRiders`, `Data/Weapons/Weapon_Lance`, `Data/Scenarios/Battle_Cavalry` |
 | Speer (M4) | Archetyp Stangenwaffe: Stich, Hieb, Rundumschlag, lange Reichweite, schwacher Block, Bots auf Abstand; je eine Speerformation in den großen Schlachten, Held mit Speer im dritten Slot | `WeaponArchetype.Polearm`, `Data/Weapons/Weapon_Polearm`, `Data/Attacks/Polearm_*` |
-| Wald und Sumpf (M4) | Bodenart pro Zelle, Flächen als Szenario-Daten, Tempo und Wegkosten, Reihen lösen sich im Wald auf, Bäume fangen Pfeile ab, Kegel-Bäume per Instancing | `Sim/Grid/WorldGrid`, `Data/Scenarios/Battle_Forest`, `FormationCombatRules.InForest`, `Presentation/GroundField` |
+| Wald und Sumpf (M4) | Bodenart pro Zelle, Flächen als Szenario-Daten, Tempo und Wegkosten, Reihen lösen sich im Wald auf, Bäume fangen Pfeile ab; Bäume und Felsen aus der Pipeline per Instancing | `Sim/Grid/WorldGrid`, `Data/Scenarios/Battle_Forest`, `FormationCombatRules.InForest`, `Presentation/GroundField` |
 | Höhe (M4) | Höhen auf den Zellecken, Hügel als Szenario-Daten, Hang bremst, Energie und Pfeile spüren die Höhe, Kommandant liest sie, Gelände aus den Sim-Höhen | `Sim/Grid/Terrain`, `Data/Scenarios/Battle_Hill`, `Presentation/GroundField`, `SimRunner.ToWorld` |
 | Große Schlacht (M4) | 100 gegen 100 als Daten in der Kompanie-Szene, Boden passt sich der Karte an; 0,37 ms pro Tick, 257 bis 505 FPS bei 1080p | `Data/Scenarios/Battle_100v100`, `Presentation/GroundField` |
 | Schlacht (M3) | 50 gegen 50 als Daten in der Kompanie-Szene; Kommandoansicht verschieben und offen lassen; 0,15 ms pro Tick, 151 FPS im Build | `Data/Scenarios/Battle_50v50`, `Cameras/CommandViewCamera` |
@@ -259,6 +259,7 @@ Marschieren: Auf Wegen ab 8 m blickt die Formation in Marschrichtung (der Körpe
 | Rahmen | Hauptmenü, Pausemenü, Steuerung mit Tastenänderung, Optionen, Tutorial, Ergebnisbildschirm mit Statistik | `Scripts/Presentation/Menu`, `Player/TutorialDirector` |
 | Testmodus | Szenen-Katalog: jede Szene und jedes Szenario mit Ziel, Steuerung und Prüfliste; Testseite im Hauptmenü, Hilfe in der Szene (F2), Prüfliste im Pausemenü; Test, dass nichts unerreichbar ist | `Resources/SceneCatalog`, `Menu/TestPage`, `SceneBriefing`, `SceneLaunch` |
 | Weitere Szenen | `M0_Sandbox` (4 Formationen, 20 gegen 20 aus der Draufsicht, mit Kampf; als Stresstest 500 lose Soldaten), `Proto_Animation` (Oben-Hieb), `Proto_Style` (Look) | `Scenes/` |
+| Modelle (M4) | Pferd (Rumpf pro Team, schwingende Beine), Lanze, drei Bäume, zwei Felsen aus eigenen Generatoren; Platzhalter-Quader und -Kegel sind weg | `art/specs`, `art/generators/horse.py`, `tree.py`, `rock.py`, `Presentation/GeneratedModel`, `GroundField`, `CombatFigureRenderer` |
 | Asset-Pipeline | Low-Poly-Modelle aus JSON-Specs per Headless-Blender, Palette, Validator, Kontaktbogen; seit 2026-11-01 das eigene Repo [assetforge](https://github.com/tarikaydin10/assetforge) als Submodul `tools/assetgen`, Specs und Generatoren in `art/` | [art](../art/README.md), [tools/assetgen](../tools/assetgen/README.md) |
 
 Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 22. Zweihänder oben 69, Seite 47, Stich 39, Sprung-Hieb aus 2,6 m 92. Leben 100.
@@ -301,7 +302,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - **Schlacht (Tarik):** Als Spieler untätig zu bleiben, verliert 50 gegen 50 in 6 von 6 Läufen nach rund 50 s: Der Held steht dann offen im Pfeilhagel. Aus der Kommandoansicht ohne Befehle gewinnt deine Seite 2 von 6 (84 bis 147 s)
 - **Speer (Tarik):** Stärke, Reichweite und Rundumschlag sind ein erster Vorschlag; ein Stich macht 56 Schaden, das ist viel. Der Speer ist aus Figuren-Sicht nicht von Hand gespielt. Brace gibt es seit der Reiterei: Der Block des Speers gegen einen Reiter
 - **Karten und Aufstellung (Tarik):** Gelände, Zonen und Startpositionen sind ein erster Vorschlag (`Data/Maps`). Der Feind stellt sich fest nach Daten auf, er reagiert nicht auf deine Aufstellung (`IDEAS.md`). Zonen begrenzen den Mittelpunkt einer Formation, am Rand ragt sie etwas hinaus. Hügelland ohne Befehl verlierst du meist, dort lohnt die Aufstellung; ob das zu hart ist, zeigt das Spielen. Die Aufstellung selbst habe ich nicht bedient, nur per Test und Screenshot geprüft
-- **Reiterei (Tarik):** Tempo, Wendekreis, Lanzenwucht, Niederreiten (500 kg, 2,5 %, 75 % Tempo pro Mann), Brace und Scheuen sind ein erster Vorschlag (`CombatTuning_*`, Kopf „Cavalry“; `AgentMovement_Default`, Kopf „Horse“). Führung, Lenkung und Kamera des reitenden Helden sind ein erster Vorschlag (`Formation_Default`, `Commander_Default`, Kopf „Riders“; `ThirdPersonCamera.mountedOffset`). Das Reiten selbst habe ich nicht gespielt, nur per Test und Screenshot geprüft. Bot-Reiter tragen nur die Lanze; wer steckenbleibt, reitet weg und greift neu an. Absitzen gibt es nicht. Ein Schwert schlägt nur nach vorn zur Blickrichtung des Pferdes. Pferde sind Quader bis Task 9; Pfeile treffen den Reiter, das Pferd selbst ist kein Ziel
+- **Reiterei (Tarik):** Tempo, Wendekreis, Lanzenwucht, Niederreiten (500 kg, 2,5 %, 75 % Tempo pro Mann), Brace und Scheuen sind ein erster Vorschlag (`CombatTuning_*`, Kopf „Cavalry“; `AgentMovement_Default`, Kopf „Horse“). Führung, Lenkung und Kamera des reitenden Helden sind ein erster Vorschlag (`Formation_Default`, `Commander_Default`, Kopf „Riders“; `ThirdPersonCamera.mountedOffset`). Das Reiten selbst habe ich nicht gespielt, nur per Test und Screenshot geprüft. Bot-Reiter tragen nur die Lanze; wer steckenbleibt, reitet weg und greift neu an. Absitzen gibt es nicht. Ein Schwert schlägt nur nach vorn zur Blickrichtung des Pferdes. Pfeile treffen den Reiter, das Pferd selbst ist kein Ziel
 - **Schlacht am Wald (Tarik):** Ohne Befehl gewinnst du 4 von 6 als untätiger Held und 4 von 6 aus der Kommandoansicht. Der Kommandant nutzt Wald und Sumpf nicht gezielt, nur seine Wege weichen ihnen aus. Bäume sind Kegel, Soldaten laufen durch sie hindurch; Dichte, Tempo und Pfeilschutz sind ein erster Vorschlag
 - **Schlacht am Hügel (Tarik):** Ohne Befehl gewinnst du 5 von 6, als untätiger Held wie aus der Kommandoansicht; die Schlachten dauern lange (70 bis 226 s), weil sich die Heere um die Hügel verteilen. Der feindliche Kommandant wirkt hier zu schwach, untersucht ist das nicht. Hügelgrößen, Hangtempo und Höhenbonus sind ein erster Vorschlag. Die Bedienung am Hang habe ich nicht gespielt, nur den Stand per Screenshot geprüft
 - **Große Schlacht (Tarik):** Schützen folgen ihrer Infanterie (`screenFollowDistance`, 10 m). Als untätiger Held gewinnst du 100 gegen 100 in 1 von 6 Läufen, meist weil dein Held fällt; aus der Kommandoansicht ohne Befehl 5 von 6 (84 bis 127 s)
@@ -311,12 +312,12 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - **Bedrohungen (Tarik):** 8 m, 3 Feinde und 3 s Abklingzeit sind ein erster Vorschlag (`DECISIONS.md` 2026-11-06). Formationen im befohlenen Vorrücken drehen sich nicht; der Kommandant gibt meist genau solche Befehle, dein Flankenangriff trifft ihn also weiter voll
 - **Haltung (Tarik):** Reagieren ist Standard. Dann läuft eine haltende Linie einem anrückenden Feind 10 m entgegen und verliert den Vorteil des Haltens; wer ihn will, stellt R auf Stellung halten. Ob Reagieren der richtige Standard ist und ob 10 m und 30 m passen, beim Spielen entscheiden (`DECISIONS.md` 2026-11-01). Die Sandbox hat noch keine Taste für die Haltung (H setzt Stellung halten)
 - Formationen und Hindernisse: Beim Umformen laufen Soldaten geradeaus zum neuen Slot, ein Slot hinter einer Wand wird erst erreicht, wenn die Formation weiterzieht (nur lokales Steering, CLAUDE.md 3.6). Hindernisse sind nur im Overlay sichtbar (keine Meshes vor M4)
-- Sounds sind Platzhalter (M5), Figuren sind Gliederpuppen aus der Pipeline (echte Modelle kommen in M4 Task 9, ebenfalls aus der Pipeline)
+- Sounds sind Platzhalter (M5). Figuren sind die Gliederpuppen aus der Pipeline; Rüstungs- und Truppenvarianten kommen mit M4b. Bäume stehen nur im Bild, Soldaten laufen durch sie hindurch (die Sim kennt nur Waldzellen)
 - Bogen und Lanze: zwei Grammatik-Erweiterungen geplant, siehe [Papier-Test](combat/papier-test-bogen-lanze.md)
 
 ## Aktueller Meilenstein
 
-**M4 Schlacht** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 100 gegen 100 · 2 Massen-Rendering · ✅ 3 Höhe · ✅ 4 Wald und Gelände · ✅ 5 Speer · ✅ 6 Reiterei: Sim · ✅ 7 Reiterei: Führung · ✅ 8 Drei Karten mit Aufstellung · 9 Modelle aus der Pipeline · 10 Fun-Gate M4.
+**M4 Schlacht** (Taskliste in CLAUDE.md, Abschnitt 6): ✅ 1 100 gegen 100 · 2 Massen-Rendering · ✅ 3 Höhe · ✅ 4 Wald und Gelände · ✅ 5 Speer · ✅ 6 Reiterei: Sim · ✅ 7 Reiterei: Führung · ✅ 8 Drei Karten mit Aufstellung · ✅ 9 Modelle aus der Pipeline · 10 Fun-Gate M4.
 
 **M3 Feldherr** ist abgeschlossen (Fun-Gate bestanden am 2026-11-07): Haltung, Bedrohungen, Commander-Utility-AI, Lanchester, Fernkampf (Bots), 50 gegen 50. Die Befehlsreichweite ist nach dem Spielen wieder entfernt worden.
 

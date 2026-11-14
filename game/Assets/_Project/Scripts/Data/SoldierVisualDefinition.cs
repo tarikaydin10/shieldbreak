@@ -61,6 +61,18 @@ namespace Shieldbreak.Data
         public Vector3 shieldBackEuler = new Vector3(0f, 180f, 0f);
         [Tooltip("Leaping overhead: height of the jump arc (m).")]
         [Min(0f)] public float leapHeight = 0.3f;
+
+        [Header("Horse and lance (models from the pipeline: CHR_horse_*, PRP_horse_leg, WPN_lance)")]
+        [Tooltip("Horse body with saddle and saddle cloth, per team (index = team). Its origin is the seat of the saddle.")]
+        public GameObject[] horseBodies = new GameObject[2];
+        [Tooltip("One leg, origin at the hoof; four of them hang under the body and swing with the speed.")]
+        public GameObject horseLeg;
+        public GameObject lance;
+        [Tooltip("The seat of the saddle above the ground (m).")]
+        [Min(0.5f)] public float seatHeight = 1.45f;
+        [Tooltip("Hip joints of the legs in the horse frame (x right, y up, z forward): front left, front right; the hind legs mirror z by hindZ.")]
+        public Vector3 frontHip = new Vector3(-0.17f, 0.95f, 0.62f);
+        public float hindZ = -0.58f;
         [Tooltip("Limb segment in skin colour for the forearms, per team.")]
         public Part[] forearms = { new Part(), new Part() };
 

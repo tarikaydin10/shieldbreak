@@ -1,0 +1,16 @@
+{
+  "name": "ENV_tree_pine_a",
+  "category": "environment",
+  "generator": "tree",
+  "seed": 3,
+  "params": {
+    "kind": "pine",
+    "height": 7.5,
+    "tiers": 3
+  },
+  "colors": {
+    "trunk": "wood_dark",
+    "crown": "foliage",
+    "crown_dark": "grass_dark"
+  }
+}

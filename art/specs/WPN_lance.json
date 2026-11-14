@@ -1,0 +1,20 @@
+{
+  "name": "WPN_lance",
+  "category": "weapon_lance",
+  "generator": "spear",
+  "seed": 1,
+  "params": {
+    "length": 4.1,
+    "head_length": 0.26,
+    "head_width": 0.04,
+    "shaft_radius": 0.03,
+    "grip_from_butt": 0.7
+  },
+  "colors": {
+    "shaft": "wood_light",
+    "head": "steel_light",
+    "socket": "iron",
+    "ferrule": "iron_dark",
+    "binding": "leather_dark"
+  }
+}

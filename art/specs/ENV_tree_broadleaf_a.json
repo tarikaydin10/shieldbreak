@@ -1,0 +1,16 @@
+{
+  "name": "ENV_tree_broadleaf_a",
+  "category": "environment",
+  "generator": "tree",
+  "seed": 5,
+  "params": {
+    "kind": "broadleaf",
+    "height": 7,
+    "crowns": 2
+  },
+  "colors": {
+    "trunk": "wood_mid",
+    "crown": "foliage",
+    "crown_dark": "grass_dark"
+  }
+}
