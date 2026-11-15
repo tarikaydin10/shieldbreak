@@ -31,10 +31,14 @@ namespace Shieldbreak.Sim.Orders
             return math.clamp(files, 1, math.max(1, members));
         }
 
+        /// <summary>An enemy closer to the new front than this (m, across the line) gives no side to face.</summary>
+        public const float EnemySideMin = 2f;
+
         /// <summary>
         /// A drawn front line from <paramref name="a"/> to <paramref name="b"/>. With <paramref name="setWidth"/> every
-        /// formation is stretched to its share of the line, otherwise it keeps its width. The group faces away from
-        /// where it stands; a line drawn right through the group keeps the current front. One order per formation is
+        /// formation is stretched to its share of the line, otherwise it keeps its width. The group faces the side of
+        /// the nearest enemy formation; without one (or with the enemy right on the line) it faces away from where it
+        /// stands, and a line drawn right through the group keeps the current front. One order per formation is
         /// written into <paramref name="orders"/>, same index as <paramref name="ids"/>.
         /// </summary>
         public static void PlanLine(NativeArray<FormationData>.ReadOnly formations, NativeArray<int> ids, int count,
@@ -43,26 +47,61 @@ namespace Shieldbreak.Sim.Orders
             if (count <= 0) return;
             float2 mean = MeanAnchor(formations, ids, count, out float2 meanFacing);
             float length = math.length(b - a);
+            float2 centre = (a + b) * 0.5f;
             float2 along = length > 1e-4f ? (b - a) / length : new float2(meanFacing.y, -meanFacing.x);
             float2 facing = new float2(-along.y, along.x);
-            float side = math.dot((a + b) * 0.5f - mean, facing);
-            if (side < -0.5f || (side <= 0.5f && math.dot(facing, meanFacing) < 0f)) facing = -facing;
+            float enemySide = NearestEnemy(formations, formations[ids[0]].Team, centre, out float2 enemy)
+                ? math.dot(enemy - centre, facing) : 0f;
+            if (math.abs(enemySide) >= EnemySideMin)
+            {
+                if (enemySide < 0f) facing = -facing;
+            }
+            else
+            {
+                float side = math.dot(centre - mean, facing);
+                if (side < -0.5f || (side <= 0.5f && math.dot(facing, meanFacing) < 0f)) facing = -facing;
+            }
             float available = setWidth ? math.max(length - gap * (count - 1), 0f) : -1f;
-            Place(formations, ids, count, (a + b) * 0.5f, facing, available, gap, settings, orders);
+            Place(formations, ids, count, centre, facing, available, gap, settings, orders);
         }
 
         /// <summary>
         /// A click instead of a drag: the group keeps its widths and lines up side by side, centred on
-        /// <paramref name="target"/> and facing the way it walks.
+        /// <paramref name="target"/> and facing the nearest enemy formation; without one it faces the way it walks.
         /// </summary>
         public static void PlanPoint(NativeArray<FormationData>.ReadOnly formations, NativeArray<int> ids, int count,
             float2 target, float gap, in FormationSettings settings, NativeArray<FormationOrder> orders)
         {
             if (count <= 0) return;
             float2 mean = MeanAnchor(formations, ids, count, out float2 meanFacing);
-            float2 walk = target - mean;
-            float2 facing = math.lengthsq(walk) > 1f ? math.normalize(walk) : meanFacing;
+            float2 facing;
+            if (NearestEnemy(formations, formations[ids[0]].Team, target, out float2 enemy) && math.distance(enemy, target) >= EnemySideMin)
+                facing = math.normalize(enemy - target);
+            else
+            {
+                float2 walk = target - mean;
+                facing = math.lengthsq(walk) > 1f ? math.normalize(walk) : meanFacing;
+            }
             Place(formations, ids, count, target, facing, -1f, gap, settings, orders);
+        }
+
+        /// <summary>Anchor of the enemy formation with living members nearest to <paramref name="point"/> (ties: lower id).</summary>
+        public static bool NearestEnemy(NativeArray<FormationData>.ReadOnly formations, int team, float2 point, out float2 enemy)
+        {
+            enemy = point;
+            float best = float.MaxValue;
+            for (int f = 0; f < formations.Length; f++)
+            {
+                var g = formations[f];
+                if (g.Team == team || g.MemberCount <= 0) continue;
+                float d = math.distancesq(g.Position, point);
+                if (d < best)
+                {
+                    best = d;
+                    enemy = g.Position;
+                }
+            }
+            return best < float.MaxValue;
         }
 
         /// <param name="available">Front width to share out (m), or negative to keep every formation's width.</param>

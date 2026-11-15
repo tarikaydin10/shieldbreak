@@ -465,6 +465,34 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void WithAnEnemy_LinesAndClicksFaceIt_WhereverTheGroupStands()
+        {
+            using var world = World(40);
+            var s = TestScenarios.Formations;
+            int f = world.SpawnFormation(0, 0, FormationType.Line, 10, 20, new float2(40f, 40f), new float2(1f, 0f), TestScenarios.AgentRadius);
+            world.SpawnFormation(1, 1, FormationType.Line, 10, 20, new float2(80f, 40f), new float2(-1f, 0f), TestScenarios.AgentRadius);
+            var toEnemy = new float2(1f, 0f);
+
+            // A line behind the group, drawn either way: still faces the enemy, not away from where it stood
+            foreach (var (a, b) in new[] { (new float2(20f, 30f), new float2(20f, 50f)), (new float2(20f, 50f), new float2(20f, 30f)) })
+            {
+                var behind = Plan(world, new[] { f }, (ids, o) =>
+                    FormationLinePlanner.PlanLine(world.Formations, ids, 1, a, b, true, 2f, s, o));
+                Assert.That(math.dot(behind[0].Facing, toEnemy), Is.GreaterThan(0.999f), $"line {a} → {b}");
+            }
+
+            // A click behind the group faces the enemy instead of the way it walks
+            var back = Plan(world, new[] { f }, (ids, o) =>
+                FormationLinePlanner.PlanPoint(world.Formations, ids, 1, new float2(20f, 40f), 2f, s, o));
+            Assert.That(math.dot(back[0].Facing, toEnemy), Is.GreaterThan(0.999f));
+
+            // A click off to the side turns towards the enemy
+            var side = Plan(world, new[] { f }, (ids, o) =>
+                FormationLinePlanner.PlanPoint(world.Formations, ids, 1, new float2(80f, 10f), 2f, s, o));
+            Assert.That(math.dot(side[0].Facing, new float2(0f, 1f)), Is.GreaterThan(0.999f));
+        }
+
+        [Test]
         public void Click_KeepsWidths_FacesTheWalk_AndCircleStaysBehindTheLine()
         {
             using var world = World(40);

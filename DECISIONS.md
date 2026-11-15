@@ -563,5 +563,12 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 | Der Held hat einen Namen und eine Geschichte, kein unbeschriebenes Blatt | Folgt aus B; die Tafeln können ihn ansprechen und Keorn kann ihn kennen | Namenloser Hauptmann |
 | Namen, Orte und Ablauf des ersten Akts in `docs/kriegszug/plan.md` sind Vorschläge von Claude; die Texte schreibt Tarik (M4b Task 8) | CLAUDE.md 8: Design-Entscheidungen bei Tarik | – |
 
+## 2026-11-15 — Blickrichtung beim Platzieren: zum Feind
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Rechtsklick und gezogene Frontlinie richten die Front zur nächsten feindlichen Formation (bei der Linie: auf deren Seite der Linie). Nur ohne Feind oder mit dem Feind direkt auf der Linie (unter 2 m) gilt die alte Regel (Laufrichtung, weg von der Truppe) | Tarik: Der Pfeil zeigte beim Platzieren meist in die falsche Richtung. In der Aufstellung springen Formationen sofort an den neuen Platz, „weg von dort, wo sie steht“ klappte deshalb bei jeder Linie hinter der Truppe um; im Feld drehte ein Rückzug per Klick der Truppe den Rücken zum Feind | Richtung aus der Ziehrichtung (links→rechts), eigene Dreh-Taste |
+| Eine Front, die vom Feind wegschaut, lässt sich per Zeichnen nicht mehr legen | Der seltene Fall (Nachhut) rechtfertigt nicht, dass der häufige danebengeht | – |
+
 ## Offen (Entscheidung bis M3)
 - Spielname (Arbeitstitel SHIELDBREAK)

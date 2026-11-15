@@ -196,8 +196,8 @@ Hauptmenü → Sandbox. Vier Formationen zu je 10 Soldaten: A Linie, A Schildwal
 | Taste | Aktion |
 |---|---|
 | Linksklick auf einen Soldaten / Rahmen ziehen | Formation(en) auswählen (ein Soldat wählt seine ganze Formation); Shift fügt hinzu; 1 / 2 / 3 = Team A / Team B / alle |
-| Rechtsklick | Auswahl marschiert dorthin, Blick in Laufrichtung, Breite bleibt |
-| Rechts ziehen | Frontlinie zeichnen: Position, Breite und Blickrichtung (weg von dort, wo die Truppe steht); mehrere Formationen teilen sich die Linie nebeneinander |
+| Rechtsklick | Auswahl marschiert dorthin, Front zur nächsten feindlichen Formation (ohne Feind: in Laufrichtung), Breite bleibt |
+| Rechts ziehen | Frontlinie zeichnen: Position, Breite und Blickrichtung (Front zur Seite der nächsten feindlichen Formation, ohne Feind weg von dort, wo die Truppe steht); mehrere Formationen teilen sich die Linie nebeneinander |
 | 4 / 5 / 6 / 7 / 8 | Form: Linie / Schildwall / Keil / Kreis / locker |
 | H | **Halten:** bleibt stehen, wo sie gerade ist; kämpft nur, wenn ein Feind vor die Front kommt |
 | R | **Vorrücken:** marschiert geschlossen zur nächsten feindlichen Formation, hält 1,5 m davor und kämpft aus der Formation; folgt dem Feind, wenn er ausweicht |
