@@ -19,7 +19,7 @@ namespace Shieldbreak.Presentation
 
         public SimRunner runner;
         public SoldierVisualDefinition visual;
-        [Tooltip("Optional: agents this renderer draws as fighting figures (the first maxFigures) get only their selection ring here.")]
+        [Tooltip("Optional: agents this renderer draws as fighting figures (all of them) get only their selection ring here.")]
         public CombatFigureRenderer figures;
         [Tooltip("Height of a dead soldier's body lying on the ground (m).")]
         [Min(0f)] public float deadLift = 0.15f;
@@ -52,7 +52,7 @@ namespace Shieldbreak.Presentation
             var agents = world.Agents;
             float ring = visual.selectionRadius * 2f;
             // Agents shown as figures only get their selection ring here
-            int firstBody = figures != null && figures.isActiveAndEnabled ? Mathf.Min(agents.Length, figures.maxFigures) : 0;
+            int firstBody = figures != null && figures.isActiveAndEnabled ? agents.Length : 0;
             for (int i = 0; i < agents.Length; i++)
             {
                 var a = agents[i];

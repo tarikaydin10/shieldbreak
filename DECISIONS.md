@@ -547,5 +547,13 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 | **Low-Fantasy in einer eigenen Welt** (Tarik): erfundene Reiche, Namen und Geschichte, mittelalterliche Technik, keine Magie | Freiheit für Story und Fraktionen im Kriegszug, kein Geschichtsbuch im Nacken; die bisherigen Waffen und Rüstungen passen ohne Umbau | Frühmittelalter historisch, Antike |
 | **Reihenfolge** (Tarik): erst M4 abschließen (Massen-Rendering, Fun-Gate), dann M4b Kriegszug mit Story und Inszenierung | Tarik will Inszenierung, Immersion und einen roten Faden; der Kriegszug ist der Ort dafür, die Schlacht davor muss tragen | Inszenierung der einzelnen Schlacht vorziehen |
 
+## 2026-11-15 — M4 Task 2: Massen-Rendering
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Jeder Soldat wird weiter vollständig gestellt (Arme, Waffe, Lehnen, Fallen); ferne werden auf einer versteckten Schablonen-Figur pro Team und Reiter gestellt und ihre Teile per Instancing gezeichnet | Lesbare Masse (Säule 3): Auch aus 40 m sieht man Hiebe und Schilde. Eine Kopie der Pose-Logik für ferne Soldaten hätte zwei Wahrheiten gebracht | Statische Haltung für ferne Soldaten; VAT-Animationen |
+| 24 eigene Figuren (die nächsten zur Kamera) plus der Held | CLAUDE.md 3.2 nennt etwa 20 | – |
+| Gemessen im Wechsel auf demselben Rechner: 100 gegen 100 vorher 374, jetzt 361 FPS im Schnitt, langsamster Frame 17 statt 11 bis 12 ms; Stresstest vorher 64 Figuren und 436 Kapseln mit 391 FPS, jetzt 500 Figuren mit 268 FPS | Auf diesem Rechner ist die CPU der Engpass, das Stellen kostet etwas; der Gewinn liegt bei den Zeichenaufrufen und damit auf schwächerer Grafik. Nicht auf einem schwachen Rechner gemessen | – |
+
 ## Offen (Entscheidung bis M3)
 - Spielname (Arbeitstitel SHIELDBREAK)

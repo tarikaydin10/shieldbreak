@@ -99,7 +99,7 @@ namespace Shieldbreak.EditorTools
             var figures = sim.AddComponent<CombatFigureRenderer>();
             figures.runner = runner;
             figures.visual = visual;
-            figures.maxFigures = 64;
+            figures.fullFigures = 24;
             var input = sim.AddComponent<PlayerCombatInput>();
             input.runner = runner;
             input.combatCamera = thirdPerson;

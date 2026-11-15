@@ -128,7 +128,7 @@ namespace Shieldbreak.EditorTools
             var figures = sim.AddComponent<CombatFigureRenderer>();
             figures.runner = runner;
             figures.visual = visual;
-            figures.maxFigures = 64;
+            figures.fullFigures = 24;
             renderer.figures = figures;
             var orders = sim.AddComponent<SandboxOrders>();
             orders.runner = runner;

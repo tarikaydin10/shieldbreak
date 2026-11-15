@@ -9,18 +9,24 @@ using UnityEngine;
 namespace Shieldbreak.Presentation
 {
     /// <summary>
-    /// Draws fighters as low-poly figures (CLAUDE.md: GameObjects only for the ~20 nearest agents): armless body,
+    /// Draws fighters as low-poly figures (CLAUDE.md 3.2: GameObjects only for the nearest agents, M4 task 2): armless body,
     /// helmet, shield on an IK left arm, sword on an IK right arm following the sim's WeaponPath (interpolated between
     /// ticks), two-hand weapons with both hands on the grip and the shield slung on the back, drawing on a weapon switch,
     /// a jump arc for leaping attacks, lean in windup/release, flinch on hits, stagger when stunned, falling when dead.
     /// Riders sit on the horse from the pipeline (body and four legs that swing with its speed) and couch the lance.
+    /// Every fighter is posed the same way; the nearest (and the hero) keep figures of their own, everybody else is posed
+    /// on a hidden template figure and drawn with instancing, so a battle costs a few draw calls per part, not per soldier.
+    /// What a fighter looks like over time (flinch, fall, shield, gait) belongs to the agent, not to the figure.
     /// Reads sim state only.
     /// </summary>
     public class CombatFigureRenderer : MonoBehaviour
     {
         public SimRunner runner;
         public SoldierVisualDefinition visual;
-        [Min(1)] public int maxFigures = 256;
+        [Tooltip("Fighters nearest the camera that get figures of their own (GameObjects); the hero always does.")]
+        [Min(1)] public int fullFigures = 24;
+        [Tooltip("Camera the distance is measured from; empty = the main camera.")]
+        public Camera viewer;
         [Tooltip("Length and thickness of an arrow in flight (m); larger than life, so it reads from afar.")]
         public Vector2 arrowSize = new Vector2(1f, 0.05f);
         [Tooltip("Colour of an arrow (wood_dark of the palette): a cube's UVs would span the whole palette texture.")]
@@ -68,14 +74,34 @@ namespace Shieldbreak.Presentation
             /// <summary>Riders only: the horse and its four leg pivots (front left, front right, hind left, hind right), and the lance.</summary>
             public Transform horse, lance;
             public Transform[] legs;
-            public float gait;
-            public float shieldT, flinch, deadTime = -1f;
+            /// <summary>Every drawn part and its mesh (a template figure hands these to the instanced batches).</summary>
+            public readonly List<(Transform part, Mesh mesh)> parts = new List<(Transform, Mesh)>();
+            public int kind;
+        }
+
+        /// <summary>How an agent looks over time: carried by the agent, whichever figure draws it this frame.</summary>
+        class Look
+        {
+            public float gait, shieldT, flinch, deadTime = -1f;
             /// <summary>Local axis the body falls around (away from the killer) and how sideways that fall is.</summary>
             public Vector3 fallAxis = Vector3.back;
             public float fallSideways = 1f;
         }
 
-        readonly List<Figure> figures = new List<Figure>();
+        Look[] looks = System.Array.Empty<Look>();
+        readonly Dictionary<int, Figure> near = new Dictionary<int, Figure>();
+        readonly Dictionary<int, Stack<Figure>> spare = new Dictionary<int, Stack<Figure>>();
+        readonly Figure[] templates = new Figure[4];
+        readonly List<Figure> all = new List<Figure>();
+        readonly Dictionary<Mesh, List<Matrix4x4>> batches = new Dictionary<Mesh, List<Matrix4x4>>();
+        float[] sortKeys = System.Array.Empty<float>();
+        int[] sortIds = System.Array.Empty<int>();
+        readonly HashSet<int> wanted = new HashSet<int>();
+        readonly List<int> leaving = new List<int>();
+        Material instanced;
+        int figureCount;
+
+        public int FullFigureCount => near.Count;
 
         void OnEnable()
         {
@@ -89,12 +115,16 @@ namespace Shieldbreak.Presentation
 
         void Clear()
         {
-            foreach (var f in figures)
+            foreach (var f in all)
             {
                 if (f.root != null) Destroy(f.root.gameObject);
                 if (f.horse != null) Destroy(f.horse.gameObject);
             }
-            figures.Clear();
+            all.Clear();
+            near.Clear();
+            spare.Clear();
+            for (int k = 0; k < templates.Length; k++) templates[k] = null;
+            looks = System.Array.Empty<Look>();
         }
 
         Transform Part(Transform parent, string partName, SoldierVisualDefinition.Part data)
@@ -103,6 +133,7 @@ namespace Shieldbreak.Presentation
             go.transform.SetParent(parent, false);
             go.AddComponent<MeshFilter>().sharedMesh = data.mesh;
             go.AddComponent<MeshRenderer>().sharedMaterial = visual.material;
+            building?.parts.Add((go.transform, data.mesh));
             // Static parts carry their attach offset; limb and weapon matrices are set every frame
             var m = data.LocalMatrix;
             go.transform.localPosition = m.GetPosition();
@@ -111,10 +142,13 @@ namespace Shieldbreak.Presentation
             return go.transform;
         }
 
+        Figure building;
+
         Figure Build(int team, bool mounted)
         {
             var look = visual.teams[team];
-            var f = new Figure { root = new GameObject($"Fighter_{figures.Count}").transform };
+            var f = new Figure { root = new GameObject($"Fighter_{figureCount++}").transform, kind = team * 2 + (mounted ? 1 : 0) };
+            building = f;
             f.root.SetParent(transform, false);
             f.body = new GameObject("Body").transform;
             f.body.SetParent(f.root, false);
@@ -129,6 +163,8 @@ namespace Shieldbreak.Presentation
             f.weapon2 = Part(f.root, "TwoHandWeapon", visual.twoHandWeapon);
             f.weapon3 = Part(f.root, "Polearm", visual.polearmWeapon);
             if (mounted) BuildHorse(f, team);
+            building = null;
+            all.Add(f);
             return f;
         }
 
@@ -154,27 +190,31 @@ namespace Shieldbreak.Presentation
             {
                 f.horse = new GameObject("Horse").transform;
                 f.horse.SetParent(f.root.parent, false);
-                horseBodies[Mathf.Clamp(team, 0, horseBodies.Length - 1)].Attach(f.horse, "Body", visual.material, Matrix4x4.Translate(Vector3.up * visual.seatHeight));
+                var horseBody = horseBodies[Mathf.Clamp(team, 0, horseBodies.Length - 1)];
+                f.parts.Add((horseBody.Attach(f.horse, "Body", visual.material, Matrix4x4.Translate(Vector3.up * visual.seatHeight)), horseBody.Mesh));
                 f.legs = new Transform[4];
                 for (int l = 0; l < 4; l++)
                 {
                     var hip = new GameObject($"Leg{l}").transform;
                     hip.SetParent(f.horse, false);
                     hip.localPosition = new Vector3(l % 2 == 0 ? visual.frontHip.x : -visual.frontHip.x, visual.frontHip.y, l < 2 ? visual.frontHip.z : visual.hindZ);
-                    horseLeg.Attach(hip, "Leg", visual.material, Matrix4x4.Translate(Vector3.down * visual.frontHip.y));
+                    f.parts.Add((horseLeg.Attach(hip, "Leg", visual.material, Matrix4x4.Translate(Vector3.down * visual.frontHip.y)), horseLeg.Mesh));
                     f.legs[l] = hip;
                 }
             }
-            if (lanceModel.IsValid) f.lance = lanceModel.Attach(f.root, "Lance", visual.material, Matrix4x4.identity);
+            if (lanceModel.IsValid)
+            {
+                f.lance = lanceModel.Attach(f.root, "Lance", visual.material, Matrix4x4.identity);
+                f.parts.Add((f.lance, lanceModel.Mesh));
+            }
         }
 
         /// <summary>Horse under the rider: legs swing with the speed (diagonal pairs, like a trot), it falls over with him.</summary>
-        void PlaceHorse(Figure f, Vector3 pos, Quaternion facing, float speed, float fall, float dt)
+        void PlaceHorse(Figure f, Look look, Vector3 pos, Quaternion facing, float speed, float fall, float dt)
         {
-            if (f.horse.gameObject.activeSelf != f.root.gameObject.activeSelf) f.horse.gameObject.SetActive(f.root.gameObject.activeSelf);
             f.horse.SetPositionAndRotation(pos + Vector3.down * (0.35f * fall), facing * Quaternion.AngleAxis(80f * fall, Vector3.forward));
-            f.gait = Mathf.Repeat(f.gait + speed * dt / stride, 1f);
-            float swing = legSwing * Mathf.Clamp01(speed / 3f) * (1f - fall) * Mathf.Sin(f.gait * 2f * Mathf.PI);
+            look.gait = Mathf.Repeat(look.gait + speed * dt / stride, 1f);
+            float swing = legSwing * Mathf.Clamp01(speed / 3f) * (1f - fall) * Mathf.Sin(look.gait * 2f * Mathf.PI);
             for (int l = 0; l < 4; l++)
                 f.legs[l].localRotation = Quaternion.Euler(l == 0 || l == 3 ? swing : -swing, 0f, 0f);
         }
@@ -234,6 +274,7 @@ namespace Shieldbreak.Presentation
         {
             if (arrowMaterial != null) Destroy(arrowMaterial);
             if (arrowTexture != null) Destroy(arrowTexture);
+            if (instanced != null) Destroy(instanced);
         }
 
         void LateUpdate()
@@ -242,38 +283,149 @@ namespace Shieldbreak.Presentation
             if (world == null || visual == null) return;
             var agents = world.Agents;
             var combat = world.Combat;
-            int count = Mathf.Min(agents.Length, maxFigures);
-            while (figures.Count < count) figures.Add(Build(Mathf.Clamp(agents[figures.Count].Team, 0, 1), agents[figures.Count].IsMounted));
+            int count = agents.Length;
+            if (looks.Length != count)
+            {
+                var grown = new Look[count];
+                for (int i = 0; i < count; i++) grown[i] = i < looks.Length ? looks[i] : new Look();
+                looks = grown;
+            }
 
             foreach (var e in runner.FrameEvents)
             {
-                if (e.Type == CombatEventType.Hit && e.Damage > 0f && e.Target < figures.Count) figures[e.Target].flinch = 1f;
-                if (e.Type == CombatEventType.Death && e.Target < figures.Count && e.Attacker >= 0 && e.Attacker < agents.Length)
+                if (e.Type == CombatEventType.Hit && e.Damage > 0f && e.Target >= 0 && e.Target < count) looks[e.Target].flinch = 1f;
+                if (e.Type == CombatEventType.Death && e.Target >= 0 && e.Target < count && e.Attacker >= 0 && e.Attacker < count)
                 {
                     // Fall away from the killer: direction in the dead soldier's own frame
                     var target = agents[e.Target];
                     float2 away = math.normalizesafe(target.Position - agents[e.Attacker].Position, -target.Facing);
                     var rot = Quaternion.LookRotation(new Vector3(target.Facing.x, 0f, target.Facing.y), Vector3.up);
                     Vector3 local = Quaternion.Inverse(rot) * new Vector3(away.x, 0f, away.y);
-                    figures[e.Target].fallAxis = Vector3.Cross(Vector3.up, local).normalized;
-                    figures[e.Target].fallSideways = Mathf.Abs(local.x);
+                    looks[e.Target].fallAxis = Vector3.Cross(Vector3.up, local).normalized;
+                    looks[e.Target].fallSideways = Mathf.Abs(local.x);
                 }
             }
 
             DrawArrows(world);
+            ChooseNear(world);
+            foreach (var list in batches.Values) list.Clear();
 
             float dt = Time.unscaledDeltaTime;
-            var setup = world.CombatSetup;
-            bool hasCombat = world.HasCombat;
             for (int i = 0; i < count; i++)
             {
                 var a = agents[i];
-                var c = combat[i];
-                var f = figures[i];
                 // Fled soldiers (Sim/Morale) left the field
-                if (f.root.gameObject.activeSelf == a.HasFled) f.root.gameObject.SetActive(!a.HasFled);
-                if (f.horse != null && f.horse.gameObject.activeSelf == a.HasFled) f.horse.gameObject.SetActive(!a.HasFled);
                 if (a.HasFled) continue;
+                int kind = Mathf.Clamp(a.Team, 0, 1) * 2 + (a.IsMounted ? 1 : 0);
+                bool own = near.TryGetValue(i, out var f);
+                if (!own) f = Template(kind);
+                Pose(world, i, f, looks[i], dt);
+                if (!own) Collect(f);
+            }
+            DrawBatches();
+        }
+
+        /// <summary>The nearest fighters to the camera, and the hero, get figures of their own; the others give theirs back.</summary>
+        void ChooseNear(Sim.Core.SimWorld world)
+        {
+            var agents = world.Agents;
+            var cam = viewer != null ? viewer : Camera.main;
+            Vector3 eye = cam != null ? cam.transform.position : Vector3.zero;
+            if (sortKeys.Length < agents.Length)
+            {
+                sortKeys = new float[agents.Length];
+                sortIds = new int[agents.Length];
+            }
+            int n = 0;
+            for (int i = 0; i < agents.Length; i++)
+            {
+                if (agents[i].HasFled) continue;
+                sortKeys[n] = DistanceSq(i, eye);
+                sortIds[n++] = i;
+            }
+            System.Array.Sort(sortKeys, sortIds, 0, n);
+            wanted.Clear();
+            int hero = runner.PlayerAgent;
+            if (hero >= 0 && hero < agents.Length && !agents[hero].HasFled) wanted.Add(hero);
+            for (int k = 0; k < n && wanted.Count < fullFigures; k++) wanted.Add(sortIds[k]);
+
+            leaving.Clear();
+            foreach (var pair in near)
+                if (!wanted.Contains(pair.Key) || KindOf(agents[pair.Key]) != pair.Value.kind) leaving.Add(pair.Key);
+            foreach (int i in leaving)
+            {
+                var f = near[i];
+                near.Remove(i);
+                Show(f, false);
+                if (!spare.TryGetValue(f.kind, out var stack)) spare[f.kind] = stack = new Stack<Figure>();
+                stack.Push(f);
+            }
+            foreach (int i in wanted)
+            {
+                if (near.ContainsKey(i)) continue;
+                int kind = KindOf(agents[i]);
+                var f = spare.TryGetValue(kind, out var stack) && stack.Count > 0 ? stack.Pop() : Build(kind / 2, (kind & 1) == 1);
+                Show(f, true);
+                near[i] = f;
+            }
+        }
+
+        float DistanceSq(int i, Vector3 eye)
+        {
+            float2 p = runner.InterpolatedPosition(i);
+            float dx = p.x - eye.x, dz = p.y - eye.z;
+            return dx * dx + dz * dz;
+        }
+
+        static int KindOf(in Sim.Agents.AgentData a) => Mathf.Clamp(a.Team, 0, 1) * 2 + (a.IsMounted ? 1 : 0);
+
+        static void Show(Figure f, bool shown)
+        {
+            f.root.gameObject.SetActive(shown);
+            if (f.horse != null) f.horse.gameObject.SetActive(shown);
+        }
+
+        /// <summary>A hidden figure per team and mount, posed for each far fighter in turn and read off into the batches.</summary>
+        Figure Template(int kind)
+        {
+            if (templates[kind] != null) return templates[kind];
+            var f = Build(kind / 2, (kind & 1) == 1);
+            f.root.name = $"Template_{kind}";
+            Show(f, false);
+            return templates[kind] = f;
+        }
+
+        void Collect(Figure f)
+        {
+            foreach (var (part, mesh) in f.parts)
+            {
+                if (mesh == null || !part.gameObject.activeSelf) continue;
+                if (!batches.TryGetValue(mesh, out var list)) batches[mesh] = list = new List<Matrix4x4>();
+                list.Add(part.localToWorldMatrix);
+            }
+        }
+
+        void DrawBatches()
+        {
+            if (instanced == null) instanced = new Material(visual.material) { hideFlags = HideFlags.HideAndDontSave, enableInstancing = true };
+            var rp = new RenderParams(instanced) { shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows = true };
+            const int chunk = 1023;
+            foreach (var pair in batches)
+            {
+                var list = pair.Value;
+                for (int start = 0; start < list.Count; start += chunk)
+                    Graphics.RenderMeshInstanced(rp, pair.Key, 0, list, Mathf.Min(chunk, list.Count - start), start);
+            }
+        }
+
+        /// <summary>Poses one fighter on a figure: its own, or the template that stands in for it.</summary>
+        void Pose(Sim.Core.SimWorld world, int i, Figure f, Look look, float dt)
+        {
+            var a = world.Agents[i];
+            var c = world.Combat[i];
+            var setup = world.CombatSetup;
+            bool hasCombat = world.HasCombat;
+            {
                 Vector3 pos = SimRunner.ToWorld(runner.InterpolatedPosition(i));
                 var facing = Quaternion.LookRotation(new Vector3(a.Facing.x, 0f, a.Facing.y), Vector3.up);
 
@@ -325,8 +477,8 @@ namespace Shieldbreak.Presentation
 
                 if (c.State == CombatState.Stunned) lean = stunLean;
                 if (hasCombat && c.State != CombatState.Dead) lean += lowHealthSlouch * Mathf.Clamp01(1f - c.Health / setup.Tuning.HealthMax);
-                f.flinch = Mathf.MoveTowards(f.flinch, 0f, dt / flinchSeconds);
-                lean -= flinchDegrees * f.flinch;
+                look.flinch = Mathf.MoveTowards(look.flinch, 0f, dt / flinchSeconds);
+                lean -= flinchDegrees * look.flinch;
 
                 // Shield bash: pull back in the windup, punch forward in the active phase, lean into it
                 bool bashing = c.State == CombatState.Special;
@@ -344,30 +496,30 @@ namespace Shieldbreak.Presentation
                 // Death: fall to the side over fallSeconds
                 if (c.State == CombatState.Dead)
                 {
-                    if (f.deadTime < 0f) f.deadTime = 0f;
-                    f.deadTime += dt;
+                    if (look.deadTime < 0f) look.deadTime = 0f;
+                    look.deadTime += dt;
                 }
-                else f.deadTime = -1f;
-                float fall = f.deadTime < 0f ? 0f : Mathf.SmoothStep(0f, 1f, f.deadTime / fallSeconds);
+                else look.deadTime = -1f;
+                float fall = look.deadTime < 0f ? 0f : Mathf.SmoothStep(0f, 1f, look.deadTime / fallSeconds);
                 if (riding)
                 {
                     // In the saddle until he falls; the horse goes down with him
-                    PlaceHorse(f, pos, facing, math.length(a.Velocity), fall, dt);
+                    PlaceHorse(f, look, pos, facing, math.length(a.Velocity), fall, dt);
                     f.root.position += Vector3.up * (saddleHeight * (1f - fall));
                 }
 
                 // Guard blend: shield raised (one-hand) or weapon across the body (two-hand)
                 float guardTarget = (c.BlockHeld == 1 && c.State == CombatState.Idle) || bashing ? 1f : 0f;
-                f.shieldT = Mathf.MoveTowards(f.shieldT, guardTarget, dt / shieldBlend);
+                look.shieldT = Mathf.MoveTowards(look.shieldT, guardTarget, dt / shieldBlend);
                 if (twoHand && !attacking)
                 {
-                    hand = math.lerp(hand, (float3)visual.twoHandBlockHand, f.shieldT);
-                    blade = math.normalize(math.lerp(blade, math.normalize((float3)visual.twoHandBlockBlade), f.shieldT));
+                    hand = math.lerp(hand, (float3)visual.twoHandBlockHand, look.shieldT);
+                    blade = math.normalize(math.lerp(blade, math.normalize((float3)visual.twoHandBlockBlade), look.shieldT));
                 }
 
                 // Lean pivots at the hip so the feet stay planted
                 var hip = new Vector3(0f, 0.95f, 0f);
-                var bodyRot = Quaternion.AngleAxis(85f * fall, f.fallAxis) * Quaternion.AngleAxis(lean, Vector3.right);
+                var bodyRot = Quaternion.AngleAxis(85f * fall, look.fallAxis) * Quaternion.AngleAxis(lean, Vector3.right);
                 f.body.localRotation = bodyRot;
                 // A fallen body rolls about the hip, so it also drops to lie on the ground
                 f.body.localPosition = hip - bodyRot * hip + Vector3.down * (deadDrop * fall);
@@ -399,14 +551,14 @@ namespace Shieldbreak.Presentation
                 Vector3 leftHand;
                 if (!twoHand)
                 {
-                    Vector3 grip = Vector3.Lerp(shieldRest, shieldGuard, f.shieldT);
+                    Vector3 grip = Vector3.Lerp(shieldRest, shieldGuard, look.shieldT);
                     grip += new Vector3(bashing ? 0.05f : 0f, 0f, bashPush);
                     Vector3 gripWorld = bodyToWorld.MultiplyPoint3x4(grip);
-                    var shieldRot = f.root.rotation * bodyRot * Quaternion.Euler(0f, Mathf.Lerp(shieldData.yaw, 0f, f.shieldT), 0f) * shieldData.meshMatrix.rotation;
+                    var shieldRot = f.root.rotation * bodyRot * Quaternion.Euler(0f, Mathf.Lerp(shieldData.yaw, 0f, look.shieldT), 0f) * shieldData.meshMatrix.rotation;
                     if (fall > 0f)
                     {
                         // The falling body rolls around its forward axis, which would leave the shield on its edge: tip it flat
-                        shieldRot = Quaternion.AngleAxis(85f * fall * f.fallSideways, f.root.right) * shieldRot;
+                        shieldRot = Quaternion.AngleAxis(85f * fall * look.fallSideways, f.root.right) * shieldRot;
                         gripWorld.y = Mathf.Lerp(gripWorld.y, pos.y + 0.1f, fall);
                     }
                     f.shield.SetPositionAndRotation(gripWorld, shieldRot);
