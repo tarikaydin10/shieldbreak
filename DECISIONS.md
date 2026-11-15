@@ -540,7 +540,12 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 | Das Relief bleibt ein Mesh aus den Sim-Höhen in Palettenfarben, gebaut zur Laufzeit; die Pipeline liefert das Bodenstück für flache Karten | Das Gelände ist Kartendaten, nicht ein Modell; so stimmen Bild und Sim immer überein | Gelände als FBX pro Karte |
 | Der Soldat bleibt die bisherige Pipeline-Figur | Er kommt schon aus assetforge; Rüstungs- und Truppenvarianten gehören zu M4b (Rüstung pro Soldat) | Neuer Soldat jetzt |
 
-## Offen (Entscheidung bis M3)
+## 2026-11-15 — Setting und Reihenfolge
 
-- Setting (historisch vs. Low-Fantasy); spätestens vor M4b, weil die Story davon abhängt
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| **Low-Fantasy in einer eigenen Welt** (Tarik): erfundene Reiche, Namen und Geschichte, mittelalterliche Technik, keine Magie | Freiheit für Story und Fraktionen im Kriegszug, kein Geschichtsbuch im Nacken; die bisherigen Waffen und Rüstungen passen ohne Umbau | Frühmittelalter historisch, Antike |
+| **Reihenfolge** (Tarik): erst M4 abschließen (Massen-Rendering, Fun-Gate), dann M4b Kriegszug mit Story und Inszenierung | Tarik will Inszenierung, Immersion und einen roten Faden; der Kriegszug ist der Ort dafür, die Schlacht davor muss tragen | Inszenierung der einzelnen Schlacht vorziehen |
+
+## Offen (Entscheidung bis M3)
 - Spielname (Arbeitstitel SHIELDBREAK)

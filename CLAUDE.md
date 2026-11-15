@@ -290,9 +290,8 @@ M0 bis M3 sind abgeschlossen (Fun-Gates bestanden, M3 am 2026-11-07; die ältere
 
 ## 9. Offene Entscheidungen (bis M3 erlaubt)
 
-- Setting: historisch (Antike/Mittelalter) vs. Low-Fantasy. Beeinflusst Säulen nicht.
 - Spielname. Arbeitstitel SHIELDBREAK.
-- Setting spätestens vor M4b entscheiden: Die Story des Kriegszugs hängt daran.
+- ~~Setting~~: entschieden am 2026-11-15, Low-Fantasy in einer eigenen Welt (`DECISIONS.md`).
 - ~~Progression zwischen Schlachten~~: entschieden am 2026-11-01, leichte Meta „Kriegszug“ (M4b).
 - ~~Befehlsreichweite~~: entschieden am 2026-11-07, sie fliegt raus.
 - ~~Synty oder eigene Pipeline~~: entschieden am 2026-11-07, eigene Pipeline.
