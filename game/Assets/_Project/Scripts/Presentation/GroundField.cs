@@ -25,6 +25,8 @@ namespace Shieldbreak.Presentation
         [Header("Relief")]
         [Tooltip("Size of one low-poly cell of the relief (m); the sim's ground is finer and stays the truth.")]
         [Min(1f)] public float reliefCell = 3f;
+        [Tooltip("Size of one tile of the relief (m): the camera and the shadows skip the tiles they do not see.")]
+        [Min(3f)] public float reliefTile = 60f;
         [Tooltip("Colours of the relief, one per triangle (grass, grass_dark, grass_light of the palette): many of the first, few of the last.")]
         public Color[] reliefColors =
         {
@@ -72,15 +74,27 @@ namespace Shieldbreak.Presentation
         [Range(0f, 1f)] public float backdropForest = 0.45f;
         [Tooltip("Distance between the trees of the forest beyond the map (m).")]
         [Min(1f)] public float backdropTreeSpacing = 6f;
+        [Tooltip("Size of one chunk of planted trees, bushes and rocks (m): the camera and the shadows skip the chunks they do not see.")]
+        [Min(5f)] public float plantChunk = 80f;
 
         GameObject relief;
+        readonly List<Mesh> reliefMeshes = new List<Mesh>();
         Material reliefMaterial;
         Texture2D reliefTexture;
         /// <summary>Every model that is planted: trees, then bushes, then rocks.</summary>
         GeneratedModel[] kinds = System.Array.Empty<GeneratedModel>();
         int treeCount, bushCount;
-        /// <summary>Planted instances per model, on the map (with shadows) and beyond it (without).</summary>
-        Matrix4x4[][] planted = System.Array.Empty<Matrix4x4[]>(), plantedFar = System.Array.Empty<Matrix4x4[]>();
+        /// <summary>Planted instances of one model in one chunk of the field, with the bounds of them all.</summary>
+        struct Batch
+        {
+            public Mesh Mesh;
+            public Matrix4x4[] Matrices;
+            public Bounds Bounds;
+            public bool Shadows;
+        }
+
+        /// <summary>Every batch to draw: one draw call each, skipped by the camera and the shadows when out of sight.</summary>
+        Batch[] batches = System.Array.Empty<Batch>();
         WorldGrid ground;
         Material modelMaterial;
         int firstForest, firstSwamp, columns;
@@ -135,7 +149,9 @@ namespace Shieldbreak.Presentation
         void ClearRelief()
         {
             if (relief != null) Destroy(relief);
-            planted = plantedFar = System.Array.Empty<Matrix4x4[]>();
+            foreach (var mesh in reliefMeshes) Destroy(mesh);
+            reliefMeshes.Clear();
+            batches = System.Array.Empty<Batch>();
         }
 
         void OnDestroy()
@@ -175,7 +191,11 @@ namespace Shieldbreak.Presentation
         GroundKind KindOf(WorldGrid grid, float2 p) =>
             Outside(grid.Layout, p) <= 0f ? grid.KindAt(p) : BackdropForest(grid, p) ? GroundKind.Forest : GroundKind.Open;
 
-        /// <summary>Flat-shaded triangles over the map and the land beyond it, every triangle with its own vertices and one colour.</summary>
+        /// <summary>
+        /// Flat-shaded triangles over the map and the land beyond it, every triangle with its own vertices and one colour.
+        /// Cut into tiles, each its own renderer: the camera and the shadows only draw the tiles they see, and tiles
+        /// beyond the map cast no shadow.
+        /// </summary>
         void BuildRelief(WorldGrid grid)
         {
             var layout = grid.Layout;
@@ -183,9 +203,6 @@ namespace Shieldbreak.Presentation
             float edge = Mathf.Max(margin, backdrop);
             int cellsX = Mathf.CeilToInt((layout.Width + 2f * edge) / reliefCell);
             int cellsY = Mathf.CeilToInt((layout.Height + 2f * edge) / reliefCell);
-            var vertices = new Vector3[cellsX * cellsY * 6];
-            var uvs = new Vector2[vertices.Length];
-            var triangles = new int[vertices.Length];
             float2 origin = layout.Origin - edge;
             var corners = new Vector3[(cellsX + 1) * (cellsY + 1)];
             for (int y = 0; y <= cellsY; y++)
@@ -196,23 +213,39 @@ namespace Shieldbreak.Presentation
             }
             Vector3 Corner(int x, int y) => corners[y * (cellsX + 1) + x];
 
-            int n = 0;
-            for (int y = 0; y < cellsY; y++)
-            for (int x = 0; x < cellsX; x++)
-            {
-                Vector3 a = Corner(x, y), b = Corner(x + 1, y), c = Corner(x + 1, y + 1), d = Corner(x, y + 1);
-                // Clockwise from above: the side facing the sky
-                var kind = KindOf(grid, origin + (new float2(x, y) + 0.5f) * reliefCell);
-                n = Triangle(vertices, uvs, triangles, n, a, d, b, kind, x * 73 + y * 179);
-                n = Triangle(vertices, uvs, triangles, n, b, d, c, kind, x * 151 + y * 37 + 11);
-            }
-
-            var mesh = new Mesh { name = "Relief", indexFormat = IndexFormat.UInt32, vertices = vertices, uv = uvs, triangles = triangles };
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
             relief = new GameObject("Relief");
-            relief.AddComponent<MeshFilter>().sharedMesh = mesh;
-            relief.AddComponent<MeshRenderer>().sharedMaterial = material;
+            int tile = Mathf.Max(1, Mathf.RoundToInt(reliefTile / reliefCell));
+            for (int ty = 0; ty < cellsY; ty += tile)
+            for (int tx = 0; tx < cellsX; tx += tile)
+            {
+                int w = Mathf.Min(tile, cellsX - tx), h = Mathf.Min(tile, cellsY - ty);
+                var vertices = new Vector3[w * h * 6];
+                var uvs = new Vector2[vertices.Length];
+                var triangles = new int[vertices.Length];
+                int n = 0;
+                for (int y = ty; y < ty + h; y++)
+                for (int x = tx; x < tx + w; x++)
+                {
+                    Vector3 a = Corner(x, y), b = Corner(x + 1, y), c = Corner(x + 1, y + 1), d = Corner(x, y + 1);
+                    // Clockwise from above: the side facing the sky
+                    var kind = KindOf(grid, origin + (new float2(x, y) + 0.5f) * reliefCell);
+                    n = Triangle(vertices, uvs, triangles, n, a, d, b, kind, x * 73 + y * 179);
+                    n = Triangle(vertices, uvs, triangles, n, b, d, c, kind, x * 151 + y * 37 + 11);
+                }
+                var mesh = new Mesh { name = $"Relief_{tx}_{ty}", vertices = vertices, uv = uvs, triangles = triangles };
+                mesh.RecalculateNormals();
+                mesh.RecalculateBounds();
+                reliefMeshes.Add(mesh);
+                var go = new GameObject(mesh.name);
+                go.transform.SetParent(relief.transform, false);
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var renderer = go.AddComponent<MeshRenderer>();
+                renderer.sharedMaterial = material;
+                // A tile wholly beyond the map edge only receives shadows
+                float2 min = origin + new float2(tx, ty) * reliefCell, max = origin + new float2(tx + w, ty + h) * reliefCell;
+                bool onMap = math.all(max > layout.Origin) && math.all(min < layout.Origin + new float2(layout.Width, layout.Height));
+                renderer.shadowCastingMode = onMap ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            }
             Plant(grid);
         }
 
@@ -319,13 +352,13 @@ namespace Shieldbreak.Presentation
                 }
             }
 
-            planted = new Matrix4x4[kinds.Length][];
-            plantedFar = new Matrix4x4[kinds.Length][];
+            var all = new List<Batch>();
             for (int k = 0; k < kinds.Length; k++)
             {
-                planted[k] = near[k].ToArray();
-                plantedFar[k] = far[k].ToArray();
+                Chunk(all, kinds[k].Mesh, near[k], true);
+                Chunk(all, kinds[k].Mesh, far[k], false);
             }
+            batches = all.ToArray();
             if (modelMaterial == null && kinds.Length > 0)
             {
                 var any = treeModels.Length > 0 ? treeModels[0] : bushModels.Length > 0 ? bushModels[0] : rockModels[0];
@@ -364,23 +397,50 @@ namespace Shieldbreak.Presentation
             lists[pick].Add(Matrix4x4.TRS(new Vector3(at.x, height - 0.1f, at.y), turn, Vector3.one * scale) * kinds[pick].Matrix);
         }
 
-        void LateUpdate()
+        /// <summary>Splits the instances of one model into square chunks of the field, each with the bounds of its instances.</summary>
+        void Chunk(List<Batch> into, Mesh mesh, List<Matrix4x4> instances, bool shadows)
         {
-            if (planted.Length == 0 || modelMaterial == null) return;
-            var near = new RenderParams(modelMaterial) { shadowCastingMode = ShadowCastingMode.On, receiveShadows = true };
-            var far = new RenderParams(modelMaterial) { shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true };
-            for (int k = 0; k < planted.Length; k++)
+            var groups = new Dictionary<Vector2Int, List<Matrix4x4>>();
+            foreach (var m in instances)
             {
-                Draw(near, kinds[k].Mesh, planted[k]);
-                Draw(far, kinds[k].Mesh, plantedFar[k]);
+                var at = m.GetPosition();
+                var key = new Vector2Int(Mathf.FloorToInt(at.x / plantChunk), Mathf.FloorToInt(at.z / plantChunk));
+                if (!groups.TryGetValue(key, out var list)) groups[key] = list = new List<Matrix4x4>();
+                list.Add(m);
+            }
+            const int most = 1023;
+            foreach (var list in groups.Values)
+            for (int start = 0; start < list.Count; start += most)
+            {
+                int count = Mathf.Min(most, list.Count - start);
+                var matrices = list.GetRange(start, count).ToArray();
+                var bounds = WorldBounds(mesh.bounds, matrices[0]);
+                for (int i = 1; i < count; i++) bounds.Encapsulate(WorldBounds(mesh.bounds, matrices[i]));
+                into.Add(new Batch { Mesh = mesh, Matrices = matrices, Bounds = bounds, Shadows = shadows });
             }
         }
 
-        static void Draw(RenderParams rp, Mesh mesh, Matrix4x4[] list)
+        static Bounds WorldBounds(Bounds local, Matrix4x4 m)
         {
-            const int chunk = 1023;
-            for (int start = 0; start < list.Length; start += chunk)
-                Graphics.RenderMeshInstanced(rp, mesh, 0, list, Mathf.Min(chunk, list.Length - start), start);
+            var bounds = new Bounds(m.MultiplyPoint3x4(local.center), Vector3.zero);
+            for (int i = 0; i < 8; i++)
+                bounds.Encapsulate(m.MultiplyPoint3x4(local.center + Vector3.Scale(local.extents, new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f))));
+            return bounds;
+        }
+
+        void LateUpdate()
+        {
+            if (batches.Length == 0 || modelMaterial == null) return;
+            foreach (var b in batches)
+            {
+                var rp = new RenderParams(modelMaterial)
+                {
+                    shadowCastingMode = b.Shadows ? ShadowCastingMode.On : ShadowCastingMode.Off,
+                    receiveShadows = true,
+                    worldBounds = b.Bounds,
+                };
+                Graphics.RenderMeshInstanced(rp, b.Mesh, 0, b.Matrices);
+            }
         }
 
         Vector2Int Tile(Vector3 position) =>

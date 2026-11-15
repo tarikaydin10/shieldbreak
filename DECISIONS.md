@@ -581,5 +581,11 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 | Pfeile fliegen erst ab 16 statt 7 m über den Boden über den Wald (`forestCrownHeight`) | Passt zu den neuen Bäumen; Tuning bleibt bei Tarik | Alte Höhe lassen |
 | Die Diffusion des Panikfelds rechnet nur im Rechteck, in dem Panik ist (plus eine Zelle); das Ergebnis ist bitgleich mit dem ganzen Feld | Auf 400 m hätte sie jeden Tick 320.000 Zellen gerechnet; p95 pro Tick fiel damit von 3,2 auf 1,1 bis 1,3 ms | Gröberes Moral-Grid (ändert das Verhalten) |
 
+## 2026-11-15 — Bildrate der großen Karten
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Relief in Kacheln zu 60 m als eigene Renderer, Kacheln jenseits des Kartenrands ohne Schattenwurf; Bäume, Büsche und Felsen in Kacheln zu 80 m pro Modell mit eigenen Grenzen | Ein Sammelaufruf über die ganze Karte lässt sich nicht wegschneiden: Kamera und vier Schattenkaskaden zeichnen sonst jeden Baum. Gemessen: Der Build von vor den großen Karten lief im selben Moment genauso schnell (153 bis 156 FPS gegen 147 bis 153), und auch mit Schatten, Relief, Bäumen, Figuren und Kommandoansicht aus kam das Spiel nur auf etwa 170 FPS; der Rechner war in dem Moment insgesamt langsamer, nicht die Karte teuer | Bäume weglassen oder Horizont streichen; 40-m-Kacheln (mehr Aufrufe, kein Gewinn) |
+
 ## Offen (Entscheidung bis M3)
 - Spielname (Arbeitstitel SHIELDBREAK)
