@@ -259,6 +259,20 @@ M0 bis M3 sind abgeschlossen (Fun-Gates bestanden, M3 am 2026-11-07; die ältere
 9. **Modelle aus der Pipeline** ✅ — Pferd (Rumpf pro Team, Bein), Lanze, drei Bäume, zwei Felsen als Specs mit eigenen Generatoren (`horse`, `tree`, `rock`); Soldat und Bodenstück kamen schon aus der Pipeline. Das Relief entsteht weiter aus den Sim-Höhen in Palettenfarben (`DECISIONS.md` 2026-11-15). Keine Platzhalter-Quader und -Kegel mehr.
 10. **Fun-Gate M4** (Tarik) — Drei fremde Spieler spielen 30 min freiwillig weiter.
 
+### M4b Taskliste (geplant, nach dem Fun-Gate M4)
+
+Plan mit Ablauf, Daten, Technik und Weltentwürfen: [`docs/kriegszug/plan.md`](docs/kriegszug/plan.md).
+
+1. **Rüstung pro Soldat** (Sim): Zonen-Schwellwerte pro Agent, `ArmorDefinition`
+2. **Meta-Gerüst**: `Scripts/Meta`, Spielstand als JSON, `CampaignDefinition`
+3. **Trupp und Schlacht**: Personen, Formationen aus der Ausrüstung, `BattleBuilder`, `BattleReport`
+4. **Stadt**: Markt, Werber, Schmied, Stall, Gold
+5. **Aufträge**: Banditen und Rivalen, Lohn und Beute
+6. **Story**: Einführung, Wendepunkte, Nachschlacht mit Namen, Verlieren ohne Ende
+7. **Bilder aus der Pipeline**: Dioramen aus eigenen Modellen für die Story-Tafeln
+8. **Erster Akt**: drei Städte, ein Antagonist (Texte: Tarik)
+9. **Fun-Gate M4b** (Tarik)
+
 ## 7. Arbeitsregeln
 
 - **Jede Iteration endet auf `main`:** Tests grün, [`docs/STATUS.md`](docs/STATUS.md) aktuell (was existiert, wie man es spielt und testet, was offen ist), betroffene READMEs aktuell, Commit, Push. Zu keinem Zeitpunkt liegt ein Stand nur lokal oder ist undokumentiert.
