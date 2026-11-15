@@ -553,7 +553,15 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 |---|---|---|
 | Jeder Soldat wird weiter vollständig gestellt (Arme, Waffe, Lehnen, Fallen); ferne werden auf einer versteckten Schablonen-Figur pro Team und Reiter gestellt und ihre Teile per Instancing gezeichnet | Lesbare Masse (Säule 3): Auch aus 40 m sieht man Hiebe und Schilde. Eine Kopie der Pose-Logik für ferne Soldaten hätte zwei Wahrheiten gebracht | Statische Haltung für ferne Soldaten; VAT-Animationen |
 | 24 eigene Figuren (die nächsten zur Kamera) plus der Held | CLAUDE.md 3.2 nennt etwa 20 | – |
-| Gemessen im Wechsel auf demselben Rechner: 100 gegen 100 vorher 374, jetzt 361 FPS im Schnitt, langsamster Frame 17 statt 11 bis 12 ms; Stresstest vorher 64 Figuren und 436 Kapseln mit 391 FPS, jetzt 500 Figuren mit 268 FPS | Auf diesem Rechner ist die CPU der Engpass, das Stellen kostet etwas; der Gewinn liegt bei den Zeichenaufrufen und damit auf schwächerer Grafik. Nicht auf einem schwachen Rechner gemessen | – |
+| Gemessen im Wechsel auf demselben Rechner: 100 gegen 100 vorher 374, jetzt 361 FPS im Schnitt, langsamster Frame jetzt 11 bis 12 statt 17 ms; Stresstest vorher 64 Figuren und 436 Kapseln mit 391 FPS, jetzt 500 Figuren mit 268 FPS | Auf diesem Rechner ist die CPU der Engpass, das Stellen kostet etwas; der Gewinn liegt bei den Zeichenaufrufen und damit auf schwächerer Grafik. Nicht auf einem schwachen Rechner gemessen | – |
+
+## 2026-11-15 — Welt des Kriegszugs: Das Erbe von Valdmark
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| **Weltentwurf B** (Tarik): Der Held ist der verstoßene Erbe von Valdmark; sein Onkel Keorn hat den Thron genommen. Der Kriegszug sammelt ein Heer, um ihn zurückzuholen | Held, Gegenspieler und Ziel stehen von der ersten Tafel an fest; das trägt den roten Faden, den Tarik will. Jede Schlacht lässt sich als Schritt auf dem Weg nach Hause erzählen | A „Die Grauen Marken“ (Söldner, Gegner zeigt sich spät), C „Salz und Eisen“ (Intrige, braucht Entscheidungen mit Folgen und damit mehr Systeme) |
+| Der Held hat einen Namen und eine Geschichte, kein unbeschriebenes Blatt | Folgt aus B; die Tafeln können ihn ansprechen und Keorn kann ihn kennen | Namenloser Hauptmann |
+| Namen, Orte und Ablauf des ersten Akts in `docs/kriegszug/plan.md` sind Vorschläge von Claude; die Texte schreibt Tarik (M4b Task 8) | CLAUDE.md 8: Design-Entscheidungen bei Tarik | – |
 
 ## Offen (Entscheidung bis M3)
 - Spielname (Arbeitstitel SHIELDBREAK)

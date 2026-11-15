@@ -89,29 +89,39 @@ Die Sim bleibt unberührt bis auf die Rüstung pro Soldat. Der Multiplayer bleib
 8. **Erster Akt** — drei Städte, Antagonist, Texte. Inhalt von Tarik (Story), Struktur von Claude.
 9. **Fun-Gate M4b** (Tarik).
 
-## Welt: drei Entwürfe
+## Welt: Das Erbe von Valdmark
 
-Low-Fantasy in einer eigenen Welt (`DECISIONS.md` 2026-11-15): erfundene Reiche, mittelalterliche Technik, keine Magie. Die Namen sind Vorschläge.
-
-### A — Die Grauen Marken
-
-Das Kaiserreich Aldur ist vor zwanzig Jahren zerfallen. In den Grenzmarken herrscht, wer ein Heer hat. Du bist Hauptmann einer kleinen Söldnerschar, angeheuert von der Stadt Brennfurt gegen Banditen. Bald zeigt sich, dass hinter den Banditen der Markgraf Orwin steht, der die Marken für sich will.
-Gegner: Banditen, Orwins Landsknechte, zuletzt seine Panzerreiter. Ton: rau, Söldnerleben, Gold zählt.
-
-### B — Das Erbe von Valdmark
+Entschieden am 2026-11-15 (Tarik, `DECISIONS.md`): Entwurf B. Low-Fantasy in einer eigenen Welt, erfundene Reiche, mittelalterliche Technik, keine Magie. Verworfen: A „Die Grauen Marken“ (Söldner im zerfallenen Kaiserreich) und C „Salz und Eisen“ (Handelsstädte und Verrat).
 
 Du bist der verstoßene Sohn des Fürsten von Valdmark. Dein Onkel Keorn hat den Thron genommen und dich für tot erklärt. Mit einem alten Waffenmeister und zwei Dutzend Getreuen ziehst du von Stadt zu Stadt, um ein Heer zu sammeln und zurückzuholen, was dir gehört.
-Gegner: Wegelagerer, Keorns Vasallen, zuletzt Keorn selbst mit seiner Garde. Ton: persönlich, Rache und Treue, der stärkste rote Faden.
+Gegner: Wegelagerer, Keorns Vasallen, zuletzt Keorn selbst mit seiner Garde. Ton: persönlich, Rache und Treue.
 
-### C — Salz und Eisen
+### Figuren (Namen sind Vorschläge)
 
-An der Salzküste kämpfen drei Handelsstädte um die Minen im Hinterland. Du führst eine freie Kompanie und verkaufst dein Schwert. Jeder Auftrag stärkt eine Stadt und schwächt eine andere, bis eine von ihnen dich verrät.
-Gegner: Bergbanditen, die Söldner der anderen Städte, zuletzt die Stadtwache des Verräters. Ton: Intrige, Wahl mit Folgen.
+| Figur | Rolle | Im Spiel |
+|---|---|---|
+| Der Erbe (Name offen) | Held, Sohn des toten Fürsten Aldric, galt seit fünf Jahren als tot | Der Spieler-Held, kämpft in der Linie |
+| Brom, der Waffenmeister | Hat den Erben ausgebildet und versteckt; spricht die meisten Tafeln | Fester Teil des Start-Trupps, Stufe L5. Fällt er, kommentiert die nächste Tafel das |
+| Keorn | Onkel, Usurpator, kalt und fähig | Gegner des Akts, führt in der dritten Stadt selbst |
+| Ser Madok | Keorns Vasall und Hauptmann, Schildwall-Mann | Gegner in der zweiten Stadt |
+
+### Erster Akt: Gerüst
+
+Drei Städte auf dem Weg zurück nach Valdmark. Jede Stadt hat zwei bis drei Aufträge, ein Pflichtauftrag führt weiter. Die Karten sind die aus M4.
+
+| Stadt | Lage | Aufträge | Gegner | Karte | Wendepunkt |
+|---|---|---|---|---|---|
+| **Erlach** | Grenzstadt im Exil, arm | Wegelagerer vertreiben (leicht), Viehdiebe stellen (leicht), Pflicht: Keorns Steuereintreiber abfangen | Banditen mit Speeren und Bögen, 15 bis 25 Mann; die Eintreiber mit Schild und ein paar Reitern | Waldrand | Nach dem Pflichtauftrag: Keorn erfährt, dass der Erbe lebt |
+| **Morwick** | Handelsstadt, der Rat zögert | Karawane schützen, Söldner verjagen, Pflicht: Ser Madok an der Furt schlagen | Söldner gemischt; Madok mit Schildwall und Schützen, 40 bis 60 Mann | Sumpfpass | Der Rat von Morwick schließt sich an (Rekruten werden besser und billiger) |
+| **Tannfeld** | Stadt eines Keorn-Vasallen, an der Grenze zu Valdmark | Vorräte erbeuten, Pflicht: Keorns Heer auf den Hügeln | Keorn mit Garde und Panzerreitern, 80 bis 100 Mann | Hügelland | Sieg: Keorn flieht nach Valdhall, Ende des ersten Akts. Niederlage: zurück nach Morwick, Keorn hält Tannfeld, der Auftrag bleibt |
+
+Einführung (5 Tafeln): die Nacht des Verrats, fünf Jahre Versteck bei Brom, die Nachricht vom Tod des Vaters, der Aufbruch, Erlach. Danach geht es mit Endlos-Aufträgen weiter, bis der zweite Akt (der Weg nach Valdhall) geschrieben ist.
+
+Die Größen der Schlachten wachsen mit dem Trupp: 15 gegen 20 am Anfang, um 100 gegen 100 am Ende des Akts. Das ist der Rahmen, den die Sim seit M4 trägt.
 
 ## Offene Fragen an Tarik
 
-- Welcher Weltentwurf (A, B, C oder eine Mischung)?
-- Hat der Held einen Namen und eine Geschichte (B), oder ist er ein unbeschriebenes Blatt (A, C)?
+- Wie heißt der Erbe? Fester Name oder vom Spieler gewählt?
 - Sollen Gefallene endgültig weg sein (Bindung, Härte) oder in der Stadt ersetzbar mit gleichem Namen (milder)?
 - Bilder als Dioramen aus den eigenen Modellen: einverstanden, oder lieber gezeichnet (dann wäre das eine Ausnahme von „Assets nur über die Pipeline“)?
 - Sprache der Story: nur Deutsch, oder von Anfang an zweisprachig angelegt?

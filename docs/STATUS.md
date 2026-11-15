@@ -323,6 +323,6 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 
 **M3 Feldherr** ist abgeschlossen (Fun-Gate bestanden am 2026-11-07): Haltung, Bedrohungen, Commander-Utility-AI, Lanchester, Fernkampf (Bots), 50 gegen 50. Die Befehlsreichweite ist nach dem Spielen wieder entfernt worden.
 
-**Kriegszug vorbereitet (2026-11-15):** Setting ist eine eigene Low-Fantasy-Welt. Plan, Taskliste und drei Weltentwürfe stehen in [kriegszug/plan.md](kriegszug/plan.md); gebaut wird nach dem Fun-Gate M4.
+**Kriegszug vorbereitet (2026-11-15):** Setting ist eine eigene Low-Fantasy-Welt. Die Welt ist „Das Erbe von Valdmark“ (der verstoßene Erbe holt sich den Thron von seinem Onkel Keorn zurück). Plan, Taskliste und das Gerüst des ersten Akts stehen in [kriegszug/plan.md](kriegszug/plan.md); gebaut wird nach dem Fun-Gate M4.
 
 **Neu im Plan (2026-11-01):** Nach M4 kommt **M4b Kriegszug**, eine leichte Meta in Richtung Bannerlord: Story-Einführung, Städte zum Kaufen und Verkaufen (Rüstung, Waffen, Pferde, Rekruten), Schlachten gegen Banditen und Rivalen. Es gibt keine Weltkarte. Begründung in `DECISIONS.md` 2026-11-01, Plan in CLAUDE.md 6. Davor bleiben M2 und M3 unverändert.

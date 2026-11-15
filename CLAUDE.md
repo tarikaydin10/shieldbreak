@@ -261,7 +261,7 @@ M0 bis M3 sind abgeschlossen (Fun-Gates bestanden, M3 am 2026-11-07; die ältere
 
 ### M4b Taskliste (geplant, nach dem Fun-Gate M4)
 
-Plan mit Ablauf, Daten, Technik und Weltentwürfen: [`docs/kriegszug/plan.md`](docs/kriegszug/plan.md).
+Plan mit Ablauf, Daten, Technik, Welt (Das Erbe von Valdmark) und erstem Akt: [`docs/kriegszug/plan.md`](docs/kriegszug/plan.md).
 
 1. **Rüstung pro Soldat** (Sim): Zonen-Schwellwerte pro Agent, `ArmorDefinition`
 2. **Meta-Gerüst**: `Scripts/Meta`, Spielstand als JSON, `CampaignDefinition`
