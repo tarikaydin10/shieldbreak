@@ -5,8 +5,8 @@
   "seed": 5,
   "params": {
     "kind": "broadleaf",
-    "height": 7,
-    "crowns": 2
+    "height": 18,
+    "branches": 2
   },
   "colors": {
     "trunk": "wood_mid",

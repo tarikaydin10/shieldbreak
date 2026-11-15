@@ -1,0 +1,16 @@
+{
+  "name": "ENV_bush_b",
+  "category": "environment",
+  "generator": "tree",
+  "seed": 34,
+  "params": {
+    "kind": "bush",
+    "height": 1.2,
+    "clumps": 4
+  },
+  "colors": {
+    "trunk": "wood_dark",
+    "crown": "foliage",
+    "crown_dark": "grass"
+  }
+}

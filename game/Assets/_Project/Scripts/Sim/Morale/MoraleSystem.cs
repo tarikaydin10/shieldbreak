@@ -27,6 +27,8 @@ namespace Shieldbreak.Sim.Morale
         readonly WorldGrid grid;
         NativeArray<MoraleData> morale;
         NativeArray<float> scratch;
+        /// <summary>Per team the box of the panic cells that are not 0 (may be larger): the diffusion only works there.</summary>
+        NativeArray<int4> active;
 
         public MoraleSystem(int maxAgents, in MoraleSettings settings, WorldGrid grid)
         {
@@ -36,9 +38,17 @@ namespace Shieldbreak.Sim.Morale
             morale = new NativeArray<MoraleData>(maxAgents, Allocator.Persistent);
             for (int i = 0; i < maxAgents; i++) morale[i] = MoraleData.Steady;
             scratch = new NativeArray<float>(settings.Enabled == 1 ? grid.Layout.CellCount : 0, Allocator.Persistent);
+            active = new NativeArray<int4>(SimConstants.MaxTeams, Allocator.Persistent);
+            MarkAllActive();
         }
 
         public bool Enabled => settings.Enabled == 1;
+
+        /// <summary>After a write to the panic field from outside the morale job: the next diffusion looks at every cell again.</summary>
+        public void MarkAllActive()
+        {
+            for (int team = 0; team < active.Length; team++) active[team] = MoraleDiffusion.Full(grid.Layout);
+        }
         public MoraleSettings Settings => settings;
         internal NativeArray<MoraleData> Buffer => morale;
         public NativeArray<MoraleData>.ReadOnly Agents(int count) => morale.GetSubArray(0, count).AsReadOnly();
@@ -59,6 +69,7 @@ namespace Shieldbreak.Sim.Morale
                 Layout = grid.Layout,
                 Panic = grid.Panic,
                 Scratch = scratch,
+                Active = active,
                 Morale = morale,
                 Agents = agents,
                 Combat = combat,
@@ -77,6 +88,7 @@ namespace Shieldbreak.Sim.Morale
         {
             if (morale.IsCreated) morale.Dispose();
             if (scratch.IsCreated) scratch.Dispose();
+            if (active.IsCreated) active.Dispose();
         }
 
         [BurstCompile(FloatMode = FloatMode.Deterministic, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
@@ -92,6 +104,7 @@ namespace Shieldbreak.Sim.Morale
             public GridLayout Layout;
             public NativeArray<float> Panic;
             public NativeArray<float> Scratch;
+            public NativeArray<int4> Active;
             public NativeArray<MoraleData> Morale;
             public NativeArray<AgentData> Agents;
             public NativeArray<CombatData> Combat;
@@ -125,6 +138,7 @@ namespace Shieldbreak.Sim.Morale
                 int index = team * Layout.CellCount + cell;
                 float p = Panic[index] + amount;
                 Panic[index] = math.abs(p) < PanicFloor ? 0f : p;
+                if (p != 0f) Active[team] = MoraleDiffusion.Include(Active[team], Layout.IndexToCell(cell));
             }
 
             /// <summary>Deaths frighten the dead soldier's team and steady the killer's; hits from the side or behind frighten.</summary>
@@ -193,8 +207,12 @@ namespace Shieldbreak.Sim.Morale
                 }
             }
 
-            void Diffuse(int team, float dt) =>
-                MoraleDiffusion.Step(Panic, team * Layout.CellCount, Scratch, Layout, Settings.Diffusion, Settings.Decay, dt);
+            void Diffuse(int team, float dt)
+            {
+                var box = Active[team];
+                MoraleDiffusion.Step(Panic, team * Layout.CellCount, Scratch, Layout, Settings.Diffusion, Settings.Decay, dt, ref box);
+                Active[team] = box;
+            }
 
             bool IsLeader(int i)
             {

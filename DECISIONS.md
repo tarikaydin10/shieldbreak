@@ -570,5 +570,16 @@ Gemessen (je 6 Schlachten aus der Kommandoansicht, Verlierer Tote + Geflohene): 
 | Rechtsklick und gezogene Frontlinie richten die Front zur nächsten feindlichen Formation (bei der Linie: auf deren Seite der Linie). Nur ohne Feind oder mit dem Feind direkt auf der Linie (unter 2 m) gilt die alte Regel (Laufrichtung, weg von der Truppe) | Tarik: Der Pfeil zeigte beim Platzieren meist in die falsche Richtung. In der Aufstellung springen Formationen sofort an den neuen Platz, „weg von dort, wo sie steht“ klappte deshalb bei jeder Linie hinter der Truppe um; im Feld drehte ein Rückzug per Klick der Truppe den Rücken zum Feind | Richtung aus der Ziehrichtung (links→rechts), eigene Dreh-Taste |
 | Eine Front, die vom Feind wegschaut, lässt sich per Zeichnen nicht mehr legen | Der seltene Fall (Nachhut) rechtfertigt nicht, dass der häufige danebengeht | – |
 
+## 2026-11-15 — Karten: größer, weiter auseinander, mit Horizont
+
+| Entscheidung | Grund | Verworfen |
+|---|---|---|
+| Die drei Karten wachsen von 200 auf 400 m; die Heere starten gut 120 statt 60 m auseinander; die eigene Aufstellungszone ist 320 × 135 m statt 160 × 52 m, zwischen den Zonen liegen 70 m | Tarik: für die Immersion müssen die Heere viel weiter auseinander, und er will mehr Platz zum Aufstellen. Der Anmarsch gibt Zeit zum Führen und zum Schauen | Nur die Zonen vergrößern auf 200 m |
+| Bodenwellen über die ganze Karte (`MapDefinition.rolling`, Wellenlänge, Seed): Rauschen aus einem Ganzzahl-Hash auf den Zellecken, in der Sim | Tarik: mehr Relief. Der Boden ist Sim-Zustand (Tempo, Pfeile, Kommandant), also muss die Welle deterministisch in der Sim entstehen, nicht nur im Bild | Relief nur in der Darstellung; Rauschen mit `sin` |
+| Jenseits des Kartenrands steigen bewaldete Hügel an (nur Darstellung, `GroundField`), Nebel und Sichtweite reichen weiter (Nebel 60 bis 520 m, Sicht 700 m) | Die Welt endet nicht an der Kante, wo die Soldaten enden; niemand kann dort stehen, also braucht die Sim nichts davon | Größeres Sim-Grid mit gesperrtem Rand |
+| Bäume 14 bis 22 m hoch, langer Stamm, Krone oben; Laubbäume gabeln sich in Äste; dazu Büsche als Unterholz (alles aus `tree.py`) | Tarik: hohe Bäume mit hohen Kronen. Unter hohen Kronen bleiben die Soldaten sichtbar | – |
+| Pfeile fliegen erst ab 16 statt 7 m über den Boden über den Wald (`forestCrownHeight`) | Passt zu den neuen Bäumen; Tuning bleibt bei Tarik | Alte Höhe lassen |
+| Die Diffusion des Panikfelds rechnet nur im Rechteck, in dem Panik ist (plus eine Zelle); das Ergebnis ist bitgleich mit dem ganzen Feld | Auf 400 m hätte sie jeden Tick 320.000 Zellen gerechnet; p95 pro Tick fiel damit von 3,2 auf 1,1 bis 1,3 ms | Gröberes Moral-Grid (ändert das Verhalten) |
+
 ## Offen (Entscheidung bis M3)
 - Spielname (Arbeitstitel SHIELDBREAK)

@@ -13,27 +13,48 @@ MonoBehaviour:
   m_Name: Map_Sumpfpass
   m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.MapDefinition
   displayName: Sumpfpass
-  size: 200
+  size: 400
+  rolling: 1.5
+  rollingWavelength: 60
+  rollingSeed: 11
   hills:
-  - centre: {x: 100, y: 100}
-    radius: 15
-    height: 3
+  - centre: {x: 200, y: 200}
+    radius: 32
+    height: 6
+  - centre: {x: 40, y: 40}
+    radius: 55
+    height: 14
+  - centre: {x: 360, y: 40}
+    radius: 55
+    height: 14
+  - centre: {x: 40, y: 360}
+    radius: 55
+    height: 14
+  - centre: {x: 360, y: 360}
+    radius: 55
+    height: 14
   areas:
   - kind: 2
-    centre: {x: 28, y: 100}
-    radius: 38
+    centre: {x: 56, y: 200}
+    radius: 68
   - kind: 2
-    centre: {x: 172, y: 100}
-    radius: 38
+    centre: {x: 344, y: 200}
+    radius: 68
   - kind: 1
-    centre: {x: 64, y: 62}
-    radius: 10
+    centre: {x: 128, y: 124}
+    radius: 18
   - kind: 1
-    centre: {x: 136, y: 138}
-    radius: 10
+    centre: {x: 272, y: 276}
+    radius: 18
+  - kind: 1
+    centre: {x: 30, y: 30}
+    radius: 35
+  - kind: 1
+    centre: {x: 370, y: 370}
+    radius: 35
   ownZone:
-    min: {x: 20, y: 20}
-    max: {x: 180, y: 72}
+    min: {x: 40, y: 30}
+    max: {x: 360, y: 165}
   enemyZone:
-    min: {x: 20, y: 128}
-    max: {x: 180, y: 180}
+    min: {x: 40, y: 235}
+    max: {x: 360, y: 370}

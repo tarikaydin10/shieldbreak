@@ -109,8 +109,8 @@ namespace Shieldbreak.Data
         [Header("Forest")]
         [Tooltip("Chance per metre below the crowns that a tree stops an arrow.")]
         [Range(0f, 1f)] public float forestArrowStopPerMeter = 0.1f;
-        [Tooltip("Above this height over the ground an arrow flies over the forest (m).")]
-        [Min(0f)] public float forestCrownHeight = 7f;
+        [Tooltip("Above this height over the ground an arrow flies over the forest (m); the trees from the pipeline are 14 to 22 m tall.")]
+        [Min(0f)] public float forestCrownHeight = 16f;
 
         [Header("Cavalry")]
         [Tooltip("Mass of horse and rider behind a charge (kg); the energy is ½·m·v² of the closing speed.")]

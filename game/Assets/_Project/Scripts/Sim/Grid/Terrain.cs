@@ -52,6 +52,45 @@ namespace Shieldbreak.Sim.Grid
             }
         }
 
+        /// <summary>
+        /// Rolling ground over the whole map: smooth value noise in two octaves, <paramref name="amplitude"/> metres up or
+        /// down at most, waves about <paramref name="wavelength"/> metres long. Integer hash, no sine: the same on every
+        /// peer. Scenario setup.
+        /// </summary>
+        public static void AddRolling(NativeArray<float> heights, in GridLayout layout, float amplitude, float wavelength, uint seed)
+        {
+            if (amplitude == 0f || wavelength <= 0f) return;
+            for (int y = 0; y <= layout.Height; y++)
+            for (int x = 0; x <= layout.Width; x++)
+            {
+                float2 corner = new float2(x, y) * SimConstants.CellSize / wavelength;
+                float wave = ValueNoise(corner, seed) + 0.35f * ValueNoise(corner * 2.3f + 17.1f, seed + 1u);
+                heights[CornerIndex(layout, x, y)] += amplitude * wave / 1.35f;
+            }
+        }
+
+        /// <summary>Smooth noise from -1 to 1 with a lattice step of 1.</summary>
+        public static float ValueNoise(float2 p, uint seed)
+        {
+            float2 cell = math.floor(p);
+            float2 t = p - cell;
+            t = t * t * (3f - 2f * t);
+            int2 c = (int2)cell;
+            float a = Lattice(c.x, c.y, seed), b = Lattice(c.x + 1, c.y, seed);
+            float d = Lattice(c.x, c.y + 1, seed), e = Lattice(c.x + 1, c.y + 1, seed);
+            return math.lerp(math.lerp(a, b, t.x), math.lerp(d, e, t.x), t.y);
+        }
+
+        static float Lattice(int x, int y, uint seed)
+        {
+            uint h = (uint)x * 0x8DA6B343u ^ (uint)y * 0xD8163841u ^ (seed + 1u) * 0xCB1AB31Fu;
+            h ^= h >> 13;
+            h *= 0x5BD1E995u;
+            h ^= h >> 15;
+            return (h & 0xFFFFFFu) / 8388608f - 1f;
+        }
+
+
         /// <summary>Factor on the speed of someone walking along <paramref name="direction"/> (a unit vector) over this slope.</summary>
         public static float SpeedFactor(float2 slope, float2 direction, float uphillSlowdown, float downhillBoost, float least, float most)
         {

@@ -13,24 +13,45 @@ MonoBehaviour:
   m_Name: Map_Huegelland
   m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.MapDefinition
   displayName: Hügelland
-  size: 200
+  size: 400
+  rolling: 3
+  rollingWavelength: 60
+  rollingSeed: 7
   hills:
-  - centre: {x: 58, y: 100}
-    radius: 32
+  - centre: {x: 116, y: 200}
+    radius: 68
+    height: 16
+  - centre: {x: 292, y: 176}
+    radius: 50
+    height: 10
+  - centre: {x: 224, y: 300}
+    radius: 40
     height: 7
-  - centre: {x: 146, y: 88}
-    radius: 22
-    height: 4
-  - centre: {x: 112, y: 150}
-    radius: 18
-    height: 3
+  - centre: {x: 60, y: 60}
+    radius: 50
+    height: 12
+  - centre: {x: 350, y: 350}
+    radius: 60
+    height: 14
+  - centre: {x: 340, y: 60}
+    radius: 40
+    height: 8
   areas:
   - kind: 1
-    centre: {x: 168, y: 124}
-    radius: 15
+    centre: {x: 336, y: 248}
+    radius: 27
+  - kind: 1
+    centre: {x: 30, y: 330}
+    radius: 50
+  - kind: 1
+    centre: {x: 385, y: 95}
+    radius: 35
+  - kind: 1
+    centre: {x: 40, y: 25}
+    radius: 30
   ownZone:
-    min: {x: 20, y: 20}
-    max: {x: 180, y: 72}
+    min: {x: 40, y: 30}
+    max: {x: 360, y: 165}
   enemyZone:
-    min: {x: 20, y: 128}
-    max: {x: 180, y: 180}
+    min: {x: 40, y: 235}
+    max: {x: 360, y: 370}

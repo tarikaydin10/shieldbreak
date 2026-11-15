@@ -207,13 +207,16 @@ MonoBehaviour:
     launch: 0
     scenario: {fileID: 11400000, guid: d2ea1791eefb1d78b32d5e375939845b, type: 2}
     briefingOnStart: 1
-    objective: "100 gegen 100 mit Reiterei. Ein großer Hügel links in der Mitte, ein kleinerer rechts, einer nah am Feind, rechts ein Wäldchen. Vor der Schlacht stellst du dein Heer im blauen Feld auf, der Feind wartet: Formationen wählen, per Rechtsklick oder Ziehen stellen, Enter beginnt die Schlacht. Du reitest selbst. Deine Reiter greifen mit Schlachtbeginn an; mit dem Radialmenü (Halten) bleiben sie stehen."
+    objective: "100 gegen 100 mit Reiterei. Karte 400 m, die Heere starten gut 120 m auseinander. Der Boden wellt sich, ein großer Hügel links in der Mitte, ein kleinerer rechts, einer nah am Feind, Wäldchen an den Rändern. Vor der Schlacht stellst du dein Heer im blauen Feld auf, der Feind wartet: Formationen wählen, per Rechtsklick oder Ziehen stellen, Enter beginnt die Schlacht. Du reitest selbst. Deine Reiter greifen mit Schlachtbeginn an; mit dem Radialmenü (Halten) bleiben sie stehen."
     controlMaps:
     - Radial
     - CommandView
     - Combat
     - CommanderDebug
     checks:
+    - "Der Pfeil beim Platzieren zeigt immer zum Feind, auch wenn du hinter deiner Truppe klickst oder ziehst"
+    - "Die Heere stehen weit auseinander (gut 120 m), das blaue Feld ist groß"
+    - "Auf Bodenhöhe: Der Boden wellt sich, Bäume sind hoch mit Kronen weit oben, am Horizont bewaldete Hügel statt einer Kante"
     - "Die Aufstellung beginnt von oben, nichts bewegt sich, das blaue Feld ist gut zu sehen"
     - "Rechtsklick und Ziehen stellen Formationen sofort um, nie außerhalb des blauen Felds; 1 bis 5 ändern die Form"
     - "Enter oder der Knopf beginnt die Schlacht, die Kamera kommt herunter, der Held steht hinter seinem Heer"
@@ -234,6 +237,9 @@ MonoBehaviour:
     - Combat
     - CommanderDebug
     checks:
+    - "Der Pfeil beim Platzieren zeigt immer zum Feind, auch wenn du hinter deiner Truppe klickst oder ziehst"
+    - "Die Heere stehen weit auseinander (gut 120 m), das blaue Feld ist groß"
+    - "Auf Bodenhöhe: Der Boden wellt sich, Bäume sind hoch mit Kronen weit oben, am Horizont bewaldete Hügel statt einer Kante"
     - "Die Aufstellung beginnt von oben, nichts bewegt sich, das blaue Feld ist gut zu sehen"
     - "Rechtsklick und Ziehen stellen Formationen sofort um, nie außerhalb des blauen Felds; 1 bis 5 ändern die Form"
     - "Enter oder der Knopf beginnt die Schlacht, die Kamera kommt herunter, der Held steht hinter seinem Heer"
@@ -254,6 +260,9 @@ MonoBehaviour:
     - Combat
     - CommanderDebug
     checks:
+    - "Der Pfeil beim Platzieren zeigt immer zum Feind, auch wenn du hinter deiner Truppe klickst oder ziehst"
+    - "Die Heere stehen weit auseinander (gut 120 m), das blaue Feld ist groß"
+    - "Auf Bodenhöhe: Der Boden wellt sich, Bäume sind hoch mit Kronen weit oben, am Horizont bewaldete Hügel statt einer Kante"
     - "Die Aufstellung beginnt von oben, nichts bewegt sich, das blaue Feld ist gut zu sehen"
     - "Rechtsklick und Ziehen stellen Formationen sofort um, nie außerhalb des blauen Felds; 1 bis 5 ändern die Form"
     - "Enter oder der Knopf beginnt die Schlacht, die Kamera kommt herunter, der Held steht hinter seinem Heer"

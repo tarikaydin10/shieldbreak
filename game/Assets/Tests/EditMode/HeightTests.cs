@@ -111,6 +111,50 @@ namespace Shieldbreak.Tests
         }
 
         [Test]
+        public void RollingGround_IsBounded_Varied_Smooth_AndTheSameForTheSameSeed()
+        {
+            var layout = new GridLayout(120, 120, float2.zero);
+            using var a = new WorldGrid(layout, Allocator.Persistent);
+            using var b = new WorldGrid(layout, Allocator.Persistent);
+            using var other = new WorldGrid(layout, Allocator.Persistent);
+            a.AddRolling(0f, 40f, 3u);
+            Assert.That(a.HasRelief, Is.False, "no amplitude, no relief");
+            a.AddRolling(2.5f, 40f, 3u);
+            b.AddRolling(2.5f, 40f, 3u);
+            other.AddRolling(2.5f, 40f, 4u);
+            Assert.That(a.HasRelief);
+
+            float low = float.MaxValue, high = float.MinValue, steepest = 0f;
+            bool differs = false;
+            for (int i = 0; i < a.Heights.Length; i++)
+            {
+                Assert.That(a.Heights[i], Is.EqualTo(b.Heights[i]), "same seed, same ground");
+                differs |= a.Heights[i] != other.Heights[i];
+                low = math.min(low, a.Heights[i]);
+                high = math.max(high, a.Heights[i]);
+            }
+            for (float x = 1f; x < 119f; x += 1f)
+            for (float y = 1f; y < 119f; y += 7f)
+                steepest = math.max(steepest, math.length(Terrain.SlopeAt(a.Heights, layout, new float2(x, y))));
+            Assert.That(differs, "another seed, other waves");
+            Assert.That(low, Is.GreaterThanOrEqualTo(-2.5f));
+            Assert.That(high, Is.LessThanOrEqualTo(2.5f));
+            Assert.That(high - low, Is.GreaterThan(1.5f), "the ground really rolls");
+            Assert.That(steepest, Is.LessThan(0.35f), "waves, not cliffs");
+        }
+
+        [Test]
+        public void Maps_HaveRollingGround_UnderTheirHills()
+        {
+            foreach (var name in new[] { "Map_Huegelland", "Map_Waldrand", "Map_Sumpfpass" })
+            {
+                var map = UnityEditor.AssetDatabase.LoadAssetAtPath<MapDefinition>($"Assets/_Project/Data/Maps/{name}.asset");
+                Assert.That(map, Is.Not.Null, name);
+                Assert.That(map.rolling, Is.GreaterThan(0f), $"{name}: rolling ground");
+            }
+        }
+
+        [Test]
         public void Height_IsContinuousBetweenCorners_AndGoesOnBeyondTheMap()
         {
             using var grid = new WorldGrid(new GridLayout(20, 20, new float2(-5f, 3f)), Allocator.Persistent);

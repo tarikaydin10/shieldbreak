@@ -198,6 +198,9 @@ namespace Shieldbreak.Sim.Core
         /// <summary>Raises a hill (scenario setup): the ground under everybody, hashed like the navigation cost.</summary>
         public void AddHill(float2 centre, float radius, float height) => Grid.AddHill(centre, radius, height);
 
+        /// <summary>Rolling ground over the whole map (scenario setup), hashed with the heights like a hill.</summary>
+        public void AddRolling(float amplitude, float wavelength, uint seed) => Grid.AddRolling(amplitude, wavelength, seed);
+
         /// <summary>Makes a round area forest or swamp (scenario setup), with the cost on the way from the movement settings.</summary>
         public void PaintArea(float2 centre, float radius, GroundKind kind)
         {
@@ -214,6 +217,7 @@ namespace Shieldbreak.Sim.Core
             if ((uint)team >= SimConstants.MaxTeams || !math.all(math.isfinite(position)) || !math.isfinite(amount)) throw new ArgumentOutOfRangeException(nameof(team));
             int index = Grid.PanicIndex(team, Grid.Layout.ClampedCellIndex(position));
             Grid.Panic[index] += amount;
+            morale.MarkAllActive();
         }
 
         /// <summary>Spatial hash from the last Step, for debug overlays.</summary>

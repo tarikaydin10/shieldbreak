@@ -18,8 +18,8 @@ RenderSettings:
   m_FogColor: {r: 0.68, g: 0.79, b: 0.9, a: 1}
   m_FogMode: 1
   m_FogDensity: 0.01
-  m_LinearFogStart: 30
-  m_LinearFogEnd: 160
+  m_LinearFogStart: 60
+  m_LinearFogEnd: 520
   m_AmbientSkyColor: {r: 0.62, g: 0.68, b: 0.76, a: 1}
   m_AmbientEquatorColor: {r: 0.56, g: 0.57, b: 0.53, a: 1}
   m_AmbientGroundColor: {r: 0.33, g: 0.31, b: 0.26, a: 1}
@@ -342,7 +342,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.05
-  far clip plane: 300
+  far clip plane: 700
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -826,9 +826,13 @@ MonoBehaviour:
   - {fileID: 919132149155446097, guid: 0e8be35a7c0358d88b071bd0d246ee86, type: 3}
   - {fileID: 919132149155446097, guid: 4629d19a93f173c397dafbbd785ab32e, type: 3}
   - {fileID: 919132149155446097, guid: f86c31cac1200b19179da12e83004227, type: 3}
+  - {fileID: 919132149155446097, guid: 853c71972a1a4f8792e7155de9352a6e, type: 3}
   rockModels:
   - {fileID: 919132149155446097, guid: 95662c44bc6178f57383df188d2126b0, type: 3}
   - {fileID: 919132149155446097, guid: 39a3ebcf56e5258a33ab325e137b61bb, type: 3}
+  bushModels:
+  - {fileID: 919132149155446097, guid: fdb755c6f01247cba96a5095d71d5caa, type: 3}
+  - {fileID: 919132149155446097, guid: 7053ea91d158466188c5fd4dce1372b7, type: 3}
   tileSize: 20
   margin: 40
 --- !u!4 &246954939

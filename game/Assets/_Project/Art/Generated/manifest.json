@@ -94,6 +94,26 @@
       "fbx_sha256": "9d3db86c1f1c1af2aa680d321c1a274413620ddf85bb3a43d625f3992d7901c9"
     },
     {
+      "name": "ENV_bush_a",
+      "category": "environment",
+      "generator": "tree",
+      "spec": "art/specs/ENV_bush_a.json",
+      "tris": 108,
+      "geometry_sha256": "c342e4917f9406207b776e47fa5536fec2eb2080249d6e79f9b61216548b2e59",
+      "fbx": "game/Assets/_Project/Art/Generated/ENV_bush_a.fbx",
+      "fbx_sha256": "bb0a4c702d42864e7d6089ac8f2bac4d099aaa9fc25494f62b0133b5c6ed9fbc"
+    },
+    {
+      "name": "ENV_bush_b",
+      "category": "environment",
+      "generator": "tree",
+      "spec": "art/specs/ENV_bush_b.json",
+      "tris": 144,
+      "geometry_sha256": "0d60288a2b1001ede29759d6cbbc56f3bba8f8727c2ecb237ef0f0bf9873e43b",
+      "fbx": "game/Assets/_Project/Art/Generated/ENV_bush_b.fbx",
+      "fbx_sha256": "e39574667cb08a5d551d7f729d52034fb1186e14ce3afee3451284b1ae1ff2f0"
+    },
+    {
       "name": "ENV_ground_grass",
       "category": "environment",
       "generator": "ground_patch",
@@ -128,20 +148,30 @@
       "category": "environment",
       "generator": "tree",
       "spec": "art/specs/ENV_tree_broadleaf_a.json",
-      "tris": 104,
-      "geometry_sha256": "a7cf2cdbabace0187eafb4526c064c8de79d1570b3c745aff8ab62dcaf617c98",
+      "tris": 200,
+      "geometry_sha256": "cd5f428cf303379acded42069ba04884a11185469c3f13fdfd78df38f13ff07f",
       "fbx": "game/Assets/_Project/Art/Generated/ENV_tree_broadleaf_a.fbx",
-      "fbx_sha256": "13cf33ade4581a24b12641ceaa9593886374480ab3392227e390f1c5b1d92c90"
+      "fbx_sha256": "ad7542fd8f48336a0e07b3d0766975e3bea6d6607e0fc673dc679452a30a386d"
+    },
+    {
+      "name": "ENV_tree_broadleaf_b",
+      "category": "environment",
+      "generator": "tree",
+      "spec": "art/specs/ENV_tree_broadleaf_b.json",
+      "tris": 258,
+      "geometry_sha256": "a79a9134060b5007cb39a36f67071104a614c27462aaa3d76aef37b818752225",
+      "fbx": "game/Assets/_Project/Art/Generated/ENV_tree_broadleaf_b.fbx",
+      "fbx_sha256": "faf774efa5160d7a3c60e5dcd509c3da99cf5af7cfc950450be685ff564477fb"
     },
     {
       "name": "ENV_tree_pine_a",
       "category": "environment",
       "generator": "tree",
       "spec": "art/specs/ENV_tree_pine_a.json",
-      "tris": 56,
-      "geometry_sha256": "3819c114ccd8bd796f08729173ef0b5caa53e5d932b8f4ca26f9791250f52a7d",
+      "tris": 80,
+      "geometry_sha256": "f314e6b09deec580f1ce9c6964261f1809fdbeaf54edce5fb1511d6b468b86db",
       "fbx": "game/Assets/_Project/Art/Generated/ENV_tree_pine_a.fbx",
-      "fbx_sha256": "4298e930c6337d78c8f657dcb141f7ee0ae405ee44ff9143414f5385dbb17060"
+      "fbx_sha256": "105f906301b3434e4ae9ccec087b87d67bb006d91e317ecda883ebbc6955b6d5"
     },
     {
       "name": "ENV_tree_pine_b",
@@ -149,9 +179,9 @@
       "generator": "tree",
       "spec": "art/specs/ENV_tree_pine_b.json",
       "tris": 68,
-      "geometry_sha256": "294dcf43f1f1e9470c016f23e3d2d516a188384c8a9d98bae50f2801bca7dc29",
+      "geometry_sha256": "fdf165326f9e34dd14374493a4dfe688785ddbea3cf5bc269f7c9f238addc837",
       "fbx": "game/Assets/_Project/Art/Generated/ENV_tree_pine_b.fbx",
-      "fbx_sha256": "5a84819dfdd0e6b6176fc80b55bec27c4db4bc931a3530c025683ed44ae7b78d"
+      "fbx_sha256": "91d13169648a9cdb6ac9660a1074705a246d71a39a710387b92fc60b92db3bc7"
     },
     {
       "name": "PRP_horse_leg",

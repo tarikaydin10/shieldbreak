@@ -60,6 +60,41 @@ namespace Shieldbreak.Tests
         // ---- Field ----
 
         [Test]
+        public void Diffusion_InTheActiveBox_IsBitForBitTheFullStep()
+        {
+            var layout = new GridLayout(60, 50, float2.zero);
+            var full = new NativeArray<float>(layout.CellCount, Allocator.Temp);
+            var boxed = new NativeArray<float>(layout.CellCount, Allocator.Temp);
+            var scratch = new NativeArray<float>(layout.CellCount, Allocator.Temp);
+            try
+            {
+                var active = MoraleDiffusion.Empty;
+                void Add(int2 cell, float amount)
+                {
+                    full[layout.CellIndex(cell)] += amount;
+                    boxed[layout.CellIndex(cell)] += amount;
+                    active = MoraleDiffusion.Include(active, cell);
+                }
+                Add(new int2(10, 12), 5f);
+                Add(new int2(40, 30), -3f);
+                for (int step = 0; step < 300; step++)
+                {
+                    if (step == 10) Assert.That(active.z - active.x, Is.LessThan(layout.Width - 1), "early on the box is smaller than the map");
+                    if (step == 120) Add(new int2(0, 49), 2f);
+                    MoraleDiffusion.Step(full, 0, scratch, layout, 1.5f, 0.2f, 0.05f);
+                    MoraleDiffusion.Step(boxed, 0, scratch, layout, 1.5f, 0.2f, 0.05f, ref active);
+                }
+                for (int i = 0; i < full.Length; i++) Assert.That(boxed[i], Is.EqualTo(full[i]), $"cell {i}");
+            }
+            finally
+            {
+                full.Dispose();
+                boxed.Dispose();
+                scratch.Dispose();
+            }
+        }
+
+        [Test]
         public void Diffusion_SpreadsEvenly_KeepsTheTotal_AndDecays()
         {
             var layout = new GridLayout(9, 9, float2.zero);

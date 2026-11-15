@@ -1,6 +1,6 @@
 # Stand: was es gibt, wie man es spielt und testet
 
-> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-08**, Meilenstein **M4 Schlacht** läuft (neu: **Reiterei** mit Lanze, Niederreiten, Brace und Schildwall; der **Held reitet**, Reiter werden als Formation geführt, der Kommandant setzt sie gezielt ein; **drei Karten mit Aufstellungsphase**; Pferd, Lanze, Bäume und Felsen kommen aus der Pipeline), **M3 Feldherr** ist fertig und das Fun-Gate bestanden: **Haltung** (Stellung halten, Reagieren, Aggressiv), **Bedrohungen**, ein **Kommandant für den Feind**, eine **Prognose** (Lanchester), **Bogenschützen** auf beiden Seiten und die **Schlacht 50 gegen 50**, die sich auch ganz von oben führen lässt. Soldaten fliehen deutlich später, und die zuerst erzeugte Seite hat keinen versteckten Vorteil mehr. Formationen greifen von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst, und sie drehen die Front, wenn der Feind in Flanke oder Rücken steht. Der Feind in der Kompanie entscheidet jetzt selbst: angreifen, flankieren, halten oder zurückweichen, sichtbar auf F3. Unter Beschuss bilden haltende Formationen den Schildwall. **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
+> Wird nach jeder Iteration im selben Commit aktualisiert (CLAUDE.md, Arbeitsregeln). Stand: **2026-11-15**, Meilenstein **M4 Schlacht** läuft (neu: **Reiterei** mit Lanze, Niederreiten, Brace und Schildwall; der **Held reitet**, Reiter werden als Formation geführt, der Kommandant setzt sie gezielt ein; **drei Karten mit Aufstellungsphase**; Pferd, Lanze, Bäume und Felsen kommen aus der Pipeline), **M3 Feldherr** ist fertig und das Fun-Gate bestanden: **Haltung** (Stellung halten, Reagieren, Aggressiv), **Bedrohungen**, ein **Kommandant für den Feind**, eine **Prognose** (Lanchester), **Bogenschützen** auf beiden Seiten und die **Schlacht 50 gegen 50**, die sich auch ganz von oben führen lässt. Soldaten fliehen deutlich später, und die zuerst erzeugte Seite hat keinen versteckten Vorteil mehr. Formationen greifen von selbst an, wenn ein Feind nahe kommt, auch eine Formation, die du hinter den Feind stellst, und sie drehen die Front, wenn der Feind in Flanke oder Rücken steht. Der Feind in der Kompanie entscheidet jetzt selbst: angreifen, flankieren, halten oder zurückweichen, sichtbar auf F3. Unter Beschuss bilden haltende Formationen den Schildwall. **M2 Kompanie ist abgeschlossen**: Fun-Gate am 2026-11-01 bestanden (Tarik: „alles in allem cool“). M1 Duell seit 2026-10-19.
 
 ## Sofort spielen
 
@@ -166,15 +166,19 @@ Ohne Befehl gewinnst du 4 von 6 als untätiger Held und 4 von 6 aus der Kommando
 
 ## Karten mit Aufstellung (`M2_Company` mit `Battle_Map_*`)
 
-Hauptmenü → Schlacht wählen → Hügelland, Waldrand oder Sumpfpass. 100 gegen 100 mit Reiterei, du reitest selbst.
+Hauptmenü → Schlacht wählen → Hügelland, Waldrand oder Sumpfpass. 100 gegen 100 mit Reiterei, du reitest selbst. Jede Karte ist 400 m groß, der Boden wellt sich überall, die Heere starten gut 120 m auseinander. Jenseits des Rands steigen bewaldete Hügel an, die Bäume sind 14 bis 22 m hoch mit Kronen weit oben, darunter Büsche.
+
+![Hügelland auf Bodenhöhe](screenshots/m4-maps-ground.png)
+
+![Waldrand: hohe Bäume, Unterholz](screenshots/m4-maps-forest.png)
 
 | Karte | Gelände |
 |---|---|
-| Hügelland | großer Hügel links in der Mitte, kleinerer rechts, einer nah am Feind, Wäldchen rechts |
-| Waldrand | großer Wald links, Hügel rechts, kleiner Sumpf davor |
-| Sumpfpass | Sümpfe links und rechts, in der Mitte ein Durchgang mit flachem Hügel |
+| Hügelland | großer Hügel links in der Mitte, kleinerer rechts, einer nah am Feind, Hügel und Wäldchen an den Rändern |
+| Waldrand | großer Wald links, Hügel rechts, kleiner Sumpf davor, Wälder und Hügel in den Ecken |
+| Sumpfpass | Sümpfe links und rechts, in der Mitte ein Durchgang mit flachem Hügel, hohe Hügel in den vier Ecken |
 
-Vor der Schlacht bleibt die Kamera oben, nichts bewegt sich, der Feind wartet. Stelle dein Heer im blauen Feld auf:
+Vor der Schlacht bleibt die Kamera oben, nichts bewegt sich, der Feind wartet. Stelle dein Heer im blauen Feld auf (320 × 135 m). Rechtsklick und gezogene Linie richten die Front immer zum nächsten Feind:
 
 | Was | Eingabe |
 |---|---|
@@ -185,7 +189,7 @@ Vor der Schlacht bleibt die Kamera oben, nichts bewegt sich, der Feind wartet. S
 | Blick | WASD, Mausrad |
 | Schlacht beginnen | Enter oder der Knopf oben |
 
-Deine Reiter greifen mit Schlachtbeginn an; mit „Halten“ in der Aufstellung bleiben sie stehen. Ohne Befehl gewinnst du als untätiger Held auf Hügelland 1 von 6, am Waldrand 5 von 6, am Sumpfpass 3 von 6. 0,37 bis 0,40 ms pro Tick, 452 FPS im Build.
+Deine Reiter greifen mit Schlachtbeginn an; mit „Halten“ in der Aufstellung bleiben sie stehen. Ohne Befehl gewinnst du als untätiger Held auf Hügelland 0 von 6, am Waldrand 0 von 6, am Sumpfpass 2 von 6: Auf dem weiten Feld musst du führen. 0,9 ms pro Tick im Median (p95 1,1 bis 1,3 ms), 142 bis 161 FPS im Build bei 1080p (vor den großen Karten etwa 350).
 
 ![Aufstellung](screenshots/m4-deployment.png)
 
@@ -303,6 +307,7 @@ Schadenswerte (Preset Mittel, stehendes Ziel): Schwert oben 63, Seite 33, Stich 
 - **Schlacht (Tarik):** Als Spieler untätig zu bleiben, verliert 50 gegen 50 in 6 von 6 Läufen nach rund 50 s: Der Held steht dann offen im Pfeilhagel. Aus der Kommandoansicht ohne Befehle gewinnt deine Seite 2 von 6 (84 bis 147 s)
 - **Speer (Tarik):** Stärke, Reichweite und Rundumschlag sind ein erster Vorschlag; ein Stich macht 56 Schaden, das ist viel. Der Speer ist aus Figuren-Sicht nicht von Hand gespielt. Brace gibt es seit der Reiterei: Der Block des Speers gegen einen Reiter
 - **Massen-Rendering:** Auf diesem Rechner im Schnitt 3 % weniger FPS (CPU-Engpass beim Stellen), dafür ruhigere Frames und viel weniger Zeichenaufrufe. Auf einem schwachen Rechner ist es nicht gemessen; das wäre ein guter Test vor dem Fun-Gate
+- **Große Karten (Tarik):** Ohne Befehl verliert der untätige Held auf allen drei Karten fast immer, vorher gewann er am Waldrand 5 von 6. Vermutlich reiten deine Reiter mit Schlachtbeginn allein über 120 m in den Feind. Die Bildrate ist auf etwa 150 FPS gefallen (Bäume, Horizont, größeres Relief), nicht auf einem schwachen Rechner gemessen. Pfeile fliegen erst ab 16 m über den Wald
 - **Karten und Aufstellung (Tarik):** Gelände, Zonen und Startpositionen sind ein erster Vorschlag (`Data/Maps`). Der Feind stellt sich fest nach Daten auf, er reagiert nicht auf deine Aufstellung (`IDEAS.md`). Zonen begrenzen den Mittelpunkt einer Formation, am Rand ragt sie etwas hinaus. Hügelland ohne Befehl verlierst du meist, dort lohnt die Aufstellung; ob das zu hart ist, zeigt das Spielen. Die Aufstellung selbst habe ich nicht bedient, nur per Test und Screenshot geprüft
 - **Reiterei (Tarik):** Tempo, Wendekreis, Lanzenwucht, Niederreiten (500 kg, 2,5 %, 75 % Tempo pro Mann), Brace und Scheuen sind ein erster Vorschlag (`CombatTuning_*`, Kopf „Cavalry“; `AgentMovement_Default`, Kopf „Horse“). Führung, Lenkung und Kamera des reitenden Helden sind ein erster Vorschlag (`Formation_Default`, `Commander_Default`, Kopf „Riders“; `ThirdPersonCamera.mountedOffset`). Das Reiten selbst habe ich nicht gespielt, nur per Test und Screenshot geprüft. Bot-Reiter tragen nur die Lanze; wer steckenbleibt, reitet weg und greift neu an. Absitzen gibt es nicht. Ein Schwert schlägt nur nach vorn zur Blickrichtung des Pferdes. Pfeile treffen den Reiter, das Pferd selbst ist kein Ziel
 - **Schlacht am Wald (Tarik):** Ohne Befehl gewinnst du 4 von 6 als untätiger Held und 4 von 6 aus der Kommandoansicht. Der Kommandant nutzt Wald und Sumpf nicht gezielt, nur seine Wege weichen ihnen aus. Bäume sind Kegel, Soldaten laufen durch sie hindurch; Dichte, Tempo und Pfeilschutz sind ein erster Vorschlag

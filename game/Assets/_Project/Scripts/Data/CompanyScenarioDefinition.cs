@@ -194,6 +194,7 @@ namespace Shieldbreak.Data
         /// <summary>Spawns the hero (agent 0), then every unit in list order; returns the hero's agent id.</summary>
         public int Spawn(SimWorld world)
         {
+            if (map != null) world.AddRolling(map.rolling, map.rollingWavelength, map.rollingSeed);
             foreach (var hill in map != null ? map.hills : hills) world.AddHill(hill.centre, hill.radius, hill.height);
             foreach (var area in map != null ? map.areas : areas) world.PaintArea(area.centre, area.radius, area.kind);
             float2 heroFacing = math.normalizesafe((float2)(heroFacesTowards - heroPosition), new float2(0f, 1f));

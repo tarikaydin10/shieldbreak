@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Shieldbreak.Data::Shieldbreak.Data.CompanyScenarioDefinition
   seed: 1
   inputDelayTicks: 1
-  mapSize: 200
+  mapSize: 400
   agentRadius: 0.3
   weapons:
   - {fileID: 11400000, guid: 8a86d0d595f33364c9019681623497d4, type: 2}
@@ -28,8 +28,8 @@ MonoBehaviour:
   morale: {fileID: 11400000, guid: 5b1b1f6f611648b899c8fd3d3241bf82, type: 2}
   commander: {fileID: 11400000, guid: bd3de31d08fa4c728b81128ab473dc1f, type: 2}
   maxProjectiles: 400
-  heroPosition: {x: 100, y: 66}
-  heroFacesTowards: {x: 100, y: 130}
+  heroPosition: {x: 200, y: 132}
+  heroFacesTowards: {x: 200, y: 260}
   heroLoadout: 040000000000000003000000
   heroSpeedScale: 1.6
   heroAccelScale: 4
@@ -45,8 +45,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 0
     sideWeapon: -1
-    front: {x: 62, y: 70}
-    faceTowards: {x: 62, y: 130}
+    front: {x: 152.5, y: 140}
+    faceTowards: {x: 152.5, y: 260}
     startBehavior: 0
   - name: Schildwall
     team: 0
@@ -56,8 +56,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 0
     sideWeapon: -1
-    front: {x: 100, y: 70}
-    faceTowards: {x: 100, y: 130}
+    front: {x: 200, y: 140}
+    faceTowards: {x: 200, y: 260}
     startBehavior: 0
   - name: Speere
     team: 0
@@ -67,8 +67,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 3
     sideWeapon: -1
-    front: {x: 138, y: 70}
-    faceTowards: {x: 138, y: 130}
+    front: {x: 247.5, y: 140}
+    faceTowards: {x: 247.5, y: 260}
     startBehavior: 0
   - name: Reiter
     team: 0
@@ -78,8 +78,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 4
     sideWeapon: -1
-    front: {x: 170, y: 60}
-    faceTowards: {x: 170, y: 130}
+    front: {x: 287.5, y: 120}
+    faceTowards: {x: 287.5, y: 260}
     startBehavior: 2
     mounted: 1
   - name: Schuetzen links
@@ -90,8 +90,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 2
     sideWeapon: 0
-    front: {x: 76, y: 50}
-    faceTowards: {x: 76, y: 130}
+    front: {x: 170, y: 100}
+    faceTowards: {x: 170, y: 260}
     startBehavior: 5
   - name: Schuetzen rechts
     team: 0
@@ -101,8 +101,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 2
     sideWeapon: 0
-    front: {x: 124, y: 50}
-    faceTowards: {x: 124, y: 130}
+    front: {x: 230, y: 100}
+    faceTowards: {x: 230, y: 260}
     startBehavior: 5
   - name: Feind Linie links
     team: 1
@@ -112,8 +112,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 0
     sideWeapon: -1
-    front: {x: 62, y: 130}
-    faceTowards: {x: 62, y: 70}
+    front: {x: 152.5, y: 260}
+    faceTowards: {x: 152.5, y: 140}
     startBehavior: 1
   - name: Feind Schildwall
     team: 1
@@ -123,8 +123,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 0
     sideWeapon: -1
-    front: {x: 100, y: 130}
-    faceTowards: {x: 100, y: 70}
+    front: {x: 200, y: 260}
+    faceTowards: {x: 200, y: 140}
     startBehavior: 1
   - name: Feind Speere
     team: 1
@@ -134,8 +134,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 3
     sideWeapon: -1
-    front: {x: 138, y: 130}
-    faceTowards: {x: 138, y: 70}
+    front: {x: 247.5, y: 260}
+    faceTowards: {x: 247.5, y: 140}
     startBehavior: 1
   - name: Feind Reiter
     team: 1
@@ -145,8 +145,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 4
     sideWeapon: -1
-    front: {x: 30, y: 140}
-    faceTowards: {x: 30, y: 70}
+    front: {x: 112.5, y: 280}
+    faceTowards: {x: 112.5, y: 140}
     startBehavior: 1
     mounted: 1
   - name: Feind Schuetzen links
@@ -157,8 +157,8 @@ MonoBehaviour:
     botLevel: 3
     weapon: 2
     sideWeapon: 0
-    front: {x: 76, y: 150}
-    faceTowards: {x: 76, y: 70}
+    front: {x: 170, y: 300}
+    faceTowards: {x: 170, y: 140}
     startBehavior: 5
   - name: Feind Schuetzen rechts
     team: 1
@@ -168,6 +168,6 @@ MonoBehaviour:
     botLevel: 3
     weapon: 2
     sideWeapon: 0
-    front: {x: 124, y: 150}
-    faceTowards: {x: 124, y: 70}
+    front: {x: 230, y: 300}
+    faceTowards: {x: 230, y: 140}
     startBehavior: 5

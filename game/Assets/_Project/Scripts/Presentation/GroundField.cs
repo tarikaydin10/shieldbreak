@@ -46,17 +46,42 @@ namespace Shieldbreak.Presentation
         [Range(0f, 1f)] public float rocksPerCell = 0.008f;
         [Tooltip("Smallest and largest scale of a rock.")]
         public Vector2 rockScale = new Vector2(0.7f, 1.5f);
-        [Tooltip("Share of the forest cells with a tree: thin enough to see the soldiers.")]
-        [Range(0f, 1f)] public float treesPerCell = 0.06f;
+        [Tooltip("Share of the forest cells with a tree. The crowns sit high, so the soldiers stay visible under them.")]
+        [Range(0f, 1f)] public float treesPerCell = 0.07f;
         [Tooltip("Smallest and largest height of a tree (m).")]
-        public Vector2 treeHeight = new Vector2(6f, 9f);
+        public Vector2 treeHeight = new Vector2(14f, 22f);
+        [Tooltip("Bush models (ENV_bush_*), the undergrowth of the forest.")]
+        public GameObject[] bushModels = System.Array.Empty<GameObject>();
+        [Tooltip("Share of the forest cells with a bush.")]
+        [Range(0f, 1f)] public float bushesPerCell = 0.05f;
+        [Tooltip("Share of the open cells with a bush.")]
+        [Range(0f, 1f)] public float openBushesPerCell = 0.002f;
+        [Tooltip("Smallest and largest scale of a bush.")]
+        public Vector2 bushScale = new Vector2(0.8f, 1.6f);
+
+        [Header("Backdrop beyond the map (a map with relief)")]
+        [Tooltip("How far the land goes on beyond the map edge (m); nobody walks there, it is the horizon.")]
+        [Min(0f)] public float backdrop = 140f;
+        [Tooltip("Flat strip along the map edge before the land rises (m).")]
+        [Min(0f)] public float backdropFlat = 12f;
+        [Tooltip("Height the hills beyond the map reach at the far end (m), on average.")]
+        [Min(0f)] public float backdropHeight = 26f;
+        [Tooltip("Length of the hills beyond the map (m).")]
+        [Min(5f)] public float backdropWavelength = 70f;
+        [Tooltip("Share of the land beyond the map under forest.")]
+        [Range(0f, 1f)] public float backdropForest = 0.45f;
+        [Tooltip("Distance between the trees of the forest beyond the map (m).")]
+        [Min(1f)] public float backdropTreeSpacing = 6f;
 
         GameObject relief;
         Material reliefMaterial;
         Texture2D reliefTexture;
-        GeneratedModel[] treeKinds = System.Array.Empty<GeneratedModel>(), rockKinds = System.Array.Empty<GeneratedModel>();
-        /// <summary>Planted instances per model: the trees first, then the rocks.</summary>
-        Matrix4x4[][] planted = System.Array.Empty<Matrix4x4[]>();
+        /// <summary>Every model that is planted: trees, then bushes, then rocks.</summary>
+        GeneratedModel[] kinds = System.Array.Empty<GeneratedModel>();
+        int treeCount, bushCount;
+        /// <summary>Planted instances per model, on the map (with shadows) and beyond it (without).</summary>
+        Matrix4x4[][] planted = System.Array.Empty<Matrix4x4[]>(), plantedFar = System.Array.Empty<Matrix4x4[]>();
+        WorldGrid ground;
         Material modelMaterial;
         int firstForest, firstSwamp, columns;
 
@@ -110,7 +135,7 @@ namespace Shieldbreak.Presentation
         void ClearRelief()
         {
             if (relief != null) Destroy(relief);
-            planted = System.Array.Empty<Matrix4x4[]>();
+            planted = plantedFar = System.Array.Empty<Matrix4x4[]>();
         }
 
         void OnDestroy()
@@ -121,22 +146,55 @@ namespace Shieldbreak.Presentation
             if (modelMaterial != null) Destroy(modelMaterial);
         }
 
-        /// <summary>Flat-shaded triangles over the map and its margin, every triangle with its own vertices and one colour.</summary>
+        /// <summary>Metres a point lies outside the map (0 on it).</summary>
+        static float Outside(in Shieldbreak.Sim.Grid.GridLayout layout, float2 p)
+        {
+            float2 min = layout.Origin, max = layout.Origin + new float2(layout.Width, layout.Height);
+            return math.distance(p, math.clamp(p, min, max));
+        }
+
+        /// <summary>
+        /// Height of the ground the camera sees: the sim's heights on the map, beyond it the border height plus hills that
+        /// rise towards the horizon. Presentation only; nobody stands beyond the edge.
+        /// </summary>
+        float GroundHeight(WorldGrid grid, float2 p)
+        {
+            float h = grid.HeightAt(p);
+            float outside = Outside(grid.Layout, p);
+            if (outside <= backdropFlat) return h;
+            float t = Mathf.SmoothStep(0f, 1f, (outside - backdropFlat) / Mathf.Max(1f, backdrop - backdropFlat));
+            float hills = Mathf.PerlinNoise(p.x / backdropWavelength + 31.7f, p.y / backdropWavelength + 57.3f);
+            return h + backdropHeight * t * (0.3f + 1.4f * hills);
+        }
+
+        /// <summary>Forest beyond the map: patches of noise, never on the flat strip along the edge.</summary>
+        bool BackdropForest(WorldGrid grid, float2 p) =>
+            Outside(grid.Layout, p) > backdropFlat * 0.5f
+            && Mathf.PerlinNoise(p.x / 38f + 5.1f, p.y / 38f + 9.7f) > 0.72f - 0.45f * backdropForest;
+
+        GroundKind KindOf(WorldGrid grid, float2 p) =>
+            Outside(grid.Layout, p) <= 0f ? grid.KindAt(p) : BackdropForest(grid, p) ? GroundKind.Forest : GroundKind.Open;
+
+        /// <summary>Flat-shaded triangles over the map and the land beyond it, every triangle with its own vertices and one colour.</summary>
         void BuildRelief(WorldGrid grid)
         {
             var layout = grid.Layout;
             var material = ReliefMaterial();
-            int cellsX = Mathf.CeilToInt((layout.Width + 2f * margin) / reliefCell);
-            int cellsY = Mathf.CeilToInt((layout.Height + 2f * margin) / reliefCell);
+            float edge = Mathf.Max(margin, backdrop);
+            int cellsX = Mathf.CeilToInt((layout.Width + 2f * edge) / reliefCell);
+            int cellsY = Mathf.CeilToInt((layout.Height + 2f * edge) / reliefCell);
             var vertices = new Vector3[cellsX * cellsY * 6];
             var uvs = new Vector2[vertices.Length];
             var triangles = new int[vertices.Length];
-            float2 origin = layout.Origin - margin;
-            Vector3 Corner(int x, int y)
+            float2 origin = layout.Origin - edge;
+            var corners = new Vector3[(cellsX + 1) * (cellsY + 1)];
+            for (int y = 0; y <= cellsY; y++)
+            for (int x = 0; x <= cellsX; x++)
             {
                 float2 p = origin + new float2(x, y) * reliefCell;
-                return new Vector3(p.x, grid.HeightAt(p), p.y);
+                corners[y * (cellsX + 1) + x] = new Vector3(p.x, GroundHeight(grid, p), p.y);
             }
+            Vector3 Corner(int x, int y) => corners[y * (cellsX + 1) + x];
 
             int n = 0;
             for (int y = 0; y < cellsY; y++)
@@ -144,7 +202,7 @@ namespace Shieldbreak.Presentation
             {
                 Vector3 a = Corner(x, y), b = Corner(x + 1, y), c = Corner(x + 1, y + 1), d = Corner(x, y + 1);
                 // Clockwise from above: the side facing the sky
-                var kind = grid.KindAt(origin + (new float2(x, y) + 0.5f) * reliefCell);
+                var kind = KindOf(grid, origin + (new float2(x, y) + 0.5f) * reliefCell);
                 n = Triangle(vertices, uvs, triangles, n, a, d, b, kind, x * 73 + y * 179);
                 n = Triangle(vertices, uvs, triangles, n, b, d, c, kind, x * 151 + y * 37 + 11);
             }
@@ -204,60 +262,125 @@ namespace Shieldbreak.Presentation
         }
 
         /// <summary>
-        /// One tree per so many forest cells, a rock now and then in forest and swamp; the same on every start of the map.
-        /// The dice come from the cell, never from the sim.
+        /// Trees and bushes in the forest, a bush now and then on open ground, a rock now and then in forest and swamp; beyond
+        /// the map a forest on the hills of the horizon. The same on every start of the map: the dice come from the cell,
+        /// never from the sim.
         /// </summary>
         void Plant(WorldGrid grid)
         {
-            treeKinds = Read(treeModels);
-            rockKinds = Read(rockModels);
-            var lists = new List<Matrix4x4>[treeKinds.Length + rockKinds.Length];
-            for (int k = 0; k < lists.Length; k++) lists[k] = new List<Matrix4x4>();
+            ground = grid;
+            var trees = Read(treeModels);
+            var bushes = Read(bushModels);
+            var rocks = Read(rockModels);
+            treeCount = trees.Length;
+            bushCount = bushes.Length;
+            kinds = new GeneratedModel[trees.Length + bushes.Length + rocks.Length];
+            trees.CopyTo(kinds, 0);
+            bushes.CopyTo(kinds, treeCount);
+            rocks.CopyTo(kinds, treeCount + bushCount);
+            var near = new List<Matrix4x4>[kinds.Length];
+            var far = new List<Matrix4x4>[kinds.Length];
+            for (int k = 0; k < kinds.Length; k++)
+            {
+                near[k] = new List<Matrix4x4>();
+                far[k] = new List<Matrix4x4>();
+            }
+
             var layout = grid.Layout;
             for (int index = 0; index < layout.CellCount; index++)
             {
-                byte kind = grid.Ground[index];
-                if (kind == (byte)GroundKind.Open) continue;
+                var kind = (GroundKind)grid.Ground[index];
                 var dice = new Unity.Mathematics.Random((uint)index * 2654435761u + 1u);
                 float2 at = layout.CellCenter(layout.IndexToCell(index)) + dice.NextFloat2(-0.5f, 0.5f);
-                var turn = Quaternion.Euler(0f, dice.NextFloat(360f), 0f);
                 float roll = dice.NextFloat();
-                if (kind == (byte)GroundKind.Forest && roll < treesPerCell && treeKinds.Length > 0)
+                if (kind == GroundKind.Forest && roll < treesPerCell) AddTree(near, ref dice, at, grid.HeightAt(at));
+                else if (kind == GroundKind.Forest && roll < treesPerCell + bushesPerCell) AddBush(near, ref dice, at, grid.HeightAt(at));
+                else if (kind == GroundKind.Open && roll < openBushesPerCell) AddBush(near, ref dice, at, grid.HeightAt(at));
+                else if (kind != GroundKind.Open && roll > 1f - rocksPerCell) AddRock(near, ref dice, at, grid.HeightAt(at));
+            }
+
+            // Beyond the map: a lattice of spots, each a tree where the forest is, sometimes a bush or rock elsewhere
+            float edge = Mathf.Max(margin, backdrop);
+            int spots = Mathf.CeilToInt((Mathf.Max(layout.Width, layout.Height) + 2f * edge) / backdropTreeSpacing);
+            float2 origin = layout.Origin - edge;
+            for (int y = 0; y < spots; y++)
+            for (int x = 0; x < spots; x++)
+            {
+                var dice = new Unity.Mathematics.Random((uint)(y * spots + x) * 2246822519u + 7u);
+                float2 at = origin + (new float2(x, y) + dice.NextFloat2(0.1f, 0.9f)) * backdropTreeSpacing;
+                if (Outside(layout, at) <= 1f) continue;
+                float h = GroundHeight(grid, at);
+                if (BackdropForest(grid, at)) AddTree(far, ref dice, at, h);
+                else
                 {
-                    int pick = dice.NextInt(treeKinds.Length);
-                    float height = Mathf.Lerp(treeHeight.x, treeHeight.y, dice.NextFloat());
-                    float scale = height / Mathf.Max(0.1f, treeKinds[pick].Bounds.size.y);
-                    lists[pick].Add(Matrix4x4.TRS(SimRunner.ToWorld(at), turn, Vector3.one * scale) * treeKinds[pick].Matrix);
-                }
-                else if (roll > 1f - rocksPerCell && rockKinds.Length > 0)
-                {
-                    int pick = dice.NextInt(rockKinds.Length);
-                    float scale = Mathf.Lerp(rockScale.x, rockScale.y, dice.NextFloat());
-                    lists[treeKinds.Length + pick].Add(Matrix4x4.TRS(SimRunner.ToWorld(at, -0.1f), turn, Vector3.one * scale) * rockKinds[pick].Matrix);
+                    float roll = dice.NextFloat();
+                    if (roll < 0.04f) AddBush(far, ref dice, at, h);
+                    else if (roll > 0.985f) AddRock(far, ref dice, at, h);
                 }
             }
-            planted = new Matrix4x4[lists.Length][];
-            for (int k = 0; k < lists.Length; k++) planted[k] = lists[k].ToArray();
-            if (modelMaterial == null && lists.Length > 0)
+
+            planted = new Matrix4x4[kinds.Length][];
+            plantedFar = new Matrix4x4[kinds.Length][];
+            for (int k = 0; k < kinds.Length; k++)
             {
-                var palette = (treeModels.Length > 0 ? treeModels[0] : rockModels[0]).GetComponentInChildren<MeshRenderer>(true);
+                planted[k] = near[k].ToArray();
+                plantedFar[k] = far[k].ToArray();
+            }
+            if (modelMaterial == null && kinds.Length > 0)
+            {
+                var any = treeModels.Length > 0 ? treeModels[0] : bushModels.Length > 0 ? bushModels[0] : rockModels[0];
+                var palette = any.GetComponentInChildren<MeshRenderer>(true);
                 var scene = palette != null && palette.sharedMaterial != null ? palette.sharedMaterial : transform.GetChild(0).GetComponentInChildren<MeshRenderer>(true).sharedMaterial;
                 modelMaterial = new Material(scene) { hideFlags = HideFlags.HideAndDontSave, enableInstancing = true };
             }
         }
 
+        void AddTree(List<Matrix4x4>[] lists, ref Unity.Mathematics.Random dice, float2 at, float height)
+        {
+            if (treeCount == 0) return;
+            int pick = dice.NextInt(treeCount);
+            float tall = Mathf.Lerp(treeHeight.x, treeHeight.y, dice.NextFloat());
+            float scale = tall / Mathf.Max(0.1f, kinds[pick].Bounds.size.y);
+            var turn = Quaternion.Euler(0f, dice.NextFloat(360f), 0f);
+            lists[pick].Add(Matrix4x4.TRS(new Vector3(at.x, height, at.y), turn, Vector3.one * scale) * kinds[pick].Matrix);
+        }
+
+        void AddBush(List<Matrix4x4>[] lists, ref Unity.Mathematics.Random dice, float2 at, float height)
+        {
+            if (bushCount == 0) return;
+            int pick = treeCount + dice.NextInt(bushCount);
+            float scale = Mathf.Lerp(bushScale.x, bushScale.y, dice.NextFloat());
+            var turn = Quaternion.Euler(0f, dice.NextFloat(360f), 0f);
+            lists[pick].Add(Matrix4x4.TRS(new Vector3(at.x, height - 0.05f, at.y), turn, Vector3.one * scale) * kinds[pick].Matrix);
+        }
+
+        void AddRock(List<Matrix4x4>[] lists, ref Unity.Mathematics.Random dice, float2 at, float height)
+        {
+            int rocks = kinds.Length - treeCount - bushCount;
+            if (rocks == 0) return;
+            int pick = treeCount + bushCount + dice.NextInt(rocks);
+            float scale = Mathf.Lerp(rockScale.x, rockScale.y, dice.NextFloat());
+            var turn = Quaternion.Euler(0f, dice.NextFloat(360f), 0f);
+            lists[pick].Add(Matrix4x4.TRS(new Vector3(at.x, height - 0.1f, at.y), turn, Vector3.one * scale) * kinds[pick].Matrix);
+        }
+
         void LateUpdate()
         {
             if (planted.Length == 0 || modelMaterial == null) return;
-            var rp = new RenderParams(modelMaterial) { shadowCastingMode = ShadowCastingMode.On, receiveShadows = true };
-            const int chunk = 1023;
+            var near = new RenderParams(modelMaterial) { shadowCastingMode = ShadowCastingMode.On, receiveShadows = true };
+            var far = new RenderParams(modelMaterial) { shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true };
             for (int k = 0; k < planted.Length; k++)
             {
-                var mesh = k < treeKinds.Length ? treeKinds[k].Mesh : rockKinds[k - treeKinds.Length].Mesh;
-                var list = planted[k];
-                for (int start = 0; start < list.Length; start += chunk)
-                    Graphics.RenderMeshInstanced(rp, mesh, 0, list, Mathf.Min(chunk, list.Length - start), start);
+                Draw(near, kinds[k].Mesh, planted[k]);
+                Draw(far, kinds[k].Mesh, plantedFar[k]);
             }
+        }
+
+        static void Draw(RenderParams rp, Mesh mesh, Matrix4x4[] list)
+        {
+            const int chunk = 1023;
+            for (int start = 0; start < list.Length; start += chunk)
+                Graphics.RenderMeshInstanced(rp, mesh, 0, list, Mathf.Min(chunk, list.Length - start), start);
         }
 
         Vector2Int Tile(Vector3 position) =>

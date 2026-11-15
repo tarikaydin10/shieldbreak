@@ -59,6 +59,14 @@ namespace Shieldbreak.Sim.Grid
             HasRelief = true;
         }
 
+        /// <summary>Rolls the ground of the whole map (Terrain.AddRolling). Scenario setup, before the first tick.</summary>
+        public void AddRolling(float amplitude, float wavelength, uint seed)
+        {
+            if (amplitude == 0f) return;
+            Terrain.AddRolling(Heights, Layout, amplitude, wavelength, seed);
+            HasRelief = true;
+        }
+
         /// <summary>Makes a round area this kind of ground, with this cost on the way. Blocked cells stay blocked. Scenario setup.</summary>
         public void PaintArea(float2 centre, float radius, GroundKind kind, byte cost)
         {

@@ -5,8 +5,8 @@
   "seed": 3,
   "params": {
     "kind": "pine",
-    "height": 7.5,
-    "tiers": 3
+    "height": 20,
+    "tiers": 5
   },
   "colors": {
     "trunk": "wood_dark",

@@ -21,6 +21,12 @@ namespace Shieldbreak.Data
         public string displayName = "Karte";
         [Tooltip("Size in 1 m cells (square).")]
         [Min(16)] public int size = 200;
+        [Tooltip("Rolling ground over the whole map: metres up or down at most (0: flat between the hills).")]
+        [Min(0f)] public float rolling = 0f;
+        [Tooltip("Length of the waves of the rolling ground (m).")]
+        [Min(5f)] public float rollingWavelength = 45f;
+        [Tooltip("Seed of the rolling ground: another number, other waves.")]
+        public uint rollingSeed = 1;
         [Tooltip("Round hills; several add up.")]
         public CompanyScenarioDefinition.Hill[] hills = Array.Empty<CompanyScenarioDefinition.Hill>();
         [Tooltip("Round areas of forest or swamp; later ones paint over earlier ones.")]
